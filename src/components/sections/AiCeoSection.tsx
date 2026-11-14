@@ -60,7 +60,7 @@ export const AiCeoSection: React.FC<AiCeoSectionProps> = ({
     {
       id: 'welcome-1',
       sender: 'ai_ceo',
-      text: `أهلاً بحضرتك يا ${currentPartnerObj.name}! أنا جاهز معاك كمدير تنفيذي ومستشار ذكي متصل بـ **Google Gemini 2.0 Flash**.
+      text: `أهلاً بحضرتك يا ${currentPartnerObj.name}! أنا جاهز معاك كمدير تنفيذي ومستشار ذكي متصل بـ **Google Gemini 1.5 Flash** (النموذج الرسمي المستقر طويل المدى).
 دلوقتي إحنا في **وضع ${mode === 'advisor' ? 'المستشار (Advisor Mode)' : 'التنفيذ (Execution Mode)'}**. 
 
 أولوياتنا الحالية للنهوض بشركة Tecnolobia:
@@ -148,7 +148,7 @@ export const AiCeoSection: React.FC<AiCeoSectionProps> = ({
               <h1 className="text-sm sm:text-base font-black text-white">المدير التنفيذي الذكي (AI CEO)</h1>
               <span className="text-[9px] sm:text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 font-bold border border-indigo-500/20 flex items-center gap-1">
                 <Sparkles className="w-3 h-3 text-pink-400" />
-                <span>Gemini 2.0 Flash</span>
+                <span>Gemini 1.5 Flash</span>
               </span>
             </div>
             <p className="text-[10px] sm:text-[11px] text-slate-400">

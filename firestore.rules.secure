@@ -1,0 +1,107 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions for security, authentication, and role enforcement
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Verified partners: Eng. Mohamed El-Bahr & Eng. Tarek Hafez
+    function isPartner() {
+      return isAuthenticated() && (
+        request.auth.token.email in ['mohamed@tecnolobia.com', 'tarek@tecnolobia.com'] ||
+        request.auth.uid in ['partner_mohamed', 'partner_tarek'] ||
+        (request.auth.token.role != null && request.auth.token.role == 'partner')
+      );
+    }
+
+    function isMohamed() {
+      return isPartner() && (
+        request.auth.token.email == 'mohamed@tecnolobia.com' ||
+        request.auth.uid == 'partner_mohamed'
+      );
+    }
+
+    function isTarek() {
+      return isPartner() && (
+        request.auth.token.email == 'tarek@tecnolobia.com' ||
+        request.auth.uid == 'partner_tarek'
+      );
+    }
+
+    // 1. Audit Logs (سجلات التدقيق الحساسة والعمليات): Tamper-proof, Append-only!
+    // Partners can read; authenticated users can write new records; UPDATE and DELETE are STRICTLY DENIED.
+    match /tecnolobia_audit_logs/{logId} {
+      allow read: if isPartner();
+      allow create: if isAuthenticated() && request.resource.data.action != null;
+      allow update, delete: if false; // منع التلاعب بالسجلات نهائياً
+    }
+
+    // 2. Private Notes (الملاحظات المشفرة الخاصة بكل شريك)
+    // Only the owner can read, write, or delete their private notes
+    match /tecnolobia_private_notes/{noteId} {
+      allow read, write: if isAuthenticated() && (
+        resource == null || 
+        resource.data.ownerId == request.auth.uid ||
+        resource.data.ownerEmail == request.auth.token.email
+      );
+    }
+
+    // 3. Profit Distribution Cycles (دورات توزيع الأرباح والاعتماد المزدوج)
+    match /tecnolobia_profit_cycles/{cycleId} {
+      allow read: if isPartner();
+      allow create: if isPartner() && request.resource.data.status in ['draft', 'pending_approval'];
+      allow update: if isPartner();
+      allow delete: if false; // حماية سجلات ودورات الأرباح من الحذف
+    }
+
+    // 4. Financial Transactions (المعاملات المالية والإيرادات والمصروفات)
+    match /tecnolobia_transactions/{txId} {
+      allow read: if isPartner();
+      allow create: if isPartner() && request.resource.data.amount > 0;
+      allow update: if isPartner();
+      allow delete: if false; // حماية الحسابات المالية من الحذف المباشر لضمان النزاهة المحاسبية
+    }
+
+    // 5. Development Fund & Sadaqah Fund
+    match /tecnolobia_dev_usages/{id} {
+      allow read, write: if isPartner();
+    }
+
+    match /tecnolobia_sadaqah/{id} {
+      allow read, write: if isPartner();
+    }
+
+    // 6. Projects, Tasks, and Clients (CRM)
+    match /tecnolobia_projects/{id} {
+      allow read, write: if isPartner();
+    }
+
+    match /tecnolobia_tasks/{id} {
+      allow read, write: if isPartner();
+    }
+
+    match /tecnolobia_clients/{id} {
+      allow read, write: if isPartner();
+    }
+
+    // 7. Governance Decisions, Company Memories, and Meta
+    match /tecnolobia_decisions/{id} {
+      allow read, write: if isPartner();
+    }
+
+    match /tecnolobia_memories/{id} {
+      allow read, write: if isPartner();
+    }
+
+    match /tecnolobia_meta/{id} {
+      allow read, write: if isPartner();
+    }
+
+    // Default deny for any undefined collection or unauthenticated access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

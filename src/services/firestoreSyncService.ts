@@ -13,6 +13,7 @@ import { ProjectItem, TaskItem } from '../types/projects';
 import { ClientItem } from '../types/crm';
 import { CompanyMeta } from '../types/company';
 import { StrategicDecision, CompanyMemoryItem } from '../types/decisions';
+import { AuditLogItem } from '../types/company';
 import { 
   INITIAL_COMPANY_META, 
   INITIAL_PROJECTS, 
@@ -36,7 +37,8 @@ const COLLECTIONS = {
   SADAQAH: 'tecnolobia_sadaqah',
   DECISIONS: 'tecnolobia_decisions',
   MEMORIES: 'tecnolobia_memories',
-  META: 'tecnolobia_meta'
+  META: 'tecnolobia_meta',
+  AUDIT_LOGS: 'tecnolobia_audit_logs'
 };
 
 export class FirestoreSyncService {
@@ -243,5 +245,27 @@ export class FirestoreSyncService {
   static async saveMemory(memory: CompanyMemoryItem): Promise<void> {
     if (!db) return;
     await setDoc(doc(db, COLLECTIONS.MEMORIES, memory.id), memory);
+  }
+
+  // مزامنة سجلات التدقيق والعمليات الحساسة سحابياً (Cloud Audit Logs)
+  static subscribeAuditLogs(callback: (items: AuditLogItem[]) => void): () => void {
+    if (!db) return () => {};
+    return onSnapshot(collection(db, COLLECTIONS.AUDIT_LOGS), (snapshot) => {
+      const items = snapshot.docs.map(d => d.data() as AuditLogItem);
+      items.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      callback(items);
+    }, (err) => console.warn('Sync audit logs error:', err));
+  }
+
+  static async saveAuditLog(logItem: AuditLogItem): Promise<void> {
+    if (!db) return;
+    try {
+      await setDoc(doc(db, COLLECTIONS.AUDIT_LOGS, logItem.id), {
+        ...logItem,
+        serverCreatedAt: serverTimestamp()
+      });
+    } catch (err) {
+      console.warn('Audit log cloud save notice:', err);
+    }
   }
 }

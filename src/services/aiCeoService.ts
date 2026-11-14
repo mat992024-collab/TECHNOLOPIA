@@ -284,10 +284,10 @@ export class AiCeoService {
   }
 
   /**
-   * دالة الاتصال المباشر بنموذج Google Gemini 2.0 Flash
+   * دالة الاتصال المباشر بنموذج Google Gemini 1.5 Flash المستقر والمدعوم رسمياً
    */
   private static async callGeminiRaw(apiKey: string, prompt: string, systemInstruction?: string): Promise<string> {
-    const model = 'gemini-2.0-flash';
+    const model = 'gemini-1.5-flash';
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
     const contents: any[] = [];
@@ -320,8 +320,8 @@ export class AiCeoService {
     });
 
     if (!res.ok) {
-      // تجربة النموذج البديل gemini-1.5-flash
-      const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+      // تجربة النموذج البديل عالي الذكاء gemini-1.5-pro
+      const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`;
       const fallbackRes = await fetch(fallbackUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

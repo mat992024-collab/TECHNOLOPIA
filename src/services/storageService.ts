@@ -9,6 +9,7 @@ import { ClientItem } from '../types/crm';
 import { PartnerProfile, CompanyMeta, AuditLogItem, PrivateNote, PartnerId } from '../types/company';
 import { AiChatMessage, TokenUsageStats } from '../types/ai';
 import { StrategicDecision, CompanyMemoryItem } from '../types/decisions';
+import { FirestoreSyncService } from './firestoreSyncService';
 import { 
   INITIAL_COMPANY_META, 
   INITIAL_PARTNERS, 
@@ -212,8 +213,11 @@ export class AppStorageService {
       category
     };
     logs.unshift(newLog);
-    // الاحتفاظ بآخر 200 سجل نشاط
+    // الاحتفاظ بآخر 200 سجل نشاط محلياً
     saveToStorage(STORAGE_KEYS.AUDIT_LOGS, logs.slice(0, 200));
+
+    // رفع السجل سحابياً بشكل مؤمن في Firestore
+    FirestoreSyncService.saveAuditLog(newLog).catch(() => {});
   }
 
   static getTokenStats(): TokenUsageStats {

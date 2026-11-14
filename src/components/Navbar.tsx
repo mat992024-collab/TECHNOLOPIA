@@ -4,14 +4,20 @@ import {
   Sparkles, 
   AlertTriangle, 
   Menu, 
-  TrendingUp,
-  Bell,
-  BellRing,
-  CheckCircle2,
-  RefreshCw
+  TrendingUp, 
+  Bell, 
+  BellRing, 
+  CheckCircle2, 
+  RefreshCw,
+  ShieldCheck,
+  Lock,
+  Key,
+  X,
+  LogOut
 } from 'lucide-react';
 import { PartnerProfile, PartnerId, CompanyMeta } from '../types/company';
 import { NotificationService } from '../services/notificationService';
+import { AuthService, AuthenticatedPartner } from '../services/authService';
 
 interface NavbarProps {
   currentPartner: PartnerId;
@@ -37,6 +43,40 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>('default');
   const [showNotifToast, setShowNotifToast] = useState<boolean>(false);
   const [isManualRefreshing, setIsManualRefreshing] = useState<boolean>(false);
+
+  // حالات التوثيق وتسجيل الدخول الآمن للشريكين
+  const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
+  const [targetLoginPartner, setTargetLoginPartner] = useState<PartnerId>(currentPartner);
+  const [secretInput, setSecretInput] = useState<string>('');
+  const [authError, setAuthError] = useState<string>('');
+  const [authSession, setAuthSession] = useState<AuthenticatedPartner | null>(() => AuthService.getCurrentPartner());
+
+  useEffect(() => {
+    return AuthService.subscribe((session) => {
+      setAuthSession(session);
+      if (session && session.partnerId !== currentPartner) {
+        onPartnerSwitch(session.partnerId);
+      }
+    });
+  }, [currentPartner, onPartnerSwitch]);
+
+  const handlePerformLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError('');
+    if (!secretInput.trim()) {
+      setAuthError('يرجى إدخال كلمة المرور أو رمز PIN الخاص بالشريك');
+      return;
+    }
+
+    const res = await AuthService.loginPartner(targetLoginPartner, secretInput.trim());
+    if (res.success) {
+      onPartnerSwitch(targetLoginPartner);
+      setShowAuthModal(false);
+      setSecretInput('');
+    } else {
+      setAuthError(res.error || 'فشل التحقق من هوية الشريك');
+    }
+  };
 
   useEffect(() => {
     setNotifPermission(NotificationService.getPermission());
@@ -157,30 +197,25 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           )}
 
-          {/* محول الشريكين */}
-          <div className="flex items-center bg-slate-950 p-0.5 sm:p-1 rounded-xl border border-slate-800 shadow-inner">
+          {/* هوية الشريك الموثقة ونظام الحوكمة الصارم */}
+          <div className="flex items-center gap-1.5">
             <button
-              onClick={() => onPartnerSwitch('mohamed')}
-              className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs font-bold transition-all ${
-                currentPartner === 'mohamed'
-                  ? 'bg-blue-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
+              onClick={() => {
+                setTargetLoginPartner(currentPartner === 'mohamed' ? 'tarek' : 'mohamed');
+                setShowAuthModal(true);
+              }}
+              className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-xs font-bold transition-all border shadow-sm bg-slate-950 border-slate-800 hover:border-indigo-500/50"
+              title="اضغط للتحقق الأمني أو تبديل الحساب بكلمة السر / PIN"
             >
-              <span className="w-2 h-2 rounded-full bg-blue-300 shrink-0"></span>
-              <span>م. محمد</span>
-            </button>
-            
-            <button
-              onClick={() => onPartnerSwitch('tarek')}
-              className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs font-bold transition-all ${
-                currentPartner === 'tarek'
-                  ? 'bg-emerald-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <span className="w-2 h-2 rounded-full bg-emerald-300 shrink-0"></span>
-              <span>م. طارق</span>
+              <span className={`w-2 h-2 rounded-full shrink-0 ${currentPartner === 'mohamed' ? 'bg-blue-400' : 'bg-emerald-400'}`} />
+              <span className="text-white text-[11px] sm:text-xs">
+                {currentPartner === 'mohamed' ? 'م. محمد البحر' : 'م. طارق حافظ'}
+              </span>
+              <span className="flex items-center gap-0.5 text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-500/10 text-emerald-400 font-mono">
+                <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                <span className="hidden sm:inline">موثق</span>
+              </span>
+              <Lock className="w-3 h-3 text-slate-500" />
             </button>
           </div>
 
@@ -196,6 +231,109 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
       </div>
+
+      {/* نافذة التحقق من هوية الشريك (Authentication Modal) */}
+      {showAuthModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+          <div className="bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+            <div className="flex items-start justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-indigo-500/20 text-indigo-400 rounded-xl">
+                  <Lock className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm sm:text-base font-black text-white">توثيق هوية الشريك والمصادقة</h3>
+                  <p className="text-[11px] text-slate-400">حماية الصلاحيات والقرارات المالية الحساسة</p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setShowAuthModal(false);
+                  setAuthError('');
+                  setSecretInput('');
+                }}
+                className="text-slate-400 hover:text-white p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handlePerformLogin} className="space-y-4 text-xs">
+              <div>
+                <label className="block text-slate-300 font-bold mb-1.5">الشريك المطلوب تسجيل الدخول بحسابه:</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setTargetLoginPartner('mohamed')}
+                    className={`p-2.5 rounded-xl font-bold text-center border transition-all ${
+                      targetLoginPartner === 'mohamed'
+                        ? 'bg-blue-600 border-blue-500 text-white shadow-md'
+                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    م. محمد البحر
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTargetLoginPartner('tarek')}
+                    className={`p-2.5 rounded-xl font-bold text-center border transition-all ${
+                      targetLoginPartner === 'tarek'
+                        ? 'bg-emerald-600 border-emerald-500 text-white shadow-md'
+                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    م. طارق حافظ
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-bold mb-1.5">كلمة المرور / رمز PIN الخاص بالشريك:</label>
+                <div className="relative">
+                  <input
+                    type="password"
+                    required
+                    placeholder="••••••••"
+                    value={secretInput}
+                    onChange={(e) => setSecretInput(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white font-mono text-center tracking-widest text-sm focus:outline-none focus:border-indigo-500"
+                  />
+                  <Key className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                </div>
+                <span className="text-[10px] text-slate-400 block mt-1">
+                  (الرمز الافتراضي المعتمد للشريكين: 2026 أو كلمة سر الحساب)
+                </span>
+              </div>
+
+              {authError && (
+                <div className="p-2.5 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-xl text-[11px] font-bold">
+                  {authError}
+                </div>
+              )}
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAuthModal(false);
+                    setAuthError('');
+                    setSecretInput('');
+                  }}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-bold"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold shadow-md"
+                >
+                  تأكيد الدخول
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* رسالة تأكيد تفعيل الإشعارات */}
       {showNotifToast && (
