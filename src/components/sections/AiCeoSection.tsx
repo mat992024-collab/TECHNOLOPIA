@@ -12,11 +12,15 @@ import {
   Briefcase, 
   Bot,
   Zap,
-  ArrowRight
+  ArrowRight,
+  Key,
+  Globe,
+  Settings,
+  Target
 } from 'lucide-react';
 import { AiChatMessage, AiMode, MarketOpportunity } from '../../types/ai';
 import { PartnerId, PartnerProfile } from '../../types/company';
-import { AiCeoService } from '../../services/aiCeoService';
+import { AiCeoService, getSavedGeminiKey, saveGeminiKey } from '../../services/aiCeoService';
 import { AppStorageService } from '../../services/storageService';
 
 interface AiCeoSectionProps {
@@ -34,18 +38,37 @@ export const AiCeoSection: React.FC<AiCeoSectionProps> = ({
   const [mode, setMode] = useState<AiMode>('advisor');
   const [inputQuery, setInputQuery] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  
+  // حالة مفتاح Gemini
+  const [geminiKey, setGeminiKey] = useState<string>('');
+  const [showKeyModal, setShowKeyModal] = useState<boolean>(false);
+  const [keyInput, setKeyInput] = useState<string>('');
+
+  useEffect(() => {
+    const saved = getSavedGeminiKey();
+    setGeminiKey(saved);
+    setKeyInput(saved);
+  }, []);
+
+  const handleSaveKey = () => {
+    saveGeminiKey(keyInput);
+    setGeminiKey(keyInput);
+    setShowKeyModal(false);
+  };
+
   const [messages, setMessages] = useState<AiChatMessage[]>([
     {
       id: 'welcome-1',
       sender: 'ai_ceo',
-      text: `أهلاً بحضرتك يا ${currentPartnerObj.name}! أنا جاهز معاك كمدير تنفيذي وشريك إداري وتقني.
+      text: `أهلاً بحضرتك يا ${currentPartnerObj.name}! أنا جاهز معاك كمدير تنفيذي ومستشار ذكي متصل بـ **Google Gemini 2.0 Flash**.
 دلوقتي إحنا في **وضع ${mode === 'advisor' ? 'المستشار (Advisor Mode)' : 'التنفيذ (Execution Mode)'}**. 
 
-هدفي الأساسي أساعدك أنت والمهندس ${currentPartner === 'mohamed' ? 'طارق حافظ' : 'محمد البحر'} في أمرين حاسمين:
-1. **تحقيق دخل سريع وسيولة نقدية عاجلة** من خدمات مطلوبة في السوق المصري حالياً.
-2. **تأسيس شركة قوية ونظام تشغيلي متكامل** خلال 12 شهراً.
+أولوياتنا الحالية للنهوض بشركة Tecnolobia:
+1. **مراجعة سابقة أعمالنا الـ 8 من GitHub** وتحويلها إلى Micro-SaaS باشتراك شهري.
+2. **صيد عملاء جدد في الإسكندرية والقاهرة** وتجهيز رسائل المبيعات على WhatsApp.
+3. **وضع استراتيجية التوسع والمنافسة العالمية** في السوق المصري والخليج.
 
-تحب نبدأ بدراسة فرصة كاش سريعة لمطاعم أو مطابع، ولا نراجع عرض سعر أو مشروع جاري؟`,
+جاهز أراجع معاك أي مشروع أو نجهز استهداف كاش سريع لمطاعم سموحة وميامي، تحب نبدأ بإيه؟`,
       timestamp: new Date().toISOString(),
       mode: 'advisor'
     }
@@ -104,17 +127,17 @@ export const AiCeoSection: React.FC<AiCeoSectionProps> = ({
   };
 
   const quickPrompts = [
-    'عايزين خطة كاش سريع خلال أسبوع نقدر ننفذها فوراً',
-    'ازاي نبيع نظام كاشير مطعم فريش لمطاعم تانية في إسكندرية؟',
-    'احسبلي صافي ربح وتقسيم الأرباع لصفقة بقيمة 28,000 ج.م',
-    'اكتبلي رسالة واتساب احترافية لأصحاب المطابع لعرض نظام واجدي',
-    'اقتراح لتوزيع المهام في المشروع القادم بين محمد وطارق'
+    'مراجعة مشروعاتنا السابقة وتطويرها كـ SaaS عالمي',
+    'خطة لاصطياد 10 مطاعم في سموحة وميامي هذا الأسبوع',
+    'استراتيجية المنافسة العالمية والتوسع في السوق الخليجي',
+    'رسالة بيع قوية لنظام إدارة المطابع ووكالات الدعاية',
+    'احسبلي صافي ربح وتقسيم الأرباع لصفقة بقيمة 28,000 ج.م'
   ];
 
   return (
     <div className="space-y-3 sm:space-y-4 max-w-5xl mx-auto flex flex-col h-[calc(100vh-190px)] md:h-[calc(100vh-140px)] pb-2">
       
-      {/* شريط التحكم بالمدير التنفيذي والأوضاع */}
+      {/* شريط التحكم بالمدير التنفيذي والأوضاع ومفتاح Gemini */}
       <div className="bg-slate-900 p-3 sm:p-4 rounded-2xl border border-slate-800 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shrink-0">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-600 flex items-center justify-center text-white shadow-md shrink-0">
@@ -123,18 +146,28 @@ export const AiCeoSection: React.FC<AiCeoSectionProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-sm sm:text-base font-black text-white">المدير التنفيذي الذكي (AI CEO)</h1>
-              <span className="text-[9px] sm:text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 font-bold border border-indigo-500/20">
-                باللهجة المصرية
+              <span className="text-[9px] sm:text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 font-bold border border-indigo-500/20 flex items-center gap-1">
+                <Sparkles className="w-3 h-3 text-pink-400" />
+                <span>Gemini 2.0 Flash</span>
               </span>
             </div>
             <p className="text-[10px] sm:text-[11px] text-slate-400">
-              العقل الإداري والاستراتيجي للشركة
+              العقل الإداري والاستراتيجي للشركة • مستشار م. محمد وم. طارق
             </p>
           </div>
         </div>
 
-        {/* محول وضعي المستشار والتنفيذ */}
-        <div className="flex items-center gap-2">
+        {/* محول وضعي المستشار والتنفيذ ومفتاح API */}
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+          <button
+            onClick={() => setShowKeyModal(true)}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 hover:text-white rounded-xl text-xs font-mono border border-slate-800 transition-all"
+            title="إعدادات مفتاح Google Gemini API"
+          >
+            <Key className="w-3.5 h-3.5 text-amber-400" />
+            <span>{geminiKey ? 'Gemini Key ✓' : 'إضافة Gemini Key'}</span>
+          </button>
+
           <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs w-full sm:w-auto">
             <button
               onClick={() => setMode('advisor')}
@@ -192,7 +225,7 @@ export const AiCeoSection: React.FC<AiCeoSectionProps> = ({
               }`}>
                 <div className="flex items-center justify-between gap-4 text-[10px] text-slate-400 mb-1 border-b border-slate-700/40 pb-1">
                   <span className="font-bold text-slate-300">
-                    {isAi ? 'المدير التنفيذي الذكي' : msg.senderPartner === 'mohamed' ? 'المهندس محمد البحر' : 'المهندس طارق حافظ'}
+                    {isAi ? 'المدير التنفيذي الذكي (Gemini)' : msg.senderPartner === 'mohamed' ? 'المهندس محمد البحر' : 'المهندس طارق حافظ'}
                   </span>
                   <span>{new Date(msg.timestamp).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
@@ -255,7 +288,7 @@ export const AiCeoSection: React.FC<AiCeoSectionProps> = ({
         {isLoading && (
           <div className="flex items-center gap-2 text-xs text-slate-400 p-3 bg-slate-900 rounded-xl border border-slate-800 w-fit">
             <Sparkles className="w-4 h-4 text-indigo-400 animate-spin" />
-            <span>المدير الذكي يفكر ويدرس أفضل الحلول...</span>
+            <span>المدير التنفيذي يحلل البيانات عبر Gemini ويجهز أفضل قرار...</span>
           </div>
         )}
 
@@ -264,7 +297,7 @@ export const AiCeoSection: React.FC<AiCeoSectionProps> = ({
 
       {/* الأسئلة والمقترحات السريعة */}
       <div className="flex items-center gap-2 overflow-x-auto py-1 shrink-0">
-        <span className="text-[11px] text-slate-400 font-bold shrink-0">مقترحات سريعة:</span>
+        <span className="text-[11px] text-slate-400 font-bold shrink-0">مقترحات استراتيجية:</span>
         {quickPrompts.map((p, idx) => (
           <button
             key={idx}
@@ -288,7 +321,7 @@ export const AiCeoSection: React.FC<AiCeoSectionProps> = ({
           type="text"
           value={inputQuery}
           onChange={(e) => setInputQuery(e.target.value)}
-          placeholder={`اكتب سؤالك أو فكرتك للمدير الذكي يا ${currentPartner === 'mohamed' ? 'بشمهندس محمد' : 'بشمهندس طارق'}...`}
+          placeholder={`اكتب استشارتك للمدير الذكي يا ${currentPartner === 'mohamed' ? 'بشمهندس محمد' : 'بشمهندس طارق'}...`}
           className="flex-1 bg-transparent px-3 py-2 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none"
         />
         <button
@@ -300,6 +333,60 @@ export const AiCeoSection: React.FC<AiCeoSectionProps> = ({
           <Send className="w-4 h-4" />
         </button>
       </form>
+
+      {/* نافذة ضبط مفتاح Gemini API */}
+      {showKeyModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-2">
+                <span className="p-2 bg-gradient-to-tr from-indigo-600 to-purple-600 text-white rounded-xl">
+                  <Key className="w-5 h-5" />
+                </span>
+                <div>
+                  <h3 className="text-base font-black text-white">إعداد مفتاح Google Gemini</h3>
+                  <p className="text-xs text-slate-400">الاتصال المباشر بنموذج Gemini 2.0 Flash</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowKeyModal(false)}
+                className="p-1 text-slate-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <label className="block text-slate-300 font-bold">أدخل مفتاح Google Gemini API Key الخاص بك:</label>
+              <input
+                type="password"
+                value={keyInput}
+                onChange={(e) => setKeyInput(e.target.value)}
+                placeholder="AIzaSy..."
+                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white font-mono focus:outline-none focus:border-indigo-500"
+              />
+              <p className="text-[11px] text-slate-400 leading-relaxed">
+                إذا تركته فارغاً، ستستخدم المنصة تلقائياً المحرك التنفيذي الذكي المحلي المبرمج بأفضل ممارسات إدارة الأعمال المصرية دون انقطاع. للحصول على مفتاح مجاني يمكن الدخول على <a href="https://aistudio.google.com/" target="_blank" rel="noopener noreferrer" className="text-indigo-400 underline">Google AI Studio</a>.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+              <button
+                onClick={() => setShowKeyModal(false)}
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold"
+              >
+                إلغاء
+              </button>
+              <button
+                onClick={handleSaveKey}
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-md"
+              >
+                حفظ المفتاح
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

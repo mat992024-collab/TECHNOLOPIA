@@ -274,11 +274,30 @@ export function App() {
   const handleUpdateTaskStatus = (taskId: string, status: TaskItem['status']) => {
     const target = tasks.find(t => t.id === taskId);
     if (!target) return;
-    const updatedTask = { ...target, status };
+    const nowIso = new Date().toISOString();
+    const updatedTask = { 
+      ...target, 
+      status,
+      completedAt: status === 'completed' ? nowIso : target.completedAt 
+    };
     const updated = tasks.map(t => t.id === taskId ? updatedTask : t);
     setTasks(updated);
     AppStorageService.saveTasks(updated);
     FirestoreSyncService.saveTask(updatedTask);
+  };
+
+  const handleUpdateTask = (updatedTask: TaskItem) => {
+    const updated = tasks.map(t => t.id === updatedTask.id ? updatedTask : t);
+    setTasks(updated);
+    AppStorageService.saveTasks(updated);
+    FirestoreSyncService.saveTask(updatedTask);
+  };
+
+  const handleUpdateProject = (updatedProj: ProjectItem) => {
+    const updated = projects.map(p => p.id === updatedProj.id ? updatedProj : p);
+    setProjects(updated);
+    AppStorageService.saveProjects(updated);
+    FirestoreSyncService.saveProject(updatedProj);
   };
 
   const handleAddClient = (clientData: Omit<ClientItem, 'id' | 'createdAt'>) => {
@@ -522,6 +541,7 @@ export function App() {
               currentPartner={currentPartner}
               onAddProject={handleAddProject}
               onUpdateStatus={handleUpdateProjectStatus}
+              onUpdateProject={handleUpdateProject}
             />
           )}
 
@@ -531,6 +551,7 @@ export function App() {
               currentPartner={currentPartner}
               onAddTask={handleAddTask}
               onUpdateTaskStatus={handleUpdateTaskStatus}
+              onUpdateTask={handleUpdateTask}
             />
           )}
 

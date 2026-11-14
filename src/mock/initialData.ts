@@ -56,6 +56,10 @@ export const INITIAL_PROJECTS: ProjectItem[] = [
     deliveryDate: '2026-01-01',
     progressPercent: 100,
     scopeSummary: 'نظام كاشير وإدارة لمطعم: طباعة فواتير، تتبع المخزون، وحساب المبيعات.',
+    githubUrl: 'https://github.com/mat992024-collab/TECHNOLOPIA',
+    liveDemoUrl: 'https://tecnolobia-ceo.web.app',
+    techStack: ['React', 'Node.js / Express', 'SQLite / Local Storage', 'Thermal ESC/POS'],
+    aiReview: 'نظام عملي جداً ونقطة قوته الأساسية هي سرعة خروج الشيك وسهولة تدريب الكاشير. للتحول لـ Micro-SaaS عالمي، نوصي بإضافة Multi-tenancy سحابي لربط عدة فروع بـ Dashboard مركزية ودعم الفاتورة الإلكترونية المصرية والتكامل مع طابعات البلوتوث اللاسلكية.',
     isQuickCash: true
   },
   {
@@ -73,6 +77,10 @@ export const INITIAL_PROJECTS: ProjectItem[] = [
     deliveryDate: '2026-01-01',
     progressPercent: 100,
     scopeSummary: 'نظام إدارة مطبعة: أوامر الشغل، حساب استهلاك الورق والأحبار، وتكلفة التشغيل.',
+    githubUrl: 'https://github.com/mat992024-collab/TECHNOLOPIA',
+    liveDemoUrl: 'https://tecnolobia-ceo.web.app',
+    techStack: ['TypeScript', 'Cloud Database', 'Tailwind CSS', 'PDF Invoicing'],
+    aiReview: 'ميزة حساب هالك الورق هي القيمة التنافسية الأقوى التي لا توفرها البرامج العامة؛ التوصية التقنية القادمة هي إضافة خوارزمية ذكية لاقتراح أفضل طريقة لتقطيع الفرخ لتقليل الهالك تلقائياً (Paper Nesting Optimizer) لرفع جاذبية النظام لمطابع الخليج ومصر.',
     isQuickCash: false
   },
   {
@@ -90,6 +98,10 @@ export const INITIAL_PROJECTS: ProjectItem[] = [
     deliveryDate: '2026-01-01',
     progressPercent: 100,
     scopeSummary: 'نظام إدارة مكتبة مدرسية لبيع الكتب والكراسات والأدوات المكتبية.',
+    githubUrl: 'https://github.com/mat992024-collab/TECHNOLOPIA',
+    liveDemoUrl: 'https://tecnolobia-ceo.web.app',
+    techStack: ['React PWA', 'Barcode Scanner API', 'Offline Dexie DB'],
+    aiReview: 'أهم ميزة هي السرعة الخارقة في مواسم الامتحانات؛ نوصي بإضافة خاصية إرسال إشعار WhatsApp تلقائي لأولياء الأمور فور توفر الكتب المدرسية الناقصة لزيادة ولاء العملاء وتحويله لمنتج اشتراك سنوي للمكتبات.',
     isQuickCash: true
   },
   {
@@ -107,6 +119,9 @@ export const INITIAL_PROJECTS: ProjectItem[] = [
     deliveryDate: '2026-01-01',
     progressPercent: 100,
     scopeSummary: 'تطبيق أندرويد اجتماعي وخدمي لخدمة سكان سكينة بالرمل.',
+    githubUrl: 'https://github.com/mat992024-collab/TECHNOLOPIA',
+    techStack: ['Android App', 'Firebase Realtime DB', 'FCM Push Notifications'],
+    aiReview: 'مشروع ذو أثر مجتمعي قوي جداً؛ يمكن تحويله لنموذج ربحي دائم (Hyper-local Monetization) عبر إتاحة إعلانات ممولة شهرية للمحلات والعيادات وسائقي التوصيل في المنطقة.',
     isQuickCash: false
   },
   {
@@ -124,6 +139,10 @@ export const INITIAL_PROJECTS: ProjectItem[] = [
     deliveryDate: '2026-01-01',
     progressPercent: 100,
     scopeSummary: 'موقع تعريفي واستشارات قانونية وحجز مواعيد.',
+    githubUrl: 'https://github.com/mat992024-collab/TECHNOLOPIA',
+    liveDemoUrl: 'https://tecnolobia-ceo.web.app',
+    techStack: ['Next.js', 'Tailwind CSS', 'WhatsApp Business Booking'],
+    aiReview: 'واجهة رصينة تعزز الهيبة والمصداقية؛ التوصية القادمة لرفع سعر الباقة إلى 15,000+ ج.م هي إضافة بوابة موكلين آمنة (Client Portal) للاطلاع على مواعيد الجلسات ومستندات القضايا أونلاين.',
     isQuickCash: true
   },
   {
@@ -141,6 +160,9 @@ export const INITIAL_PROJECTS: ProjectItem[] = [
     deliveryDate: '2026-01-01',
     progressPercent: 100,
     scopeSummary: 'موقع Portfolio لشخص يعمل في مجال الجبس والديكورات.',
+    githubUrl: 'https://github.com/mat992024-collab/TECHNOLOPIA',
+    techStack: ['React', 'Image CDN', 'Interactive Before/After Slider'],
+    aiReview: 'عنصر الإبهار البصري هو مفتاح بيع هذا المشروع لعملاء الفيلات؛ نوصي بإضافة حاسبة تفاعلية لتكلفة تشطيب المتر لجمع بيانات العملاء الجادين (Lead Magnet).',
     isQuickCash: true
   },
   {
@@ -158,6 +180,10 @@ export const INITIAL_PROJECTS: ProjectItem[] = [
     deliveryDate: '2026-01-01',
     progressPercent: 100,
     scopeSummary: 'قوائم طعام إلكترونية تفاعلية للمطاعم والكافيهات.',
+    githubUrl: 'https://github.com/mat992024-collab/TECHNOLOPIA',
+    liveDemoUrl: 'https://tecnolobia-ceo.web.app',
+    techStack: ['React PWA', 'Cloud Firestore', 'Instant QR Engine'],
+    aiReview: 'أسرع كاش فوري للشركة بهامش ربح يتجاوز 90%؛ التطوير القادم هو إتاحة زر إرسال الطلب مباشرة لطاولة الكاشير أو مطبخ المطعم عبر WhatsApp أو WebSockets.',
     isQuickCash: true
   },
   {
@@ -175,6 +201,9 @@ export const INITIAL_PROJECTS: ProjectItem[] = [
     deliveryDate: '2026-01-01',
     progressPercent: 100,
     scopeSummary: 'نظام متكامل لإدارة المطابع والطباعة والدعاية والإعلان.',
+    githubUrl: 'https://github.com/mat992024-collab/TECHNOLOPIA',
+    techStack: ['Full-Stack SaaS', 'Multi-user Roles', 'Accounting & Invoicing'],
+    aiReview: 'المنتج الأكبر قيمة وقدرة على جلب صفقات ضخمة (High-Ticket)؛ مهيأ للتصدير للسوق السعودي والإماراتي بعد إضافة دعم الفوترة الإلكترونية وضريبة القيمة المضافة.',
     isQuickCash: false
   }
 ];
@@ -191,8 +220,128 @@ export const INITIAL_COMPANY_DEV_USAGES: CompanyDevUsage[] = [];
 // صفر تبرعات وهمية
 export const INITIAL_SADAQAH_RECORDS: SadaqahDonationRecord[] = [];
 
-// مهام أولية لتأسيس العمل
-export const INITIAL_TASKS: TaskItem[] = [];
+// مهام أولية تشغيلية متتابعة ومفصلة بخطوات واضحة للشريكين
+export const INITIAL_TASKS: TaskItem[] = [
+  // مسار المهام التنفيذي للمهندس محمد البحر (تقني & برمجي)
+  {
+    id: 'task-m-1',
+    order: 1,
+    title: 'تجهيز نسخة الديمو التفاعلية لنظام كاشير فريش والمنيو الإلكتروني',
+    description: 'تجهيز سورس كود كاشير مطعم فريش السابق ليكون جاهزاً للمعاينة الحية الفورية أمام أصحاب المطاعم على الموبايل واللابتوب.',
+    assignedTo: 'mohamed',
+    priority: 'urgent',
+    status: 'todo',
+    dueDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+    dueTime: '16:00',
+    isPrivate: false,
+    createdBy: 'mohamed',
+    createdAt: new Date().toISOString(),
+    steps: [
+      { id: 's1', text: 'استخراج سورس كود نظام كاشير مطعم فريش وتنظيف أي بيانات تجريبية سابقة', completed: false },
+      { id: 's2', text: 'تجهيز قاعدة بيانات تجريبية واقعية تحتوي على أصناف (بيتزا، برجر، مشروبات، إضافات)', completed: false },
+      { id: 's3', text: 'التأكد من سلاسة سرعة واجهة الكاشير وطباعة الإيصال التجريبي بصيغة PDF سريعة', completed: false },
+      { id: 's4', text: 'توليد رابط معاينة ديمو حي ومشاركته مع م. طارق لتجربته على الموبايل في المقابلات', completed: false }
+    ]
+  },
+  {
+    id: 'task-m-2',
+    order: 2,
+    title: 'توحيد قالب مواقع الهوية الاحترافية (Portfolio) للتسليم في 48 ساعة',
+    description: 'إعداد قالب موحد فائق السرعة لمواقع المحامين والأطباء ومهندسي الديكور لتسليم أي تعاقد في يومين فقط.',
+    assignedTo: 'mohamed',
+    priority: 'high',
+    status: 'todo',
+    dueDate: new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0],
+    dueTime: '18:00',
+    isPrivate: false,
+    createdBy: 'mohamed',
+    createdAt: new Date().toISOString(),
+    steps: [
+      { id: 's1', text: 'بناء قالب سريع ومتوافق مع الموبايل بالكامل مع معايير SEO عالية', completed: false },
+      { id: 's2', text: 'ربط زر واتساب مباشر ونموذج حجز استشارات قانونية أو معاينات ديكور', completed: false },
+      { id: 's3', text: 'تجهيز معرض سابقة أعمال مرئي عالي الجودة لعرض المشاريع السابقة', completed: false }
+    ]
+  },
+  {
+    id: 'task-m-3',
+    order: 3,
+    title: 'ربط وتوثيق مستودعات المشروعات السابقة على GitHub وفحص الجودة',
+    description: 'رفع ومراجعة كود الأنظمة السابقة وتوثيق الـ Architecture لتمكين Gemini وشات جي بي تي من مراجعتها.',
+    assignedTo: 'mohamed',
+    priority: 'medium',
+    status: 'todo',
+    dueDate: new Date(Date.now() + 5 * 86400000).toISOString().split('T')[0],
+    dueTime: '15:00',
+    isPrivate: false,
+    createdBy: 'mohamed',
+    createdAt: new Date().toISOString(),
+    steps: [
+      { id: 's1', text: 'ربط مستودعات GitHub الخاصة بالأنظمة السابقة بحساب المنصة', completed: false },
+      { id: 's2', text: 'إعداد ملف توثيق تقني يوضح الـ Tech Stack وإمكانيات التحويل إلى SaaS', completed: false },
+      { id: 's3', text: 'تأمين مفاتيح الـ API وقواعد البيانات لضمان أعلى معايير الحماية', completed: false }
+    ]
+  },
+
+  // مسار المهام التنفيذي للمهندس طارق حافظ (أعمال & مبيعات & تشغيل)
+  {
+    id: 'task-t-1',
+    order: 1,
+    title: 'حصر قائمة أول 20 عميل محتمل بالإسكندرية والتواصل المباشر',
+    description: 'حصر أصحاب الكافيهات والمطاعم والمطابع في محيط سموحة وميامي والرمل ومراسلتهم بمحرك الواتساب الجديد.',
+    assignedTo: 'tarek',
+    priority: 'urgent',
+    status: 'todo',
+    dueDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+    dueTime: '17:00',
+    isPrivate: false,
+    createdBy: 'tarek',
+    createdAt: new Date().toISOString(),
+    steps: [
+      { id: 's1', text: 'حصر 10 كافيهات ومطاعم و5 مطابع في الإسكندرية وتسجيل أرقام المسؤولين في الـ CRM', completed: false },
+      { id: 's2', text: 'تخصيص رسائل الواتساب الذكية باسم كل صاحب نشاط وإرسال المدخل الأول المباشر', completed: false },
+      { id: 's3', text: 'متابعة الردود وحجز موعدين لمعاينة الديمو لايف مع أصحاب الأماكن', completed: false },
+      { id: 's4', text: 'تحديث مراحل العملاء في خط الأنابيب بالـ CRM (تم التواصل / مهتم / موعد معاينة)', completed: false }
+    ]
+  },
+  {
+    id: 'task-t-2',
+    order: 2,
+    title: 'تجهيز اتفاقيات عروض الأسعار والبروبوزال الرسمي (عربون 50%)',
+    description: 'استخدام مولد عروض الأسعار لتجهيز بروبوزال رسمي لكل عميل أبدى اهتماماً مع بنود الدفع والضمان.',
+    assignedTo: 'tarek',
+    priority: 'high',
+    status: 'todo',
+    dueDate: new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0],
+    dueTime: '19:00',
+    isPrivate: false,
+    createdBy: 'tarek',
+    createdAt: new Date().toISOString(),
+    steps: [
+      { id: 's1', text: 'توليد عرض سعر رسمي مخصص باسم كل عميل يطلب تفاصيل الخدمة والتكلفة', completed: false },
+      { id: 's2', text: 'التأكيد على شرط التعاقد: تحصيل 50% مقدماً قبل البدء في التخصيص', completed: false },
+      { id: 's3', text: 'شرح ميزة الضمان المجاني والدعم الفني 30 يوماً لإزالة أي تردد لدى العميل', completed: false }
+    ]
+  },
+  {
+    id: 'task-t-3',
+    order: 3,
+    title: 'إطلاق خطة محتوى صفحة الفيسبوك لشركة Tecnolobia وإدارتها آلياً',
+    description: 'نشر منشورات قصص النجاح ودراسات الحالة (كاشير فريش وهالك مطبعة واجدي) لجذب عملاء B2B تلقائياً.',
+    assignedTo: 'tarek',
+    priority: 'medium',
+    status: 'todo',
+    dueDate: new Date(Date.now() + 5 * 86400000).toISOString().split('T')[0],
+    dueTime: '14:00',
+    isPrivate: false,
+    createdBy: 'tarek',
+    createdAt: new Date().toISOString(),
+    steps: [
+      { id: 's1', text: 'نشر دراسة حالة نظام مطعم فريش (كيف وفر 4 ساعات جرد يومياً ومنع تسريب الفلوس)', completed: false },
+      { id: 's2', text: 'نشر منشور موجه لأصحاب المطابع عن حل مشكلة هالك تقطيع الورق وحساب تكلفة الزنكات', completed: false },
+      { id: 's3', text: 'متابعة رسائل الصفحة وتحويل المهتمين فوراً إلى محادثات واتساب مخصصة', completed: false }
+    ]
+  }
+];
 
 // سجل عملاء حقيقي يبدأ نظيفاً
 export const INITIAL_CLIENTS: ClientItem[] = [];

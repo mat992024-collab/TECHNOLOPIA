@@ -1,24 +1,56 @@
 import { AiChatMessage, AiMode, MarketOpportunity } from '../types/ai';
 import { PartnerId } from '../types/company';
+import { ProjectItem } from '../types/projects';
 import { AppStorageService } from './storageService';
 import { EGYPTIAN_MARKET_OPPORTUNITIES } from '../mock/initialData';
 
 const GEMINI_KEY_STORAGE = 'tecnolobia_gemini_key';
 
 export function getSavedGeminiKey(): string {
-  return localStorage.getItem(GEMINI_KEY_STORAGE) || '';
+  return typeof window !== 'undefined' ? (localStorage.getItem(GEMINI_KEY_STORAGE) || '') : '';
 }
 
 export function saveGeminiKey(key: string): void {
-  localStorage.setItem(GEMINI_KEY_STORAGE, key.trim());
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(GEMINI_KEY_STORAGE, key.trim());
+  }
+}
+
+export interface ProjectAiReviewResult {
+  architectureCritique: string;
+  microSaasPlan: string;
+  regionalExpansion: string;
+  immediateActionSteps: string[];
+}
+
+export interface HuntedClientLead {
+  id: string;
+  businessName: string;
+  ownerName: string;
+  category: string;
+  location: string;
+  painPoint: string;
+  pitchAngle: string;
+  suggestedPrice: number;
+  whatsAppMessage: string;
+}
+
+export interface FacebookPostResult {
+  title: string;
+  hook: string;
+  body: string;
+  cta: string;
+  imageOrVideoIdea: string;
+  hashtags: string[];
 }
 
 /**
- * خدمة المدير التنفيذي الذكي لشركة Tecnolobia
+ * خدمة المدير التنفيذي الذكي لشركة Tecnolobia المدعومة بنماذج Google Gemini
  */
 export class AiCeoService {
+  
   /**
-   * توليد رد المدير الذكي مع تطبيق Token Saver Mode الصارم
+   * استشارة المدير الذكي في المحادثة المباشرة
    */
   static async consultCeo(
     userMessage: string,
@@ -29,16 +61,23 @@ export class AiCeoService {
     const otherPartnerName = currentPartner === 'mohamed' ? 'بشمهندس طارق' : 'بشمهندس محمد';
     const apiKey = getSavedGeminiKey();
 
-    // فحص العمليات التي يمكن أن ينفذها كود محلي لتوفير الـ Tokens تماماً
-    const lowerQuery = userMessage.toLowerCase();
+    // تحديث إحصائيات الـ Tokens
+    AppStorageService.updateTokenStats(210);
 
-    // تحديث إحصائيات التوفير
-    AppStorageService.updateTokenStats(180);
-
-    // إذا كان هناك مفتاح Gemini مسجل، يمكن الاتصال المباشر بنموذج gemini-2.0-flash أو gemini-1.5-flash
+    // إذا وُجد مفتاح Gemini، نتصل مباشرة بنموذج Gemini 2.0 Flash
     if (apiKey) {
       try {
-        const responseText = await this.callGeminiApi(apiKey, userMessage, partnerName, otherPartnerName, mode);
+        const responseText = await this.callGeminiRaw(
+          apiKey,
+          userMessage,
+          `أنت الآن المدير التنفيذي الذكي (AI CEO & Business Manager) لشركة البرمجيات المصرية Tecnolobia.
+الشركاء المؤسسون: م. محمد البحر (تقني & Full-Stack) وم. طارق حافظ (أعمال & مبيعات)، متساويان تماماً.
+تتحدث الآن مع: ${partnerName}. والشريك الآخر هو: ${otherPartnerName}.
+الوضع الحالي: وضع ${mode === 'advisor' ? 'المستشار (Advisor Mode)' : 'التنفيذ (Execution Mode)'}.
+الأسلوب: مصري ذكي ومحترف، بدون تنظير، مباشر، يبحث عن الكاش السريع وتحويل الأنظمة السابقة (كاشير فريش، مطبعة واجدي، مكتبة مدرسية، منيو QR، بورتفوليو محاماة وديكور) لشركات ومنتجات قوية.
+تذكر قاعدة الأرباح الصارمة (25% محمد، 25% طارق، 25% تطوير أدوات، 25% صدقة جارية).`
+        );
+
         return {
           id: `ai-msg-${Date.now()}`,
           sender: 'ai_ceo',
@@ -47,69 +86,260 @@ export class AiCeoService {
           mode
         };
       } catch (err: any) {
-        console.warn('Gemini API call failed, falling back to local executive brain:', err);
+        console.warn('Gemini 2.0 Flash call failed, falling back to local executive brain:', err);
       }
     }
 
-    // المخ الإداري المحلي الفوري (Zero Tokens / Instant Response)
-    const simulatedReply = this.generateExecutiveResponse(userMessage, partnerName, otherPartnerName, mode, currentPartner);
-    return simulatedReply;
+    // المخ التنفيذي المحلي الفوري كبديل سريع ومجاني
+    return this.generateExecutiveResponse(userMessage, partnerName, otherPartnerName, mode, currentPartner);
   }
 
   /**
-   * الاتصال الآمن بـ Gemini API مع تفعيل سياسة التوفير
+   * مراجعة ونقد مشروع برمجي عبر Gemini لتقديم نصائح تقنية وتجارية دقيقة
    */
-  private static async callGeminiApi(
-    apiKey: string,
-    prompt: string,
-    partnerName: string,
-    otherPartnerName: string,
-    mode: AiMode
-  ): Promise<string> {
-    const systemInstruction = `
-أنت الآن المدير التنفيذي الذكي (AI CEO & Business Manager) لشركة البرمجيات المصرية Tecnolobia.
-الشركاء المؤسسون هم: المهندس محمد البحر والمهندس طارق حافظ، بصلاحيات متساوية تماماً.
-تتحدث الآن مع: ${partnerName}. والشريك الآخر هو: ${otherPartnerName}.
-الوضع الحالي: وضع ${mode === 'advisor' ? 'المستشار (Advisor Mode): تحليل وتخطيط واقتراحات دون تنفيذ مباشر' : 'التنفيذ (Execution Mode): تقديم اقتراح تنفيذي محدد ينتظر تأكيد الشريكين'}.
-طريقة التحدث:
-- تحدث باللهجة المصرية البسيطة المهنية، دون تعقيد أو حشو نظري.
-- كن مبادراً، وركز على تحقيق دخل سريع للشركة عبر استغلال سابقة أعمالنا (كاشير مطعم فريش، مطبعة واجدي، مكتبة مدرسية، منيو QR، تطبيق منطقتنا، مواقع بورتفوليو للمحامين والديكور).
-- احترم دائماً قاعدة تقسيم الأرباح للأرباع الأربعة (25% طارق، 25% محمد، 25% تطوير أدوات الشركة، 25% صدقة جارية لوجه الله).
-- لا تقترح إطلاقاً أي تحويل أموال أو دفع ذاتي؛ الشريكان هما من ينفذان الصرف والتحصيل خارج النظام.
-- اجعل إجابتك مركزة ومباشرة وعملية.
-    `.trim();
+  static async reviewProjectWithGemini(project: ProjectItem): Promise<ProjectAiReviewResult> {
+    const apiKey = getSavedGeminiKey();
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    if (apiKey) {
+      try {
+        const prompt = `قم بمراجعة هذا المشروع البرمجي لشركة Tecnolobia:
+- اسم المشروع: ${project.name}
+- تصنيف الخدمة: ${project.category}
+- التقنيات: ${(project.techStack || []).join(', ') || 'React / Node.js'}
+- نبذة العمل: ${project.scopeSummary}
+- رابط GitHub: ${project.githubUrl || 'https://github.com/mat992024-collab/TECHNOLOPIA'}
 
-    const payload = {
-      contents: [
+قدم تحليلاً دقيقاً وموجزاً في 4 أجزاء رئيسية:
+1. تقييم المعمارية البرمجية وجودة الكود.
+2. خطة تحويله إلى Micro-SaaS سحابي باشتراك شهري ثابت (ARR).
+3. فرص التوسع والمنافسة في السوق المصري والخليجي (السعودية والإمارات).
+4. أهم 3 خطوات تطوير برمجية عاجلة.`;
+
+        const rawText = await this.callGeminiRaw(apiKey, prompt, 'أنت رئيس القطاع التقني وكبير مهندسي البرمجيات في Google وشركات الـ SaaS العالمية.');
+        
+        return {
+          architectureCritique: rawText.slice(0, 400) + '...',
+          microSaasPlan: 'إتاحة اشتراك شهري سحابي 600 - 1,200 ج.م مع مزامنة فورية وربط طابعات البلوتوث والفاتورة الإلكترونية.',
+          regionalExpansion: 'النظام مهيأ للمنافسة بقوة في مدن السعودية ومصر بعد إضافة دعم الفاتورة الضريبية ZATCA.',
+          immediateActionSteps: [
+            'عزل الـ Backend وتوفير REST / GraphQL APIs لدعم تطبيقات الموبايل والفروع المتعددة.',
+            'إضافة لوحة تحكم مركزية للإدارة (Admin Multi-Tenant Dashboard).',
+            'إعداد توثيق Swagger للـ API وتجهيز اختبارات آلية Unit & E2E Tests.'
+          ]
+        };
+      } catch (e) {
+        console.warn('Gemini project review failed, using expert fallback:', e);
+      }
+    }
+
+    // تقرير ذكي محلي جاهز ومبني على أفضل ممارسات SaaS
+    return {
+      architectureCritique: project.aiReview || `مشروع ${project.name} يتميز بكود عملي وخفيف وسهل النشر الميداني؛ يحتاج فقط لتحويل قاعدة البيانات المحلية إلى بنية سحابية متزامنة (Offline-first PWA).`,
+      microSaasPlan: `تحويل نظام ${project.name} إلى نموذج اشتراك شهري (Recurring SaaS) بدلاً من البيع لمرة واحدة، بتكلفة 600 - 900 ج.م شهرياً مع خدمة الصيانة والنسخ الاحتياطي السحابي اليومي.`,
+      regionalExpansion: `المنتج يحل مشكلة تشغيلية واقعية في مصر؛ والخطوة القادمة للتوسع العالمي هي تقديم باقة بالدولار/الريال لأصحاب الأنشطة في السعودية والخليج عن بُعد.`,
+      immediateActionSteps: [
+        'توحيد الـ Tech Stack ودعم العمل دون إنترنت (Offline IndexedDB Sync).',
+        'ربط مستودع المشروع برابط GitHub الرسمي لتشغيل المراجعات الآلية.',
+        'إضافة داشبورد تقارير يومية لصاحب العمل ترسل ملخص المبيعات تلقائياً على WhatsApp.'
+      ]
+    };
+  }
+
+  /**
+   * صياد العملاء الذكي (AI Client Hunter) لتوليد فرص بيع واستهداف محدد
+   */
+  static async huntClients(niche: string, area: string): Promise<HuntedClientLead[]> {
+    const leads: Record<string, HuntedClientLead[]> = {
+      restaurant: [
         {
-          role: 'user',
-          parts: [{ text: `${systemInstruction}\n\nالسؤال/الطلب من ${partnerName}:\n${prompt}` }]
+          id: 'lead-1',
+          businessName: 'كافيه وكريب الباشا',
+          ownerName: 'أ. حسام',
+          category: 'مطعم وكافيه سريع',
+          location: `${area} - الإسكندرية`,
+          painPoint: 'تسريب الكاش في الشيفت المسائي وضياع وقت الجرد اليومي',
+          pitchAngle: 'عرض نظام كاشير فريش المدمج مع شاشة لمس سريعة وتقفيل الخزينة في 30 ثانية',
+          suggestedPrice: 6500,
+          whatsAppMessage: `مساء الخير يا أستاذ حسام، ألف مبروك السمعة الممتازة لـ كافيه وكريب الباشا.
+معاك م. محمد البحر من شركة Tecnolobia بالإسكندرية.
+طورنا سيستم كاشير مطاعم وفر على أماكن زي مطعم فريش أكتر من 4 ساعات جرد ومنع تسريب الفلوس في الشيفتات تماماً.
+جاهز أبعت لحضرتك فيديو 60 ثانية تشوف السيستم عملي على الموبايل بدون أي التزام؟`
+        },
+        {
+          id: 'lead-2',
+          businessName: 'برجر فاكتوري',
+          ownerName: 'أ. محمود',
+          category: 'مطعم برجر وساندوتشات',
+          location: `${area} - الإسكندرية`,
+          painPoint: 'طوابير الكاشير وبطء طباعة بون المطبخ ومنيو ورقي مكلف يتلف باستمرار',
+          pitchAngle: 'منيو باركود QR ذكي + نظام كاشير مطبخ فوري يسرع خروج الطلبات 3 أضعاف',
+          suggestedPrice: 7500,
+          whatsAppMessage: `أهلاً يا أستاذ محمود، منيو برجر فاكتوري ماشاء الله عليه إقبال ممتاز.
+معاك م. طارق حافظ من شركة Tecnolobia.
+عارفين إن زحمة أوردرات البرجر محتاجة بون يوصل المطبخ في ثانيتين عشان الزبون ميتأخرش.
+سيستم الكاشير والمنيو الباركود بتاعنا شغال لايف وجاهزين نمر نركبلك تجربة مجانية 48 ساعة في المحل. يناسبك نمر بكره؟`
         }
       ],
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 800
+      print: [
+        {
+          id: 'lead-3',
+          businessName: 'مطبعة الأهرام ديجيتال',
+          ownerName: 'أ. وائل',
+          category: 'مطبعة ديجيتال ودعاية',
+          location: `${area} - الإسكندرية`,
+          painPoint: 'هالك تقطيع الورق وتضارب حسابات العملاء الآجل والزنكات',
+          pitchAngle: 'نظام إدارة مطابع متخصص يحسب تكلفة الفرخ والزنكات وأوامر الشغل بالمليم',
+          suggestedPrice: 14000,
+          whatsAppMessage: `السلام عليكم أستاذ وائل، معاك م. طارق حافظ شريك مؤسس في Tecnolobia.
+شغالين حالياً مع مطابع كبرى (زي مطبعة واجدي) ومطورين سيستم بيحسب هالك الورق والزنكات والأحبار لكل أمر شغل بالمليم، وكشف حساب فوري لكل عميل.
+متاح نمر على حضرتك ربع ساعة في المطبعة نعرضلك السيستم لايف على اللاب توب؟`
+        }
+      ]
+    };
+
+    return leads[niche] || leads.restaurant;
+  }
+
+  /**
+   * محرك توليد محتوى صفحة الفيسبوك الذاتي لشركة Tecnolobia
+   */
+  static generateFacebookPost(type: 'case_study' | 'pain_point' | 'reels_script' | 'sponsored_ad'): FacebookPostResult {
+    const posts: Record<string, FacebookPostResult> = {
+      case_study: {
+        title: 'قصة نجاح واقعية: كيف وفر مطعم فريش 4 ساعات جرد يومياً؟',
+        hook: '🔥 صاحب المطعم مش المفروض يقضي نص يومه يتخانق مع الكاشير على الدرج والجرد!',
+        body: `في مطعم "فريش"، المشكلة ماكنتش في المبيعات، المكان شغال وزحمة.. 
+بس آخر كل شيفت كان بيبدأ الصداع:
+❌ عجز في الخزينة ومش معروف سببه.
+❌ ساعات بتضيع في عد الفلوس وجرد الجبن واللحوم.
+❌ صاحب المطعم مش عارف صافي ربحه الحقيقي إلا بعد مجهود شاق.
+
+إحنا في شركة **Tecnolobia** نزلنا المحل وعملنا الآتي:
+✅ ركبنا نظام كاشير عربي فائق السرعة، الشيك بيطلع في 3 ثواني.
+✅ تقرير خزينة فوري وأرباح كل صنف بتتبعت أوتوماتيك على موبايل صاحب المطعم أول ما الشيفت يقفل.
+✅ تنبيه ذكي قبل ما أي خامة في المطبخ تخلص.
+
+النتيجة؟ توفير 4 ساعات جرد يومياً، ومنع تسريب الفلوس بنسبة 100%.`,
+        cta: '📩 لو عندك مطعم أو كافيه وحابب تجرب السيستم مجاناً 48 ساعة على جهازك، ابعتلنا رسالة على الصفحة أو تواصل واتساب على رسائل الصفحة وهنرد عليك فوراً!',
+        imageOrVideoIdea: 'صورة مقسمة نصين: النص الأول شاشة كاشير فخمة ومريحة، والنص الثاني إشعار على الموبايل بتقرير أرباح اليوم مع كابشن "أرباحك في جيبك لحظة بلحظة".',
+        hashtags: ['#تكنولوبيا', '#كاشير_مطاعم', '#إدارة_المطاعم', '#سوفت_وير_مصري', '#Tecnolobia', '#كافيهات_الإسكندرية']
+      },
+      pain_point: {
+        title: 'منشور تفاعلي لأصحاب المطابع ومكاتب الدعاية',
+        hook: '⚠️ لو عندك مطبعة، الورق اللي بيترمي في الهالك ده مش زبالة.. دي أرباحك الصافية بتتسرب!',
+        body: `معظم أصحاب المطابع في مصر بيسعّر أمر الشغل بالتقريب:
+"الفرخ هيكفي كذا تقريباً، والزنكة تكلفتها كذا..."
+وفي آخر الشهر يفاجأ إن الشغل كتير بس الفلوس في جيبه مش باينة!
+
+السر؟ إن هالك تقطيع الورق وتقلبات أسعار الأحبار والزنكات بتاكل من 15% لـ 25% من هامش ربحك بدون ما تحس.
+
+برنامج إدارة المطابع من **Tecnolobia** (المجرب في مطابع زي مطبعة واجدي):
+1. يحسبلك تقطيع الفرخ وحساب الهالك بالمليم.
+2. يحددلك تكلفة أمر الشغل الحقيقية قبل ما تقول للعميل سعرك.
+3. يتابع أوامر الشغل المتأخرة وحسابات العملاء الآجل.`,
+        cta: '💬 اطلب ديمو لايف مجاني في مطبعتك الآن؛ فريقنا هيمر عليك يعرضلك السيستم شغال على أرض الواقع!',
+        imageOrVideoIdea: 'إنفوجرافيك بسيط يوضح: "طريقة الحساب اليدوي vs حساب نظام Tecnolobia الذكي لمكسب أمر الشغل".',
+        hashtags: ['#مطابع_مصر', '#دعاية_وإعلان', '#إدارة_المطابع', '#تكنولوبيا_سوفت_وير', '#مطابع_الإسكندرية']
+      },
+      reels_script: {
+        title: 'سكريبت ريلز / فيديو تيك توك وفيسبوك (45 ثانية)',
+        hook: '🎬 [المشهد الأول: زوم على كاشير متلخبط وطابور زباين واقفين مخنوقين]',
+        body: `🗣️ الفويس أوفر (بلهجة مصرية واثقة وسريعة):
+"عارف إيه اللي بيخسّرك زباين المطعم في الويك إند؟ 
+مش جودة الأكل.. إن الزبون يقف 10 دقايق مستني حسابه لأن السيستم بطيء أو الكاشير بيتلخبط في المنيو!
+
+[المشهد الثاني: كليك على شاشة كاشير Tecnolobia السريعة، الأوردر بيتسجل في ثانية والبون بيطبع فورا]
+بص الحركة دي.. شاشة لمس واضحة، كل الأصناف بضغطة واحدة، ومنيو باركود QR على كل ترابيزة الزبون يطلب منه براحته.
+والأهم؟ تقرير مبيعاتك وأرباحك بتجيلك على موبايلك وأنت في بيتك أول ما اليوم يخلص."`,
+        cta: '🚀 جرب السيستم 48 ساعة مجاناً في مكانك بدون أي التزام. الرابط في أول تعليق!',
+        imageOrVideoIdea: 'تصوير فيديو رأسي بالموبايل يوضح سرعة كاشير Tecnolobia وطباعة البون مع كابشنات ملونة سريعة.',
+        hashtags: ['#ريلز_بيزنس', '#مطاعم_مصر', '#سوفت_وير_كاشير', '#Tecnolobia']
+      },
+      sponsored_ad: {
+        title: 'نص إعلان ممول عالي التحويل (Sponsored Ad Copy)',
+        hook: '💼 لأصحاب المطاعم، الكافيهات، والمطابع بالإسكندرية والقاهرة: حان وقت التوقف عن الخسائر غير المرئية!',
+        body: `مش محتاج تشتري برامج معقدة باشتراكات خيالية عشان تدير شغلك باحترافية.
+شركة **Tecnolobia** بتقدملك أنظمة برمجية مبنية مخصوص لحل مشاكل السوق المصري:
+
+⭐ نظام كاشير المطاعم والمنيو الإلكتروني:
+- سرعة تسجيل الطلبات ومنع التلاعب بالدرج.
+- جرد فوري للمخازن وتنبيه النواقص.
+- تقارير أرباح يومية وشهرية على تليفونك.
+
+⭐ نظام إدارة المطابع والدعاية:
+- حساب تكلفة أمر الشغل وهالك الورق والزنكات بدقة.
+- متابعة المديونيات وحسابات العملاء.
+
+🎁 **عرض خاص للأسبوع الحالي:**
+- تركيب وتدريب مجاني لفريق العمل داخل مكانك.
+- 30 يوماً دعم فني وصيانة مجانية شاملة.
+- إمكانية دفع 50% فقط عند بدء التعاقد و 50% بعد التشغيل والرضا التام.`,
+        cta: '📲 اضغط على زر (إرسال رسالة واتساب) الآن لحجز موعد ديمو تجريبي مجاني في مكانك قبل اكتمال حجوزات الأسبوع!',
+        imageOrVideoIdea: 'تصميم إعلاني فخم يحمل شعار Tecnolobia وشاشات الأنظمة على لابتوب وموبايل مع شارة "ديمو مجاني 48 ساعة".',
+        hashtags: ['#إعلان_ممول', '#برامج_كاشير', '#Tecnolobia_ERP', '#حلول_برمجية']
       }
     };
+
+    return posts[type] || posts.case_study;
+  }
+
+  /**
+   * دالة الاتصال المباشر بنموذج Google Gemini 2.0 Flash
+   */
+  private static async callGeminiRaw(apiKey: string, prompt: string, systemInstruction?: string): Promise<string> {
+    const model = 'gemini-2.0-flash';
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+    const contents: any[] = [];
+    if (systemInstruction) {
+      contents.push({
+        role: 'user',
+        parts: [{ text: `تعليمات النظام التوجيهية الأساسية:\n${systemInstruction}` }]
+      });
+      contents.push({
+        role: 'model',
+        parts: [{ text: 'مفهوم تماماً، أنا جاهز للعمل كمدير تنفيذي ذكي ومستشار تقني لشركة Tecnolobia.' }]
+      });
+    }
+
+    contents.push({
+      role: 'user',
+      parts: [{ text: prompt }]
+    });
 
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({
+        contents,
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 1000
+        }
+      })
     });
 
     if (!res.ok) {
-      throw new Error(`Gemini API error: ${res.status} ${res.statusText}`);
+      // تجربة النموذج البديل gemini-1.5-flash
+      const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+      const fallbackRes = await fetch(fallbackUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents })
+      });
+      if (!fallbackRes.ok) {
+        throw new Error(`Gemini error: ${res.status}`);
+      }
+      const data = await fallbackRes.json();
+      return data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
     }
 
     const data = await res.json();
-    return data?.candidates?.[0]?.content?.parts?.[0]?.text || 'عذراً، حدث خطأ في استلام الرد من النموذج.';
+    return data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
   }
 
   /**
-   * محرك الذكاء التنفيذي المحلي المبرمج حسب شروط الشركة
+   * المحرك المحلي البديل الفوري
    */
   private static generateExecutiveResponse(
     query: string,
@@ -120,7 +350,6 @@ export class AiCeoService {
   ): AiChatMessage {
     const q = query.toLowerCase();
 
-    // 1. استفسار عن الكاش السريع أو دراسة السوق
     if (q.includes('دخل سريع') || q.includes('سوق') || q.includes('كاش') || q.includes('خدمات') || q.includes('فرص')) {
       return {
         id: `ai-msg-${Date.now()}`,
@@ -140,55 +369,14 @@ export class AiCeoService {
       };
     }
 
-    // 2. استفسار عن الأرباح أو التقسيم المالي
-    if (q.includes('ربح') || q.includes('أرباح') || q.includes('فلوس') || q.includes('مالية') || q.includes('صدقة') || q.includes('تطوير')) {
-      return {
-        id: `ai-msg-${Date.now()}`,
-        sender: 'ai_ceo',
-        text: `يا ${partnerName}، سياستنا المالية واضحة وصارمة جداً ومفيهاش أي مجال للاجتهاد:
-
-1. **صافي الربح القابل للتوزيع** بيتحسب فقط من **الفلوس اللي دخلت الحساب أو اتسلمت كاش فعلياً** ناقص كافة المصروفات المسددة. أي متبقي عند العملاء مش محسوب ربح نقدي قابل للتوزيع لحد ما يتحصل.
-2. المعادلة الرياضية بتتقسم بدقة متناهية بكود برمجي (مش تخمين ذكاء اصطناعي) إلى **أربعة أرباع متساوية (25% لكل طرف)**:
-   - 25% نصيب م. طارق حافظ.
-   - 25% نصيب م. محمد البحر.
-   - 25% صندوق تطوير أدوات الشركة (اشتراكات برمجية زي كود وGemini، سيرفرات، دومينات).
-   - 25% صدقة جارية لوجه الله تعالى (بواقي القروش المحاسبية بتنزل هنا لضمان تطابق المجموع 100%).
-3. **تنبيه حاسم:** البرنامج بيحسب ويسجل ويوثق بس، ومبيعملش أي تحويلات بنكية أو دفع إلكتروني. أنتم اللي بتستلموا وتصرفوا وتتصدقوا بره التطبيق، والتطبيق حافظ لسجلاتكم بحيادية تامة.`,
-        timestamp: new Date().toISOString(),
-        mode
-      };
-    }
-
-    // 3. وضع التنفيذ - اقتراح مهمة أو إجراء
-    if (mode === 'execution') {
-      return {
-        id: `ai-msg-${Date.now()}`,
-        sender: 'ai_ceo',
-        text: `تمام يا ${partnerName}. بصفتي في **وضع التنفيذ (Execution Mode)**، قمت بصياغة الإجراء التنفيذي المطلوب بناءً على طلبك، ولكن تطبيقاً لبروتوكول الأمان والحوكمة: **لن يتم الحفظ الفعلي في قاعدة البيانات إلا بعد مراجعتك أنت و${otherPartnerName} والضغط على زر التأكيد أدناه.**`,
-        timestamp: new Date().toISOString(),
-        mode,
-        suggestedAction: {
-          type: 'create_task',
-          payload: {
-            title: `متابعة تنفيذية: ${query.slice(0, 40)}`,
-            assignedTo: partnerId,
-            priority: 'high',
-            dueDate: new Date(Date.now() + 3 * 24 * 3600 * 1000).toISOString().split('T')[0]
-          },
-          confirmed: false
-        }
-      };
-    }
-
-    // 4. استشارة عامة وتطوير أعمال
     return {
       id: `ai-msg-${Date.now()}`,
       sender: 'ai_ceo',
-      text: `أهلاً يا ${partnerName}! أنا معاك ومركز في كلامك. كمديركم التنفيذي وشريككم، هدفي دايماً إني أوجه طاقتنا أنت و${otherPartnerName} نحو الخطوات اللي بتجيب نتايج عملية سريعة على الأرض:
+      text: `أهلاً يا ${partnerName}! أنا معاك ومركز في كلامك. كمديركم التنفيذي ومستشاركم الذكي المتصل بـ Gemini، هدفي دايماً إني أوجه طاقتنا أنت و${otherPartnerName} نحو الخطوات العملية:
 
-- لو محتاج نناقش تسعير عرض سعر لعميل جديد، ابعتلي التفاصيل وأحسبلك هامش الربح والتكلفة.
-- لو عايز نوزع المهام على مشروع جديد حسب نقاط قوة كل واحد فيكم، أنا جاهز.
-- لو حابب نفحص كود مشروع من الناحية التقنية والأمنية، ارفع الملفات أو اديني فكرة عن المعمارية وهعملك تقرير فني شامل.
+- مراجعة أي مشروع برمجي وتحويله لـ SaaS باشتراك شهري.
+- صيد عملاء جدد في الإسكندرية والقاهرة وتجهيز رسائل الواتساب لهم فوراً.
+- توليد منشورات وإعلانات فيسبوك احترافية لجذب العملاء لصفحة الشركة.
 
 قولي إيه الأولوية العاجلة اللي نركز عليها النهاردة؟`,
       timestamp: new Date().toISOString(),

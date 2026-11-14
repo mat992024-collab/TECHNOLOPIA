@@ -18,11 +18,21 @@ export interface ProjectItem {
   progressPercent: number;    // 0 - 100
   scopeSummary: string;
   liveUrl?: string;
+  githubUrl?: string;         // رابط مستودع GitHub للمشروع
+  liveDemoUrl?: string;       // رابط المعاينة الحية
+  techStack?: string[];       // التقنيات المستخدمة
+  aiReview?: string;          // مراجعة ونقد الذكاء الاصطناعي التقني والتجاري
   isQuickCash: boolean;       // هل المشروع ضمن مبادرات الكاش السريع؟
 }
 
 export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
 export type TaskStatus = 'todo' | 'in_progress' | 'review' | 'completed';
+
+export interface TaskStep {
+  id: string;
+  text: string;
+  completed: boolean;
+}
 
 export interface TaskItem {
   id: string;
@@ -36,6 +46,8 @@ export interface TaskItem {
   dueDate: string;           // YYYY-MM-DD
   dueTime?: string;          // HH:mm (مثال: 14:30)
   completedAt?: string;      // تاريخ ووقت الإنجاز الدقيق
+  steps?: TaskStep[];        // خطوات تنفيذية مفصلة
+  order?: number;            // ترتيب تسلسل المهام القادمة
   isPrivate: boolean;        // مهمة خاصة بصاحبها أم مشتركة
   createdBy: PartnerId | 'both';
   createdAt: string;
