@@ -9,6 +9,8 @@ import { GEMINI_TOOL_DECLARATIONS, TOOL_PERMISSIONS } from './tools/toolDefiniti
 import { AuditLogger } from './services/auditLogger.mjs';
 import { RealDataProvider } from './data/realDataProvider.mjs';
 import { fileURLToPath } from 'url';
+import { GitHubService } from './services/githubService.mjs';
+import { GeminiCodeAdvisor } from './services/geminiCodeAdvisor.mjs';
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -312,6 +314,128 @@ app.put('/api/gemini/draft-task/:id', requirePartnerAuth, (req, res, next) => {
       return res.status(403).json({ success: false, error: err.message, code: err.code });
     }
     next(err);
+  }
+});
+
+/* ========================================================
+   نقاط نهاية المرحلة الرابعة: GitHub Integration & Projects Hub
+   ======================================================== */
+
+/**
+ * 12. استعراض حالة الحسابين المتصلين (بدون كشف أي توكنات)
+ */
+app.get('/api/github/accounts', requirePartnerAuth, async (req, res) => {
+  try {
+    const status = await GitHubService.getAccountsStatus();
+    res.json({ success: true, accounts: status });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * 13. ربط حساب جديد (قراءة فقط وبأعلى درجات الحماية)
+ */
+app.post('/api/github/connect', requirePartnerAuth, async (req, res) => {
+  try {
+    const { slotId, token } = req.body;
+    const result = await GitHubService.connectAccount(slotId, token, req.partner);
+    res.json(result);
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * 14. إلغاء ربط الحساب وسحب التوكن
+ */
+app.post('/api/github/disconnect', requirePartnerAuth, (req, res) => {
+  try {
+    const { slotId } = req.body;
+    const result = GitHubService.disconnectAccount(slotId, req.partner);
+    res.json(result);
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * 15. استعراض واكتشاف كافة المستودعات في الحسابين مع إزالة التكرار
+ */
+app.get('/api/github/repositories', requirePartnerAuth, async (req, res) => {
+  try {
+    const repos = await GitHubService.listAllRepositories();
+    res.json({
+      success: true,
+      totalCount: repos.length,
+      repositories: repos
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * 16. فحص تفاصيل عميقة لمستودع محدد (الفروع، الملفات، الكوميتس)
+ */
+app.get('/api/github/repository/:owner/:repo', requirePartnerAuth, async (req, res) => {
+  try {
+    const { owner, repo } = req.params;
+    const details = await GitHubService.getRepositoryDetails(owner, repo);
+    res.json({ success: true, details });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * 17. تحليل كود ومعمارية مشروع بواسطة Gemini Code Advisor
+ */
+app.post('/api/github/analyze', requirePartnerAuth, async (req, res) => {
+  try {
+    const { owner, repo } = req.body;
+    if (!owner || !repo) {
+      return res.status(400).json({ success: false, error: 'owner and repo are required' });
+    }
+    const details = await GitHubService.getRepositoryDetails(owner, repo);
+    const analysis = await GeminiCodeAdvisor.analyzeProject(details, req.partner);
+    res.json({ success: true, analysis });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * 18. استرجاع التوصيات المسجلة السابقة
+ */
+app.get('/api/github/recommendations', requirePartnerAuth, (req, res) => {
+  const recommendations = GitHubService.getStoredRecommendations();
+  res.json({ success: true, count: recommendations.length, recommendations });
+});
+
+/**
+ * 19. تحديث حالة توصية (اعتماد / تجاهل / تمت المراجعة)
+ */
+app.post('/api/github/recommendation/status', requirePartnerAuth, (req, res) => {
+  try {
+    const { id, status } = req.body;
+    const updated = GitHubService.updateRecommendationStatus(id, status, req.partner);
+    res.json({ success: true, recommendation: updated });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * 20. تقرير المحفظة الشاملة لجميع مشروعات الشركة
+ */
+app.get('/api/github/portfolio-report', requirePartnerAuth, async (req, res) => {
+  try {
+    const repos = await GitHubService.listAllRepositories();
+    const report = await GeminiCodeAdvisor.generateCompanyPortfolioReport(repos, req.partner);
+    res.json({ success: true, report });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 

@@ -18,6 +18,7 @@ import {
   Globe,
   RefreshCw,
   TrendingUp,
+  FolderTree,
   Code
 } from 'lucide-react';
 
@@ -36,6 +37,7 @@ interface ProjectsSectionProps {
   onAddProject: (project: Omit<ProjectItem, 'id'>) => void;
   onUpdateStatus: (projectId: string, status: ProjectStatus) => void;
   onUpdateProject?: (project: ProjectItem) => void;
+  onOpenProjectsHub?: () => void;
 }
 
 export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
@@ -43,7 +45,8 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
   currentPartner,
   onAddProject,
   onUpdateStatus,
-  onUpdateProject
+  onUpdateProject,
+  onOpenProjectsHub
 }) => {
   const [filter, setFilter] = useState<'all' | 'in_progress' | 'delivered' | 'quick_cash'>('all');
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
@@ -172,13 +175,26 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
           </div>
         </div>
 
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs sm:text-sm font-bold shadow-lg shadow-indigo-600/30 transition-all self-start md:self-auto"
-        >
-          <Plus className="w-4 h-4" />
-          <span>مشروع جديد</span>
-        </button>
+        <div className="flex items-center gap-2 self-start md:self-auto">
+          {onOpenProjectsHub && (
+            <button
+              onClick={onOpenProjectsHub}
+              className="flex items-center gap-1.5 px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-indigo-400 hover:text-indigo-300 rounded-xl text-xs sm:text-sm font-bold border border-indigo-500/30 transition-all shadow-sm"
+              title="فتح مركز التحكم البرمجي وفحص كود مستودعات GitHub"
+            >
+              <FolderTree className="w-4 h-4" />
+              <span>مركز تحكم GitHub</span>
+            </button>
+          )}
+
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs sm:text-sm font-bold shadow-lg shadow-indigo-600/30 transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            <span>مشروع جديد</span>
+          </button>
+        </div>
       </div>
 
       {/* شريط الفلاتر */}

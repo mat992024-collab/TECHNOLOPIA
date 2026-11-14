@@ -48,6 +48,21 @@ export const TOOL_PERMISSIONS = {
     level: 'DRAFT_PROPOSAL',
     description: 'صياغة مهمة مفصلة بخطوات واضحة وحفظها كمسودة تنتظر اعتماد الشريك',
     requiresApproval: true
+  },
+  github_get_accounts: {
+    level: 'READ_ONLY',
+    description: 'استعراض حسابات GitHub المتصلة وحالة الربط دون كشف أي توكنات',
+    requiresApproval: false
+  },
+  github_list_repositories: {
+    level: 'READ_ONLY',
+    description: 'قراءة المستودعات المصرح بها في الحسابين واكتشاف التقنيات مع إزالة التكرار',
+    requiresApproval: false
+  },
+  github_analyze_repository: {
+    level: 'READ_ONLY',
+    description: 'تحليل كود ومعمارية مستودع واكتشاف الثغرات الأمنية وفرص التحويل لـ SaaS',
+    requiresApproval: false
   }
 };
 
@@ -226,6 +241,36 @@ export const GEMINI_TOOL_DECLARATIONS = [
         }
       },
       required: ['title', 'description', 'assignedTo', 'priority', 'dueDate', 'steps']
+    }
+  },
+  {
+    name: 'github_get_accounts',
+    description: 'استعراض حسابات GitHub المتصلة بالمنصة (الحساب الأول والثاني) وحالة التوثيق دون كشف أي توكنات.',
+    parameters: {
+      type: 'OBJECT',
+      properties: {}
+    }
+  },
+  {
+    name: 'github_list_repositories',
+    description: 'استعراض كافة مستودعات GitHub المصرح بها في الحسابين واكتشاف لغات البرمجة والتقنيات والمشروعات مع منع التكرار.',
+    parameters: {
+      type: 'OBJECT',
+      properties: {}
+    }
+  },
+  {
+    name: 'github_analyze_repository',
+    description: 'تحليل معمق لكود ومعمارية مشروع على GitHub، واكتشاف الأخطاء والثغرات الأمنية وفرص التحويل لـ Micro-SaaS.',
+    parameters: {
+      type: 'OBJECT',
+      properties: {
+        repoName: {
+          type: 'STRING',
+          description: 'اسم المستودع المراد تحليله (مثال: TECHNOLOPIA أو pizza-fresh-menu أو odoo19-zatca-phase2)'
+        }
+      },
+      required: ['repoName']
     }
   }
 ];

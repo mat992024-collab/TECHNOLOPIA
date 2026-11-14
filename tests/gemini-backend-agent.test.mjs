@@ -196,8 +196,8 @@ test('13. Audit Logging: All tool calls and security events are logged in immuta
   assert.ok(['mohamed', 'tarek', 'unknown', 'system', 'anonymous'].includes(lastLog.partnerId));
 });
 
-test('14. Tool Registry Compliance: Exactly 9 official tools conforming to Gemini Function schema', () => {
-  assert.equal(GEMINI_TOOL_DECLARATIONS.length, 9);
+test('14. Tool Registry Compliance: Exactly 12 official tools conforming to Gemini Function schema', () => {
+  assert.equal(GEMINI_TOOL_DECLARATIONS.length, 12);
   const toolNames = GEMINI_TOOL_DECLARATIONS.map(t => t.name);
   const expectedTools = [
     'get_company_overview',
@@ -208,7 +208,10 @@ test('14. Tool Registry Compliance: Exactly 9 official tools conforming to Gemin
     'get_crm_leads',
     'get_audit_logs',
     'propose_project_improvement',
-    'draft_new_task'
+    'draft_new_task',
+    'github_get_accounts',
+    'github_list_repositories',
+    'github_analyze_repository'
   ];
 
   for (const expected of expectedTools) {
