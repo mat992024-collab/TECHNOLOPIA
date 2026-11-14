@@ -1,6 +1,7 @@
 // server/services/githubService.mjs
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import { AuditLogger } from './auditLogger.mjs';
 
@@ -10,37 +11,174 @@ const SECURE_ACCOUNTS_FILE = path.resolve(__dirname, '../data/github_accounts_se
 const RECOMMENDATIONS_FILE = path.resolve(__dirname, '../../backups/tecnolobia_github_recommendations.json');
 const CACHE_FILE = path.resolve(__dirname, '../../backups/tecnolobia_github_repos_cache.json');
 
+const ENCRYPTION_ALGORITHM = 'aes-256-gcm';
+
+/**
+ * اشتقاق مفتاح التشفير المتماثل بأمان من متغير البيئة
+ */
+function getMasterEncryptionKey() {
+  const secret = process.env.GITHUB_ENCRYPTION_KEY || process.env.ENCRYPTION_KEY || process.env.JWT_SECRET || 'TECNOLOBIA_EXECUTIVE_SECURE_KEY_2026_COFOUNDERS';
+  return crypto.createHash('sha256').update(secret).digest();
+}
+
+/**
+ * تشفير التوكن بخوارزمية AES-256-GCM مع التحقق التوثيقي
+ */
+function encryptToken(plaintext) {
+  if (!plaintext || typeof plaintext !== 'string') return null;
+  const key = getMasterEncryptionKey();
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv(ENCRYPTION_ALGORITHM, key, iv);
+  let encrypted = cipher.update(plaintext, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  const authTag = cipher.getAuthTag().toString('hex');
+  return {
+    encrypted,
+    iv: iv.toString('hex'),
+    authTag
+  };
+}
+
+/**
+ * فك تشفير التوكن والتحقق من سلامته التوثيقية
+ */
+function decryptToken(payload) {
+  if (!payload) return null;
+  // دعم التوافق مع التوكنات النصية القديمة قبل الترحيل
+  if (typeof payload === 'string') return payload;
+  if (!payload.encrypted || !payload.iv || !payload.authTag) return null;
+
+  try {
+    const key = getMasterEncryptionKey();
+    const iv = Buffer.from(payload.iv, 'hex');
+    const authTag = Buffer.from(payload.authTag, 'hex');
+    const decipher = crypto.createDecipheriv(ENCRYPTION_ALGORITHM, key, iv);
+    decipher.setAuthTag(authTag);
+    let decrypted = decipher.update(payload.encrypted, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+    return decrypted;
+  } catch (err) {
+    console.error('[SECURITY_ALERT] Failed to decrypt GitHub token:', err.message);
+    return null;
+  }
+}
+
+/**
+ * كتابة ذرية آمنة متوافقة مع أنظمة التشغيل المختلفة
+ */
+function writeJsonAtomic(filePath, data) {
+  const content = JSON.stringify(data, null, 2);
+  const tmpPath = `${filePath}.tmp.${Date.now()}.${Math.random().toString(36).substring(2, 6)}`;
+  try {
+    fs.writeFileSync(tmpPath, content, 'utf8');
+    try {
+      fs.renameSync(tmpPath, filePath);
+    } catch (err) {
+      if (err.code === 'EPERM' || err.code === 'EBUSY' || err.code === 'EEXIST') {
+        fs.copyFileSync(tmpPath, filePath);
+        try { fs.unlinkSync(tmpPath); } catch (_) {}
+      } else {
+        throw err;
+      }
+    }
+  } catch (e) {
+    fs.writeFileSync(filePath, content, 'utf8');
+  }
+}
+
 /**
  * خدمة التكامل مع GitHub وحوكمة المشروعات البرمجية
- * تعمل حصرياً في وضع القراءة فقط (Strict Read-Only) وتدعم حسابين منفصلين
+ * تعمل حصرياً في وضع القراءة فقط (Strict Read-Only) وتدعم حسابين منفصلين مشفرين بـ AES-256-GCM
  */
 export class GitHubService {
 
   /**
-   * قراءة ملف التوكنات الآمن من الخادم فقط (محمي من المتصفح والـ Git)
+   * قراءة ملف التوكنات الآمن من الخادم فقط (مشفر بـ AES-256-GCM ومحمي من المتصفح والـ Git)
    */
   static #getSecureStore() {
     if (!fs.existsSync(SECURE_ACCOUNTS_FILE)) {
       const initial = {
-        account_1: { token: process.env.GITHUB_TOKEN_1 || null, connectedAt: null, slotName: 'الحساب الرئيسي' },
-        account_2: { token: process.env.GITHUB_TOKEN_2 || null, connectedAt: null, slotName: 'الحساب الإضافي' }
+        account_1: {
+          slotId: 'account_1',
+          ownerPartnerId: 'mohamed',
+          slotName: 'الحساب الرئيسي (م. محمد البحر)',
+          encryptedToken: process.env.GITHUB_TOKEN_1 ? encryptToken(process.env.GITHUB_TOKEN_1) : null,
+          connectedAt: null,
+          username: null
+        },
+        account_2: {
+          slotId: 'account_2',
+          ownerPartnerId: 'tarek',
+          slotName: 'الحساب الإضافي (م. طارق حافظ)',
+          encryptedToken: process.env.GITHUB_TOKEN_2 ? encryptToken(process.env.GITHUB_TOKEN_2) : null,
+          connectedAt: null,
+          username: null
+        }
       };
-      fs.writeFileSync(SECURE_ACCOUNTS_FILE, JSON.stringify(initial, null, 2), 'utf8');
+      writeJsonAtomic(SECURE_ACCOUNTS_FILE, initial);
       return initial;
     }
+
     try {
-      return JSON.parse(fs.readFileSync(SECURE_ACCOUNTS_FILE, 'utf8'));
+      const raw = JSON.parse(fs.readFileSync(SECURE_ACCOUNTS_FILE, 'utf8'));
+      // ترحيل تلقائي للبيانات القديمة غير المشفرة
+      let needsSave = false;
+      for (const slotId of ['account_1', 'account_2']) {
+        if (!raw[slotId]) {
+          raw[slotId] = {
+            slotId,
+            ownerPartnerId: slotId === 'account_1' ? 'mohamed' : 'tarek',
+            slotName: slotId === 'account_1' ? 'الحساب الرئيسي (م. محمد البحر)' : 'الحساب الإضافي (م. طارق حافظ)',
+            encryptedToken: null,
+            connectedAt: null,
+            username: null
+          };
+          needsSave = true;
+        } else {
+          // ترقية التوكن النصي إلى توكن مشفر
+          if (raw[slotId].token && !raw[slotId].encryptedToken) {
+            raw[slotId].encryptedToken = encryptToken(raw[slotId].token);
+            delete raw[slotId].token;
+            needsSave = true;
+          }
+          if (!raw[slotId].ownerPartnerId) {
+            raw[slotId].ownerPartnerId = slotId === 'account_1' ? 'mohamed' : 'tarek';
+            needsSave = true;
+          }
+        }
+      }
+      if (needsSave) {
+        writeJsonAtomic(SECURE_ACCOUNTS_FILE, raw);
+      }
+      return raw;
     } catch (e) {
-      return { account_1: { token: null }, account_2: { token: null } };
+      return {
+        account_1: { slotId: 'account_1', ownerPartnerId: 'mohamed', encryptedToken: null },
+        account_2: { slotId: 'account_2', ownerPartnerId: 'tarek', encryptedToken: null }
+      };
     }
   }
 
   static #saveSecureStore(store) {
-    fs.writeFileSync(SECURE_ACCOUNTS_FILE, JSON.stringify(store, null, 2), 'utf8');
+    writeJsonAtomic(SECURE_ACCOUNTS_FILE, store);
   }
 
   /**
-   * طلب آمن ومحمي بنظام القراءة فقط (GET فقط، ويمنع نهائياً POST أو PUT أو DELETE)
+   * استخراج التوكن مفكوك التشفير في الذاكرة المؤقتة فقط للطلب الصادر
+   */
+  static #getDecryptedToken(slot) {
+    if (!slot) return null;
+    if (slot.encryptedToken) {
+      return decryptToken(slot.encryptedToken);
+    }
+    if (slot.token) {
+      return slot.token;
+    }
+    return null;
+  }
+
+  /**
+   * طلب آمن ومحمي بنظام القراءة فقط (GET فقط، ويمنع نهائياً POST أو PUT أو DELETE على GitHub)
    */
   static async #safeGithubGet(endpoint, token) {
     const url = endpoint.startsWith('http') ? endpoint : `https://api.github.com${endpoint}`;
@@ -73,7 +211,7 @@ export class GitHubService {
   }
 
   /**
-   * حالة الحسابين المتصلين دون تسريب أي توكنات
+   * حالة الحسابين المتصلين دون تسريب أي توكنات أو مفاتيح تشفير (Zero Token Leakage)
    */
   static async getAccountsStatus() {
     const store = this.#getSecureStore();
@@ -81,10 +219,14 @@ export class GitHubService {
 
     for (const slotId of ['account_1', 'account_2']) {
       const slot = store[slotId];
-      if (!slot || !slot.token) {
+      const token = this.#getDecryptedToken(slot);
+      const ownerPartnerId = slot?.ownerPartnerId || (slotId === 'account_1' ? 'mohamed' : 'tarek');
+
+      if (!slot || !token) {
         result[slotId] = {
           slotId,
-          slotName: slot?.slotName || (slotId === 'account_1' ? 'الحساب الرئيسي' : 'الحساب الثاني'),
+          ownerPartnerId,
+          slotName: slot?.slotName || (slotId === 'account_1' ? 'الحساب الرئيسي (م. محمد البحر)' : 'الحساب الإضافي (م. طارق حافظ)'),
           connected: false,
           username: null,
           displayName: null,
@@ -97,10 +239,11 @@ export class GitHubService {
         };
       } else {
         try {
-          const { data: user, scopes } = await this.#safeGithubGet('/user', slot.token);
+          const { data: user, scopes } = await this.#safeGithubGet('/user', token);
           result[slotId] = {
             slotId,
-            slotName: slot.slotName || (slotId === 'account_1' ? 'الحساب الرئيسي' : 'الحساب الثاني'),
+            ownerPartnerId,
+            slotName: slot.slotName || (slotId === 'account_1' ? 'الحساب الرئيسي (م. محمد البحر)' : 'الحساب الإضافي (م. طارق حافظ)'),
             connected: true,
             username: user.login,
             displayName: user.name || user.login,
@@ -116,6 +259,7 @@ export class GitHubService {
         } catch (err) {
           result[slotId] = {
             slotId,
+            ownerPartnerId,
             slotName: slot.slotName,
             connected: false,
             error: 'انتهت صلاحية الرمز أو تم إلغاؤه من GitHub',
@@ -131,7 +275,8 @@ export class GitHubService {
   }
 
   /**
-   * ربط حساب جديد برمز تصريح قراءة فقط آمن
+   * ربط حساب جديد برمز تصريح قراءة فقط آمن ومشفر بـ AES-256-GCM
+   * مع التحقق الصارم من ملكية الشريك للخانة المحددة (Partner Isolation)
    */
   static async connectAccount(slotId, token, partner) {
     if (!['account_1', 'account_2'].includes(slotId)) {
@@ -141,12 +286,28 @@ export class GitHubService {
       throw new Error('رمز الدخول (Personal Access Token أو OAuth Token) مطلوب');
     }
 
+    const partnerId = partner?.partnerId || partner?.id;
+
+    // حظر تعديل حساب الشريك الآخر (Cross-Partner Account Isolation)
+    if (slotId === 'account_1' && partnerId !== 'mohamed') {
+      const err = new Error('مرفوض أمنياً: خانة الحساب الرئيسي (account_1) مخصصة حصرياً للشريك التقني م. محمد البحر.');
+      err.code = 'FORBIDDEN_PARTNER_ACCESS';
+      throw err;
+    }
+    if (slotId === 'account_2' && partnerId !== 'tarek') {
+      const err = new Error('مرفوض أمنياً: خانة الحساب الإضافي (account_2) مخصصة حصرياً لشريك الأعمال م. طارق حافظ.');
+      err.code = 'FORBIDDEN_PARTNER_ACCESS';
+      throw err;
+    }
+
     // التحقق من صحة الرمز لدى GitHub
     const { data: user, scopes } = await this.#safeGithubGet('/user', token.trim());
 
     const store = this.#getSecureStore();
     store[slotId] = {
-      token: token.trim(),
+      slotId,
+      ownerPartnerId: slotId === 'account_1' ? 'mohamed' : 'tarek',
+      encryptedToken: encryptToken(token.trim()), // تشفير AES-256-GCM
       username: user.login,
       displayName: user.name || user.login,
       avatarUrl: user.avatar_url,
@@ -156,10 +317,10 @@ export class GitHubService {
     this.#saveSecureStore(store);
 
     AuditLogger.log({
-      partnerId: partner.id,
+      partnerId,
       eventType: 'GITHUB_ACCOUNT_CONNECTED',
       inputPayload: { slotId, username: user.login, scopes },
-      outputSummary: `تم ربط حساب GitHub (${user.login}) في خانة ${slotId} بنجاح.`,
+      outputSummary: `تم ربط وتشفير حساب GitHub (${user.login}) في خانة ${slotId} بنجاح بتقنية AES-256-GCM.`,
       status: 'SUCCESS'
     });
 
@@ -175,29 +336,45 @@ export class GitHubService {
   }
 
   /**
-   * إلغاء ربط الحساب وسحب التوكن من السيرفر
+   * إلغاء ربط الحساب وسحب التوكن من السيرفر مع التحقق من صلاحيات الشريك
    */
   static disconnectAccount(slotId, partner) {
+    const partnerId = partner?.partnerId || partner?.id;
+
+    if (slotId === 'account_1' && partnerId !== 'mohamed') {
+      const err = new Error('مرفوض أمنياً: لا تملك صلاحية إلغاء ربط الحساب الرئيسي العائد للشريك الآخر.');
+      err.code = 'FORBIDDEN_PARTNER_ACCESS';
+      throw err;
+    }
+    if (slotId === 'account_2' && partnerId !== 'tarek') {
+      const err = new Error('مرفوض أمنياً: لا تملك صلاحية إلغاء ربط الحساب الإضافي العائد للشريك الآخر.');
+      err.code = 'FORBIDDEN_PARTNER_ACCESS';
+      throw err;
+    }
+
     const store = this.#getSecureStore();
     if (!store[slotId]) return { success: true };
 
     const oldUsername = store[slotId].username || 'unknown';
     store[slotId] = {
-      token: null,
+      slotId,
+      ownerPartnerId: slotId === 'account_1' ? 'mohamed' : 'tarek',
+      encryptedToken: null,
+      username: null,
       connectedAt: null,
-      slotName: slotId === 'account_1' ? 'الحساب الرئيسي' : 'الحساب الثاني'
+      slotName: slotId === 'account_1' ? 'الحساب الرئيسي (م. محمد البحر)' : 'الحساب الإضافي (م. طارق حافظ)'
     };
     this.#saveSecureStore(store);
 
     AuditLogger.log({
-      partnerId: partner.id,
+      partnerId,
       eventType: 'GITHUB_ACCOUNT_DISCONNECTED',
       inputPayload: { slotId, username: oldUsername },
-      outputSummary: `تم إلغاء ربط حساب GitHub (${oldUsername}) وسحب التوكن بالكامل.`,
+      outputSummary: `تم إلغاء ربط حساب GitHub (${oldUsername}) ومحو التوكن المشفر نهائياً.`,
       status: 'SUCCESS'
     });
 
-    return { success: true, message: `تم إلغاء ربط الحساب (${slotId}) بنجاح.` };
+    return { success: true, message: `تم إلغاء ربط الحساب (${slotId}) بنجاح ومحو بيانات الاعتماد.` };
   }
 
   /**
@@ -209,10 +386,11 @@ export class GitHubService {
 
     for (const slotId of ['account_1', 'account_2']) {
       const slot = store[slotId];
-      if (!slot || !slot.token) continue;
+      const token = this.#getDecryptedToken(slot);
+      if (!token) continue;
 
       try {
-        const { data: repos } = await this.#safeGithubGet('/user/repos?per_page=100&sort=updated', slot.token);
+        const { data: repos } = await this.#safeGithubGet('/user/repos?per_page=100&sort=updated', token);
         if (Array.isArray(repos)) {
           for (const r of repos) {
             const key = r.name.toLowerCase();
@@ -254,9 +432,13 @@ export class GitHubService {
 
     const repoList = Array.from(reposMap.values());
     
-    // حفظ نسخة كاش للسرعة والعمل بدون إنترنت
+    // حفظ نسخة كاش للسرعة والعمل الاحتياطي
     if (repoList.length > 0) {
-      fs.writeFileSync(CACHE_FILE, JSON.stringify(repoList, null, 2), 'utf8');
+      writeJsonAtomic(CACHE_FILE, repoList);
+    } else if (fs.existsSync(CACHE_FILE)) {
+      try {
+        return JSON.parse(fs.readFileSync(CACHE_FILE, 'utf8'));
+      } catch (e) {}
     }
 
     return repoList;
@@ -267,10 +449,33 @@ export class GitHubService {
    */
   static async getRepositoryDetails(owner, repo) {
     const store = this.#getSecureStore();
-    const token = store.account_1?.token || store.account_2?.token;
+    const token = this.#getDecryptedToken(store.account_1) || this.#getDecryptedToken(store.account_2);
 
     // 1. البيانات الأساسية للمستودع
-    const { data: repoData } = await this.#safeGithubGet(`/repos/${owner}/${repo}`, token);
+    let repoData;
+    try {
+      const res = await this.#safeGithubGet(`/repos/${owner}/${repo}`, token);
+      repoData = res.data;
+    } catch (err) {
+      // محاولة استرجاع البيانات من الكاش المحلي في حال غياب الاتصال الحي
+      if (fs.existsSync(CACHE_FILE)) {
+        const cached = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf8'));
+        const found = cached.find(r => r.name.toLowerCase() === repo.toLowerCase() || r.fullName.toLowerCase() === `${owner}/${repo}`.toLowerCase());
+        if (found) {
+          repoData = {
+            name: found.name,
+            full_name: found.fullName,
+            description: found.description,
+            html_url: found.htmlUrl,
+            private: found.isPrivate,
+            language: found.language,
+            default_branch: found.defaultBranch,
+            open_issues_count: found.openIssuesCount
+          };
+        }
+      }
+      if (!repoData) throw err;
+    }
 
     // 2. آخر 5 Commits
     let commits = [];
@@ -376,9 +581,8 @@ export class GitHubService {
    * تصنيف طبيعة المشروع بذكاء ومنع افتراض الاستقلالية دون فحص
    */
   static #classifyProject(repo, files = [], pkg = null) {
-    const name = repo.name.toLowerCase();
+    const name = (repo.name || '').toLowerCase();
     const desc = (repo.description || '').toLowerCase();
-    const fileNames = files.map(f => f.name.toLowerCase());
 
     if (name.includes('pos') || name.includes('cashier') || name.includes('كاشير') || name.includes('fresh')) {
       return { type: 'RESTAURANT_POS', label: 'نظام كاشير ومطاعم', isFullSaasCandidate: true };
@@ -398,7 +602,6 @@ export class GitHubService {
     if (name === 'technolobia') {
       return { type: 'PLATFORM_CORE', label: 'منصة TECHNOLOPIA المركزية', isFullSaasCandidate: true };
     }
-
     if (repo.language === 'Kotlin' || repo.language === 'Java') {
       return { type: 'MOBILE_APP', label: 'تطبيق أندرويد للهواتف', isFullSaasCandidate: true };
     }
@@ -419,7 +622,7 @@ export class GitHubService {
   }
 
   /**
-   * حفظ توصيات جديدة من Gemini
+   * حفظ توصيات جديدة مع حماية البيانات والتوثيق
    */
   static saveRecommendations(recs) {
     const existing = this.getStoredRecommendations();
@@ -440,26 +643,27 @@ export class GitHubService {
       }
     });
 
-    fs.writeFileSync(RECOMMENDATIONS_FILE, JSON.stringify(updated, null, 2), 'utf8');
+    writeJsonAtomic(RECOMMENDATIONS_FILE, updated);
     return updated;
   }
 
   /**
-   * تحديث حالة توصية (اعتماد / تجاهل / تمت المراجعة)
+   * تحديث حالة توصية (اعتماد / تجاهل / تمت المراجعة) داخل النظام المحلي فقط
    */
   static updateRecommendationStatus(id, newStatus, partner) {
     const list = this.getStoredRecommendations();
     const item = list.find(r => r.id === id);
     if (!item) throw new Error(`التوصية (${id}) غير موجودة.`);
 
+    const partnerId = partner?.partnerId || partner?.id;
     item.status = newStatus;
-    item.reviewedBy = partner.id;
+    item.reviewedBy = partnerId;
     item.reviewedAt = new Date().toISOString();
 
-    fs.writeFileSync(RECOMMENDATIONS_FILE, JSON.stringify(list, null, 2), 'utf8');
+    writeJsonAtomic(RECOMMENDATIONS_FILE, list);
 
     AuditLogger.log({
-      partnerId: partner.id,
+      partnerId,
       eventType: 'RECOMMENDATION_STATUS_UPDATED',
       inputPayload: { id, newStatus },
       outputSummary: `تم تحديث حالة التوصية (${item.issue}) إلى ${newStatus}.`,
@@ -467,5 +671,24 @@ export class GitHubService {
     });
 
     return item;
+  }
+
+  /**
+   * حظر صريح ومطلق لأي عمليات كتابة أو تعديل على GitHub (Strict Read-Only Enforcement)
+   */
+  static createCommit() {
+    throw new Error('READ_ONLY_VIOLATION: محظور أمنياً: نظام TECHNOLOPIA يعمل في وضع القراءة فقط (Strict Read-Only) ويمنع إنشاء Commit على GitHub.');
+  }
+
+  static pushBranch() {
+    throw new Error('READ_ONLY_VIOLATION: محظور أمنياً: نظام TECHNOLOPIA يعمل في وضع القراءة فقط (Strict Read-Only) ويمنع عمل Push إلى GitHub.');
+  }
+
+  static createPullRequest() {
+    throw new Error('READ_ONLY_VIOLATION: محظور أمنياً: نظام TECHNOLOPIA يعمل في وضع القراءة فقط (Strict Read-Only) ويمنع فتح Pull Request على GitHub.');
+  }
+
+  static deleteRepository() {
+    throw new Error('READ_ONLY_VIOLATION: محظور أمنياً: نظام TECHNOLOPIA يعمل في وضع القراءة فقط (Strict Read-Only) ويمنع حذف أو تعديل مستودعات GitHub.');
   }
 }

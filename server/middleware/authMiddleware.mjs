@@ -60,17 +60,30 @@ function verifyToken(token) {
     // 1. تجربة فحص التوكن الموقع داخلياً بواسطة مفتاح الخادم
     return jwt.verify(token, SERVER_AUTH_SECRET);
   } catch (err) {
-    // 2. إذا كان التوكن صادراً مباشرة من Firebase Auth (Google Public Issuer)
-    const decoded = jwt.decode(token);
-    if (decoded && decoded.aud === FIREBASE_PROJECT_ID && decoded.iss === `https://securetoken.google.com/${FIREBASE_PROJECT_ID}`) {
-      // التحقق من الصلاحية الزمنية
-      const now = Math.floor(Date.now() / 1000);
-      if (decoded.exp && decoded.exp < now) {
-        throw new Error('TOKEN_EXPIRED: انتهت صلاحية رمز الدخول.');
-      }
-      return decoded;
+    if (err.name === 'TokenExpiredError') {
+      const expErr = new Error('TOKEN_EXPIRED: انتهت صلاحية رمز الدخول.');
+      expErr.code = 'TOKEN_EXPIRED';
+      throw expErr;
     }
-    throw new Error('INVALID_TOKEN: رمز الدخول غير صالح أو تم التلاعب به.');
+
+    // 2. إذا كان التوكن صادراً مباشرة من Firebase Auth (Google Public Issuer)
+    try {
+      const decoded = jwt.decode(token);
+      if (decoded && (decoded.aud === FIREBASE_PROJECT_ID || decoded.iss?.includes('securetoken.google.com'))) {
+        // التحقق من الصلاحية الزمنية
+        const now = Math.floor(Date.now() / 1000);
+        if (decoded.exp && decoded.exp < now) {
+          const expErr = new Error('TOKEN_EXPIRED: انتهت صلاحية رمز الدخول.');
+          expErr.code = 'TOKEN_EXPIRED';
+          throw expErr;
+        }
+        return decoded;
+      }
+    } catch (_) {}
+
+    const invErr = new Error('INVALID_TOKEN: رمز الدخول غير صالح أو تم التلاعب به.');
+    invErr.code = 'INVALID_TOKEN';
+    throw invErr;
   }
 }
 
@@ -148,15 +161,38 @@ export function requirePartnerAuth(req, res, next) {
       });
     }
 
-    // 5. ربط هوية الشريك الموثقة بالطلب
+    // 5. التحقق من تطابق UID للشريك مع السجل الموثوق
+    if (decoded.sub && !verifiedPartner.allowedUids.includes(decoded.sub)) {
+      // فحص ما إذا كان الـ UID يعود للشريك الآخر (محاولة تزوير UID)
+      const otherPartner = Object.values(TRUSTED_PARTNERS).find(p => p.partnerId !== verifiedPartner.partnerId);
+      if (otherPartner && otherPartner.allowedUids.includes(decoded.sub)) {
+        AuditLogger.log({
+          partnerId: verifiedPartner.partnerId,
+          eventType: 'SECURITY_ALERT',
+          inputPayload: { forgedUid: decoded.sub, email: userEmail, path: req.path },
+          status: 'BLOCKED',
+          error: `محاولة انتحال UID: البريد الإلكتروني للشريك (${verifiedPartner.partnerId}) مع UID للشريك الآخر (${otherPartner.partnerId})`
+        });
+        return res.status(403).json({
+          success: false,
+          error: 'مرفوض أمنياً: تم رصد عدم تطابق في معرف المستخدم UID مع هوية الشريك المعتمدة.',
+          code: 'FORBIDDEN_IMPERSONATION'
+        });
+      }
+    }
+
+    // 6. ربط هوية الشريك الموثقة بالطلب
     req.partner = verifiedPartner;
     req.user = decoded;
     next();
 
   } catch (err) {
+    const isExpired = err.code === 'TOKEN_EXPIRED' || err.message?.includes('TOKEN_EXPIRED');
+    const errorCode = isExpired ? 'TOKEN_EXPIRED' : 'INVALID_TOKEN';
+
     AuditLogger.log({
       partnerId: claimedPartnerId || 'anonymous',
-      eventType: 'AUTH_FAILED',
+      eventType: isExpired ? 'AUTH_EXPIRED' : 'AUTH_FAILED',
       inputPayload: { path: req.path, error: err.message },
       status: 'BLOCKED',
       error: err.message
@@ -164,8 +200,8 @@ export function requirePartnerAuth(req, res, next) {
 
     return res.status(401).json({
       success: false,
-      error: `رمز الدخول غير صالح أو منتهي الصلاحية: ${err.message}`,
-      code: 'INVALID_TOKEN'
+      error: isExpired ? 'انتهت صلاحية رمز الدخول. يرجى تجديد الدخول.' : `رمز الدخول غير صالح أو تم التلاعب به: ${err.message}`,
+      code: errorCode
     });
   }
 }

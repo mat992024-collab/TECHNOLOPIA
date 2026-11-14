@@ -7,7 +7,7 @@ import app from '../server/index.mjs';
 import { issuePartnerToken } from '../server/middleware/authMiddleware.mjs';
 import { AuditLogger } from '../server/services/auditLogger.mjs';
 import { RealDataProvider } from '../server/data/realDataProvider.mjs';
-import { ToolExecutors, AUTHORIZED_TOOL_WHITELIST } from '../server/tools/toolExecutors.mjs';
+import { ToolExecutors } from '../server/tools/toolExecutors.mjs';
 import { GeminiAgent } from '../server/geminiAgent.mjs';
 
 let server;
@@ -215,14 +215,14 @@ test('9. Rate Limiting: Exceeding request quota triggers HTTP 429 Too Many Reque
 
 test('10. Gemini Dynamic Model Config: Model name is dynamically configurable via GEMINI_MODEL', () => {
   const defaultModel = GeminiAgent.getActiveModel();
-  assert.equal(defaultModel, 'gemini-1.5-flash');
+  assert.equal(defaultModel, 'gemini-3.8-flash');
 
   // تغيير متغير البيئة والتأكد من التحديث اللحظي
-  process.env.GEMINI_MODEL = 'gemini-1.5-pro';
-  assert.equal(GeminiAgent.getActiveModel(), 'gemini-1.5-pro');
+  process.env.GEMINI_MODEL = 'gemini-2.5-flash';
+  assert.equal(GeminiAgent.getActiveModel(), 'gemini-2.5-flash');
 
   delete process.env.GEMINI_MODEL;
-  assert.equal(GeminiAgent.getActiveModel(), 'gemini-1.5-flash');
+  assert.equal(GeminiAgent.getActiveModel(), 'gemini-3.8-flash');
 });
 
 test('11. Input Sanitization: Oversized message payload (>5000 chars) is blocked with 400', async () => {

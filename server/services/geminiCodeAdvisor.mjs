@@ -3,6 +3,17 @@ import { GeminiAgent } from '../geminiAgent.mjs';
 import { GitHubService } from './githubService.mjs';
 import { AuditLogger } from './auditLogger.mjs';
 
+/**
+ * تصنيفات الأدلة والادعاءات البرمجية المعتمدة
+ */
+export const CLAIM_TYPES = {
+  CONFIRMED_TECHNICAL_FACT: 'CONFIRMED_TECHNICAL_FACT', // حقيقة برمجية مؤكدة بالدليل من الكود
+  INFERENCE: 'INFERENCE',                               // استنتاج معماري فني
+  BUSINESS_OPPORTUNITY: 'BUSINESS_OPPORTUNITY',         // فرصة تجارية محتملة
+  FINANCIAL_ESTIMATE: 'FINANCIAL_ESTIMATE',             // تقدير مالي استرشادي
+  MARKET_ASSUMPTION: 'MARKET_ASSUMPTION'                // افتراض تسويقي
+};
+
 export class GeminiCodeAdvisor {
 
   /**
@@ -16,6 +27,8 @@ export class GeminiCodeAdvisor {
     const depsStr = packageJsonDependencies ? 
       JSON.stringify(packageJsonDependencies.dependencies || {}, null, 2) : 
       (pythonDependencies ? pythonDependencies.join(', ') : 'لا توجد قائمة اعتماديات محددة');
+
+    const activeModel = GeminiAgent.getActiveModel();
 
     const prompt = `أنت رئيس المهندسين التقنيين (Principal Software Architect) والمستشار التقني لشركة TECHNOLOPIA.
 المطلوب إجراء فحص كود شامل ودقيق لمستودع GitHub التالي:
@@ -32,7 +45,7 @@ export class GeminiCodeAdvisor {
 3. كشف الملفات غير المستخدمة أو التكرار والاعتماديات القديمة (Code Quality & Dependencies).
 4. تقييم الأداء وقابلية التوسع (Scalability Rating from 1 to 10).
 5. فرصة التحويل إلى Micro-SaaS واشتراك شهري ثابت (Commercial Monetization).
-6. قائمة بالتوصيات المحددة (Structured Recommendations). يجب أن تميز بوضوح بين المشاكل المؤكدة والاستنتاجات المحتملة.`;
+6. قائمة بالتوصيات المحددة (Structured Recommendations). يجب أن تميز بوضوح تام بين الحقائق البرمجية المؤكدة (CONFIRMED_TECHNICAL_FACT) والتوقعات المالية والافتراضات السوقية (FINANCIAL_ESTIMATE / MARKET_ASSUMPTION).`;
 
     let analysisResult;
 
@@ -40,7 +53,7 @@ export class GeminiCodeAdvisor {
       try {
         const client = GeminiAgent.getClient();
         const response = await client.models.generateContent({
-          model: 'gemini-1.5-flash',
+          model: activeModel,
           contents: prompt,
           config: {
             temperature: 0.2
@@ -48,7 +61,7 @@ export class GeminiCodeAdvisor {
         });
         analysisResult = this.#parseGeminiAnalysis(response.text, repoDetails);
       } catch (err) {
-        console.warn('Gemini live analysis failed, using deterministic code rule evaluator:', err.message);
+        console.warn(`Gemini live analysis using ${activeModel} failed, using deterministic code rule evaluator:`, err.message);
         analysisResult = this.#evaluateDeterministicCodeRules(repoDetails);
       }
     } else {
@@ -61,10 +74,10 @@ export class GeminiCodeAdvisor {
     }
 
     AuditLogger.log({
-      partnerId: partner.id,
+      partnerId: partner.partnerId || partner.id,
       eventType: 'GITHUB_PROJECT_ANALYZED',
-      inputPayload: { fullName, language },
-      outputSummary: `تم تحليل كود المشروع (${fullName}) وتوليد ${analysisResult.recommendations?.length || 0} توصيات.`,
+      inputPayload: { fullName, language, modelUsed: activeModel },
+      outputSummary: `تم تحليل كود المشروع (${fullName}) بنموذج ${activeModel} وتوليد ${analysisResult.recommendations?.length || 0} توصيات مصنفة.`,
       status: 'SUCCESS'
     });
 
@@ -98,7 +111,7 @@ export class GeminiCodeAdvisor {
         language: c.language,
         htmlUrl: c.htmlUrl
       })),
-      strategicSummaryText: `تمتلك شركة TECHNOLOPIA محفظة برمجية قوية تضم ${totalRepos} مستودعات. منها ${saasCandidates.length} مشروعات جاهزة مباشرة للتحويل إلى منتجات اشتراك شهري Micro-SaaS (مثل كاشير المطاعم، المنيو الإلكتروني، ومنظومة الفوترة ZATCA). التحدي الأكبر الحالي هو توحيد قواعد البيانات وعزل الـ Backend في APIs سحابية مستقلة.`
+      strategicSummaryText: `تمتلك شركة TECHNOLOPIA محفظة برمجية تضم ${totalRepos} مستودعات. منها ${saasCandidates.length} مشروعات جاهزة للتحويل إلى منتجات اشتراك شهري Micro-SaaS. التحدي الأكبر الحالي هو توحيد قواعد البيانات وعزل الـ Backend في APIs سحابية مستقلة.`
     };
 
     return summary;
@@ -106,44 +119,52 @@ export class GeminiCodeAdvisor {
 
   /**
    * محرك فحص القواعد البرمجية المنضبطة (Deterministic Code Rule Evaluator)
-   * يفحص الأدلة والملفات الفعلية للمشروع لضمان عدم وجود بيانات وهمية
+   * يفحص الأدلة والملفات الفعلية للمشروع ويفصل بدقة بين الحقائق والاستنتاجات والتقديرات
    */
   static #evaluateDeterministicCodeRules(repoDetails) {
     const { name, fullName, language, files = [], packageJsonDependencies, pythonDependencies } = repoDetails;
     const recs = [];
     const fileNames = files.map(f => f.name.toLowerCase());
 
-    // 1. فحص وجود README.md
+    // 1. فحص وجود README.md (حقيقة مؤكدة بالدليل)
     const hasReadme = fileNames.includes('readme.md');
     if (!hasReadme) {
       recs.push({
         projectName: name,
+        targetFile: 'README.md',
         issue: 'غياب ملف التوثيق الفني والتشغيلي (README.md)',
         evidence: 'مجلد الجذر (Root Directory) لا يحتوي على README.md',
+        claimType: CLAIM_TYPES.CONFIRMED_TECHNICAL_FACT,
+        confidenceScore: 1.0,
+        isConfirmedFact: true,
         priority: 'medium',
         impact: 'صعوبة صيانة المشروع أو انضمام مبرمجين جدد بدون دليل تشغيل سريع.',
         suggestedSolution: 'إنشاء ملف README.md يوضح خطوات التثبيت وTech Stack ومتغيرات البيئة المطلوبة.',
         effortEstimate: 'ساعة واحدة',
-        isConfirmedFact: true
+        financialNote: null
       });
     }
 
-    // 2. فحص أمان البيئة وتجاهل الأسرار (.gitignore)
+    // 2. فحص أمان البيئة وتجاهل الأسرار (.gitignore) (حقيقة مؤكدة بالدليل)
     const hasGitignore = fileNames.includes('.gitignore');
     if (!hasGitignore) {
       recs.push({
         projectName: name,
+        targetFile: '.gitignore',
         issue: 'احتمال تسريب ملفات حساسة لعدم وجود .gitignore',
         evidence: 'مجلد الجذر لا يحتوي على ملف .gitignore',
+        claimType: CLAIM_TYPES.CONFIRMED_TECHNICAL_FACT,
+        confidenceScore: 1.0,
+        isConfirmedFact: true,
         priority: 'urgent',
         impact: 'خطر تسريب مجلدات الاعتماديات (node_modules) أو ملفات البيئة (.env).',
         suggestedSolution: 'إضافة ملف .gitignore قياسي للغة المشروع فوراً.',
         effortEstimate: '15 دقيقة',
-        isConfirmedFact: true
+        financialNote: null
       });
     }
 
-    // 3. فحص مشاريع Node/React والاعتماديات
+    // 3. فحص مشاريع Node/React والاعتماديات (حقائق مؤكدة من package.json)
     if (packageJsonDependencies) {
       const deps = packageJsonDependencies.dependencies || {};
       const devDeps = packageJsonDependencies.devDependencies || {};
@@ -153,13 +174,17 @@ export class GeminiCodeAdvisor {
       if (!allDeps['typescript'] && language === 'JavaScript') {
         recs.push({
           projectName: name,
+          targetFile: 'package.json',
           issue: 'المشروع مكتوب بلغة JavaScript مجردة دون التحقق النوعي (TypeScript)',
           evidence: 'package.json لا يحتوي على typescript في devDependencies',
+          claimType: CLAIM_TYPES.CONFIRMED_TECHNICAL_FACT,
+          confidenceScore: 1.0,
+          isConfirmedFact: true,
           priority: 'medium',
           impact: 'احتمال وقوع Runtime Bugs غير متوقعة عند تغيير بنية البيانات في بيئة الإنتاج.',
           suggestedSolution: 'تفعيل TypeScript تدريجياً وإضافة tsconfig.json لحماية المنظومة.',
           effortEstimate: 'يومان عمل',
-          isConfirmedFact: true
+          financialNote: null
         });
       }
 
@@ -168,42 +193,54 @@ export class GeminiCodeAdvisor {
       if (!hasTests) {
         recs.push({
           projectName: name,
+          targetFile: 'package.json',
           issue: 'عدم وجود حزمة اختبارات مؤتمتة (Unit/Integration Tests)',
           evidence: 'غياب vitest / jest من package.json وعدم وجود مجلد tests',
+          claimType: CLAIM_TYPES.CONFIRMED_TECHNICAL_FACT,
+          confidenceScore: 1.0,
+          isConfirmedFact: true,
           priority: 'high',
           impact: 'صعوبة عمل Refactoring دون الخوف من كسر الوظائف الأساسية للنظام.',
           suggestedSolution: 'تثبيت Vitest أو Node Test Runner وكتابة اختبارات للمحرك المالي والوظائف الحيوية.',
           effortEstimate: '3 أيام عمل',
-          isConfirmedFact: true
+          financialNote: null
         });
       }
     }
 
-    // 4. فحص مشروعات ZATCA و Odoo
+    // 4. فحص مشروعات ZATCA و Odoo (فرصة تجارية وتقدير مالي استرشادي)
     if (name.toLowerCase().includes('zatca') || name.toLowerCase().includes('odoo')) {
       recs.push({
         projectName: name,
+        targetFile: 'odoo19-zatca-phase2',
         issue: 'فرصة توسع كبرى: الربط السحابي مع هيئة الزكاة والضريبة والجمارك بالمملكة (ZATCA Phase 2)',
-        evidence: 'مشروع الفوترة الإلكترونية odoo19-zatca-phase2',
+        evidence: 'مشروع الفوترة الإلكترونية odoo19-zatca-phase2 متوافق مع متطلبات المرحلة الثانية',
+        claimType: CLAIM_TYPES.BUSINESS_OPPORTUNITY,
+        confidenceScore: 0.85,
+        isConfirmedFact: false,
         priority: 'urgent',
-        impact: 'الطلب في السوق السعودي ضخم جداً ويتجاوز 20,000 ريال لكل ترقية نظام منشأة متوسطة.',
+        impact: 'إمكانية تقديم حلول فوترة إلكترونية متوافقة للمنشآت في السوق الخليجي والسعودي.',
         suggestedSolution: 'تجهيز نسخة SaaS سحابية قائمة بذاتها (Micro-Service) يمكن ربطها بأي ERP خارجي عبر REST API.',
         effortEstimate: 'أسبوع عمل واحد',
-        isConfirmedFact: true
+        financialNote: 'تقدير سوقي استرشادي غير مضمون: يمثل متوسط تكلفة مشاريع تكامل الفوترة للشركات المتوسطة في السوق الخليجي (حوالي 15,000 - 25,000 ريال) وفق مؤشرات السوق الاسترشادية.'
       });
     }
 
-    // 5. فحص مشروعات المطاعم والمنيو
+    // 5. فحص مشروعات المطاعم والمنيو (فرصة تجارية وتقدير مالي استرشادي)
     if (name.toLowerCase().includes('menu') || name.toLowerCase().includes('fresh')) {
       recs.push({
         projectName: name,
+        targetFile: 'pizza-fresh-menu',
         issue: 'فرصة كاش سريع: بيع قوالب المنيو الإلكتروني وكاشير المطاعم لاشتراكات سريعة',
-        evidence: `مشروع ${name} ونظام pizza-fresh-menu الجاهز`,
+        evidence: `مشروع ${name} ونظام pizza-fresh-menu الجاهز للنشر المباشر`,
+        claimType: CLAIM_TYPES.FINANCIAL_ESTIMATE,
+        confidenceScore: 0.80,
+        isConfirmedFact: false,
         priority: 'urgent',
-        impact: 'تحقيق سيولة كاش فورية من 3,000 إلى 10,000 جنيه لكل مطعم أو كافيه في الإسكندرية.',
+        impact: 'إمكانية توفير اشتراكات سريعة لأصحاب المطاعم والكافيهات.',
         suggestedSolution: 'تجهيز رابط ديمو لايف سريع يعمل بدون تثبيت وإرساله لأصحاب المطاعم عبر واتساب.',
         effortEstimate: 'يوم عمل واحد',
-        isConfirmedFact: true
+        financialNote: 'تقدير مالي استرشادي غير مضمون: يتراوح متوسط سعر بيع قوالب المنيو الإلكتروني للمطعم الواحد بين 3,000 و 8,000 ج.م في السوق المحلي وفق افتراضات المبيعات الحالية.'
       });
     }
 
@@ -219,7 +256,12 @@ export class GeminiCodeAdvisor {
       },
       codeQualityAndCleanliness: `جودة الكود مقبولة للمرحلة الحالية؛ يُوصى بتوحيد التنسيق عبر Prettier وLinter وعزل منطق الأعمال (Business Logic) عن واجهات المستخدم.`,
       scalabilityRating: language === 'TypeScript' || language === 'Python' ? 8.5 : 7.0,
-      saasMonetizationPlan: `إتاحة النظام بنموذج الاشتراك السحابي الشهري (Recurring Monthly Subscription) من 600 إلى 1,200 ج.م شهرياً مع النسخ الاحتياطي السحابي التلقائي.`,
+      saasMonetizationPlan: {
+        model: 'Recurring Monthly Subscription',
+        priceRangeEstimate: '600 - 1,200 EGP / month',
+        status: CLAIM_TYPES.MARKET_ASSUMPTION,
+        financialNote: 'تقدير سوقي استرشادي غير مضمون مبني على تسعير خدمات الاستضافة والدعم الفني للمتاجر الصغيرة.'
+      },
       recommendations: recs
     };
   }

@@ -4,10 +4,12 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import app from '../server/index.mjs';
 import { GitHubService } from '../server/services/githubService.mjs';
-import { GeminiCodeAdvisor } from '../server/services/geminiCodeAdvisor.mjs';
+import { issuePartnerToken } from '../server/middleware/authMiddleware.mjs';
 
 let server;
 let baseUrl;
+const mohamedToken = issuePartnerToken('mohamed');
+const tarekToken = issuePartnerToken('tarek');
 
 test.before(async () => {
   await new Promise(resolve => {
@@ -29,7 +31,10 @@ test.after(async () => {
 
 test('1. Security: GitHub Accounts endpoint never leaks access tokens (Zero Token Leakage)', async () => {
   const res = await fetch(`${baseUrl}/api/github/accounts`, {
-    headers: { 'x-partner-id': 'mohamed' }
+    headers: {
+      'Authorization': `Bearer ${mohamedToken}`,
+      'x-partner-id': 'mohamed'
+    }
   });
   assert.equal(res.status, 200);
   const data = await res.json();
@@ -40,13 +45,19 @@ test('1. Security: GitHub Accounts endpoint never leaks access tokens (Zero Toke
   // التأكد المطلق من عدم وجود كلمة token في مخرجات الحساب الأول أو الثاني
   assert.equal(data.accounts.account_1.token, undefined);
   assert.equal(data.accounts.account_2.token, undefined);
+  assert.equal(data.accounts.account_1.encryptedToken, undefined);
+  assert.equal(data.accounts.account_2.encryptedToken, undefined);
   const rawString = JSON.stringify(data);
   assert.ok(!rawString.includes('ghp_'), 'Security violation: raw token leaked in API response!');
+  assert.ok(!rawString.includes('authTag'), 'Security violation: cipher internals leaked!');
 });
 
 test('2. Multi-Account: Account 1 is connected and verified (mat992024-collab)', async () => {
   const res = await fetch(`${baseUrl}/api/github/accounts`, {
-    headers: { 'x-partner-id': 'mohamed' }
+    headers: {
+      'Authorization': `Bearer ${mohamedToken}`,
+      'x-partner-id': 'mohamed'
+    }
   });
   const data = await res.json();
   const acc1 = data.accounts.account_1;
@@ -60,11 +71,15 @@ test('3. Multi-Account: Account 2 supports independent connection and isolation'
   const accounts = await GitHubService.getAccountsStatus();
   assert.ok(accounts.account_2);
   assert.equal(accounts.account_2.slotId, 'account_2');
+  assert.equal(accounts.account_2.ownerPartnerId, 'tarek');
 });
 
 test('4. Repositories Discovery: Discovers real repositories across accounts', async () => {
   const res = await fetch(`${baseUrl}/api/github/repositories`, {
-    headers: { 'x-partner-id': 'mohamed' }
+    headers: {
+      'Authorization': `Bearer ${mohamedToken}`,
+      'x-partner-id': 'mohamed'
+    }
   });
   assert.equal(res.status, 200);
   const data = await res.json();
@@ -99,7 +114,10 @@ test('6. Privacy Classification: Public and Private repos are accurately disting
 
 test('7. Repository Deep Inspection: Retrieves branches, file tree, and latest commits', async () => {
   const res = await fetch(`${baseUrl}/api/github/repository/mat992024-collab/TECHNOLOPIA`, {
-    headers: { 'x-partner-id': 'mohamed' }
+    headers: {
+      'Authorization': `Bearer ${mohamedToken}`,
+      'x-partner-id': 'mohamed'
+    }
   });
   assert.equal(res.status, 200);
   const data = await res.json();
@@ -116,6 +134,7 @@ test('8. Gemini Code Advisor: Analyzes repository and produces structured recomm
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${mohamedToken}`,
       'x-partner-id': 'mohamed'
     },
     body: JSON.stringify({ owner: 'mat992024-collab', repo: 'TECHNOLOPIA' })
@@ -133,6 +152,8 @@ test('8. Gemini Code Advisor: Analyzes repository and produces structured recomm
     assert.ok(rec.projectName);
     assert.ok(rec.issue);
     assert.ok(rec.evidence);
+    assert.ok(rec.claimType, 'Recommendation must specify a claimType');
+    assert.ok(rec.confidenceScore !== undefined);
     assert.ok(['urgent', 'high', 'medium', 'low'].includes(rec.priority));
     assert.ok(rec.impact);
     assert.ok(rec.suggestedSolution);
@@ -148,6 +169,7 @@ test('9. Recommendation Lifecycle: Partner can approve or review recommendation'
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${tarekToken}`,
         'x-partner-id': 'tarek'
       },
       body: JSON.stringify({ id: targetRec.id, status: 'approved' })
@@ -162,7 +184,10 @@ test('9. Recommendation Lifecycle: Partner can approve or review recommendation'
 
 test('10. Portfolio Overview Report: Synthesizes company-wide software assets', async () => {
   const res = await fetch(`${baseUrl}/api/github/portfolio-report`, {
-    headers: { 'x-partner-id': 'mohamed' }
+    headers: {
+      'Authorization': `Bearer ${mohamedToken}`,
+      'x-partner-id': 'mohamed'
+    }
   });
   assert.equal(res.status, 200);
   const data = await res.json();

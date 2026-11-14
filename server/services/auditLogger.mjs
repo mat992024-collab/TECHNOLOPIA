@@ -7,10 +7,13 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const AUDIT_FILE = path.resolve(__dirname, '../../backups/tecnolobia_ai_audit_logs.json');
+const CHECKPOINT_FILE = path.resolve(__dirname, '../../backups/.audit_tip_checkpoint.secure.json');
+const AUDIT_SIGNING_KEY = process.env.JWT_SECRET || 'TECNOLOBIA_EXECUTIVE_SECURE_KEY_2026_COFOUNDERS';
 
 /**
  * سجل التدقيق الأمني المحمي وغير القابل للتلاعب (Immutable Hash-Chained Audit Logger)
- * يعتمد على سلسلة كتل تشفيرية (Hash Chain) لمنع أي تعديل أو حذف بأثر رجعي
+ * يعتمد على سلسلة كتل تشفيرية (Hash Chain) ونقطة فحص موثقة وموقعة تشفيرياً (HMAC Signed Checkpoint)
+ * لمنع أي تعديل أو حذف بأثر رجعي أو إعادة بناء السلسلة بالكامل (Full Chain Reconstruction Detection)
  */
 export class AuditLogger {
 
@@ -20,6 +23,40 @@ export class AuditLogger {
   static #computeHash(previousHash, entry) {
     const data = `${previousHash}|${entry.id}|${entry.timestamp}|${entry.partnerId}|${entry.eventType}|${JSON.stringify(entry.inputPayload)}|${entry.status}`;
     return crypto.createHash('sha256').update(data).digest('hex');
+  }
+
+  /**
+   * توقيع نقطة الفحص المستقلة تشفيرياً بـ HMAC-SHA256
+   */
+  static #signCheckpoint(totalCount, lastHash, lastLogId) {
+    const payload = `${totalCount}|${lastHash}|${lastLogId}`;
+    return crypto.createHmac('sha256', AUDIT_SIGNING_KEY).update(payload).digest('hex');
+  }
+
+  /**
+   * حفظ نقطة الفحص المستقلة لحماية قمة السلسلة (Tip Checkpoint Anchor)
+   */
+  static #saveTipCheckpoint(totalCount, lastHash, lastLogId) {
+    try {
+      const signature = this.#signCheckpoint(totalCount, lastHash, lastLogId);
+      const checkpointData = {
+        totalCount,
+        lastHash,
+        lastLogId,
+        updatedAt: new Date().toISOString(),
+        signature
+      };
+      const tmpPath = `${CHECKPOINT_FILE}.tmp.${Date.now()}.${Math.random().toString(36).substring(2, 6)}`;
+      fs.writeFileSync(tmpPath, JSON.stringify(checkpointData, null, 2), 'utf8');
+      try {
+        fs.renameSync(tmpPath, CHECKPOINT_FILE);
+      } catch (e) {
+        fs.copyFileSync(tmpPath, CHECKPOINT_FILE);
+        try { fs.unlinkSync(tmpPath); } catch (_) {}
+      }
+    } catch (e) {
+      // عدم إيقاف النظام في حال تعذر حفظ نقطة الفحص
+    }
   }
 
   /**
@@ -75,6 +112,9 @@ export class AuditLogger {
       fs.writeFileSync(AUDIT_FILE, content, 'utf8');
     }
 
+    // تحديث نقطة الفحص المستقلة الموقعة تشفيرياً لحماية السلسلة من إعادة البناء الشامل
+    this.#saveTipCheckpoint(logs.length, logEntry.hash, logEntry.id);
+
     return logEntry;
   }
 
@@ -92,7 +132,7 @@ export class AuditLogger {
   }
 
   /**
-   * فحص النزاهة التشفيرية لسجل التدقيق والتأكد من عدم التلاعب به
+   * فحص النزاهة التشفيرية لسجل التدقيق والتأكد من عدم التلاعب به أو إعادة بنائه
    */
   static verifyChainIntegrity() {
     if (!fs.existsSync(AUDIT_FILE)) return { valid: true, count: 0 };
@@ -119,6 +159,33 @@ export class AuditLogger {
         }
         expectedPrev = entry.hash;
       }
+
+      // التحقق من مطابقة نقطة الفحص المستقلة الموقعة (Anchor Checkpoint)
+      if (fs.existsSync(CHECKPOINT_FILE)) {
+        try {
+          const checkpoint = JSON.parse(fs.readFileSync(CHECKPOINT_FILE, 'utf8'));
+          const expectedSig = this.#signCheckpoint(checkpoint.totalCount, checkpoint.lastHash, checkpoint.lastLogId);
+          if (checkpoint.signature !== expectedSig) {
+            return {
+              valid: false,
+              error: 'تم رصد تلاعب بتوقيع نقطة الفحص المستقلة (Checkpoint HMAC Signature Mismatch)!'
+            };
+          }
+
+          if (logs.length > 0) {
+            const lastLog = logs[logs.length - 1];
+            if (checkpoint.totalCount !== logs.length || checkpoint.lastHash !== lastLog.hash) {
+              return {
+                valid: false,
+                error: `تم رصد إعادة بناء أو اقتطاع لسلسلة التدقيق (Chain Truncation or Full Reconstruction Detected). العدد المسجل (${logs.length}) لا يطابق نقطة الفحص المعتمدة (${checkpoint.totalCount}).`
+              };
+            }
+          }
+        } catch (e) {
+          // خطأ في قراءة ملف نقطة الفحص
+        }
+      }
+
       return { valid: true, count: logs.length };
     } catch (err) {
       return { valid: false, error: err.message };

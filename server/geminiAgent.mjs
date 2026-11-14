@@ -4,8 +4,8 @@ import { GEMINI_TOOL_DECLARATIONS } from './tools/toolDefinitions.mjs';
 import { ToolExecutors } from './tools/toolExecutors.mjs';
 import { AuditLogger } from './services/auditLogger.mjs';
 
-const PRIMARY_MODEL = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
-const FALLBACK_MODEL = process.env.GEMINI_FALLBACK_MODEL || 'gemini-1.5-pro';
+const PRIMARY_MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+const FALLBACK_MODEL = process.env.GEMINI_FALLBACK_MODEL || 'gemini-2.5-flash';
 
 const SYSTEM_INSTRUCTION = `أنت المساعد التنفيذي والشريك الاستشاري الذكي (AI Executive Co-Founder & Business Manager) لشركة البرمجيات المصرية TECHNOLOPIA.
 الشركاء المؤسسون: م. محمد البحر (تقني & Full-Stack) وم. طارق حافظ (أعمال & مبيعات)، متساويان في الشراكة.

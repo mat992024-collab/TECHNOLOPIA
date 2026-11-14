@@ -18,7 +18,10 @@ export const AUTHORIZED_TOOL_WHITELIST = new Set([
   'get_crm_leads',
   'get_audit_logs',
   'propose_project_improvement',
-  'draft_new_task'
+  'draft_new_task',
+  'github_get_accounts',
+  'github_list_repositories',
+  'github_analyze_repository'
 ]);
 
 /**

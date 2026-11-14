@@ -33,3 +33,4 @@ dist-ssr
 *.secure.json
 *.tmp.*
 *.tmp
+*.audit_tip_checkpoint*
