@@ -172,6 +172,42 @@ export class AuthService {
   }
 
   /**
+   * الحصول على رمز دخول مشفر وموثق (Bearer Token) لإرساله للخادم الآمن
+   */
+  static async getAuthBearerToken(partnerId: PartnerId): Promise<string> {
+    // 1. تجربة جلب Firebase ID Token إذا كان المستخدم مسجلاً في Firebase Auth
+    if (auth && auth.currentUser) {
+      try {
+        const idToken = await auth.currentUser.getIdToken();
+        if (idToken) return idToken;
+      } catch (e) {
+        // fallback to server token
+      }
+    }
+
+    // 2. جلب رمز الجلسة الموثق رسمياً من الخادم الآمن
+    try {
+      const res = await fetch('/api/auth/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          partnerId,
+          credentialSecret: 'verified_partner_session'
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.token) return data.token;
+      }
+    } catch (e) {
+      // offline or server not ready
+    }
+
+    return '';
+  }
+
+  /**
    * الاشتراك في تغيرات حالة التوثيق
    */
   static subscribe(callback: (partner: AuthenticatedPartner | null) => void): () => void {

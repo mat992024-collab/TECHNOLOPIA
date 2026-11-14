@@ -70,5 +70,151 @@
     ],
     "draftedByPartner": "mohamed",
     "partnerName": "المهندس محمد البحر"
+  },
+  {
+    "id": "draft-task-1794681410724",
+    "createdAt": "2026-11-14T18:36:50.724Z",
+    "status": "draft_pending_partner_approval",
+    "requiresPartnerApproval": true,
+    "ownerPartnerId": "mohamed",
+    "isPrivate": true,
+    "title": "ملاحظة ومسودة تقنية خاصة بمحمد",
+    "description": "كود سري تحت التجربة",
+    "assignedTo": "mohamed"
+  },
+  {
+    "id": "draft-task-1794681423855",
+    "createdAt": "2026-11-14T18:37:03.855Z",
+    "status": "draft_pending_partner_approval",
+    "requiresPartnerApproval": true,
+    "ownerPartnerId": "mohamed",
+    "isPrivate": true,
+    "title": "ملاحظة ومسودة تقنية خاصة بمحمد",
+    "description": "كود سري تحت التجربة",
+    "assignedTo": "mohamed"
+  },
+  {
+    "id": "draft-task-1794681431574",
+    "createdAt": "2026-11-14T18:37:11.574Z",
+    "status": "draft_pending_partner_approval",
+    "requiresPartnerApproval": true,
+    "ownerPartnerId": "mohamed",
+    "isPrivate": true,
+    "title": "ملاحظة ومسودة تقنية خاصة بمحمد",
+    "description": "كود سري تحت التجربة",
+    "assignedTo": "mohamed"
+  },
+  {
+    "id": "draft-task-1794681431594",
+    "createdAt": "2026-11-14T18:37:11.594Z",
+    "status": "draft_pending_partner_approval",
+    "requiresPartnerApproval": true,
+    "ownerPartnerId": "mohamed",
+    "isPrivate": false,
+    "title": "بناء واجهة إعدادات طابعة البلوتوث لمنيو QR",
+    "description": "تطوير شاشة الربط بطابعة الكاشير وإرسال أمر الطباعة التجريبي.",
+    "assignedTo": "mohamed",
+    "priority": "high",
+    "dueDate": "2026-11-22",
+    "steps": [
+      "فحص بروتوكول Web Bluetooth API في المتصفحات الحديثة",
+      "بناء مكوّن React للبحث عن أجهزة البلوتوث المجاورة",
+      "إرسال بايتات أمر الطباعة التجريبي واختبار القص التلقائي"
+    ],
+    "draftedByPartner": "mohamed",
+    "partnerName": "المهندس محمد البحر"
+  },
+  {
+    "id": "draft-task-1794681491654",
+    "createdAt": "2026-11-14T18:38:11.654Z",
+    "status": "draft_pending_partner_approval",
+    "requiresPartnerApproval": true,
+    "ownerPartnerId": "mohamed",
+    "isPrivate": true,
+    "title": "ملاحظة ومسودة تقنية خاصة بمحمد",
+    "description": "كود سري تحت التجربة",
+    "assignedTo": "mohamed"
+  },
+  {
+    "id": "draft-task-1794681491680",
+    "createdAt": "2026-11-14T18:38:11.680Z",
+    "status": "draft_pending_partner_approval",
+    "requiresPartnerApproval": true,
+    "ownerPartnerId": "mohamed",
+    "isPrivate": false,
+    "title": "بناء واجهة إعدادات طابعة البلوتوث لمنيو QR",
+    "description": "تطوير شاشة الربط بطابعة الكاشير وإرسال أمر الطباعة التجريبي.",
+    "assignedTo": "mohamed",
+    "priority": "high",
+    "dueDate": "2026-11-22",
+    "steps": [
+      "فحص بروتوكول Web Bluetooth API في المتصفحات الحديثة",
+      "بناء مكوّن React للبحث عن أجهزة البلوتوث المجاورة",
+      "إرسال بايتات أمر الطباعة التجريبي واختبار القص التلقائي"
+    ],
+    "draftedByPartner": "mohamed",
+    "partnerName": "المهندس محمد البحر"
+  },
+  {
+    "id": "draft-task-1794681548899",
+    "createdAt": "2026-11-14T18:39:08.899Z",
+    "status": "draft_pending_partner_approval",
+    "requiresPartnerApproval": true,
+    "ownerPartnerId": "mohamed",
+    "isPrivate": true,
+    "title": "ملاحظة ومسودة تقنية خاصة بمحمد",
+    "description": "كود سري تحت التجربة",
+    "assignedTo": "mohamed"
+  },
+  {
+    "id": "draft-task-1794681548944",
+    "createdAt": "2026-11-14T18:39:08.944Z",
+    "status": "draft_pending_partner_approval",
+    "requiresPartnerApproval": true,
+    "ownerPartnerId": "mohamed",
+    "isPrivate": false,
+    "title": "بناء واجهة إعدادات طابعة البلوتوث لمنيو QR",
+    "description": "تطوير شاشة الربط بطابعة الكاشير وإرسال أمر الطباعة التجريبي.",
+    "assignedTo": "mohamed",
+    "priority": "high",
+    "dueDate": "2026-11-22",
+    "steps": [
+      "فحص بروتوكول Web Bluetooth API في المتصفحات الحديثة",
+      "بناء مكوّن React للبحث عن أجهزة البلوتوث المجاورة",
+      "إرسال بايتات أمر الطباعة التجريبي واختبار القص التلقائي"
+    ],
+    "draftedByPartner": "mohamed",
+    "partnerName": "المهندس محمد البحر"
+  },
+  {
+    "id": "draft-task-1794681568019",
+    "createdAt": "2026-11-14T18:39:28.019Z",
+    "status": "draft_pending_partner_approval",
+    "requiresPartnerApproval": true,
+    "ownerPartnerId": "mohamed",
+    "isPrivate": true,
+    "title": "ملاحظة ومسودة تقنية خاصة بمحمد",
+    "description": "كود سري تحت التجربة",
+    "assignedTo": "mohamed"
+  },
+  {
+    "id": "draft-task-1794681568069",
+    "createdAt": "2026-11-14T18:39:28.069Z",
+    "status": "draft_pending_partner_approval",
+    "requiresPartnerApproval": true,
+    "ownerPartnerId": "mohamed",
+    "isPrivate": false,
+    "title": "بناء واجهة إعدادات طابعة البلوتوث لمنيو QR",
+    "description": "تطوير شاشة الربط بطابعة الكاشير وإرسال أمر الطباعة التجريبي.",
+    "assignedTo": "mohamed",
+    "priority": "high",
+    "dueDate": "2026-11-22",
+    "steps": [
+      "فحص بروتوكول Web Bluetooth API في المتصفحات الحديثة",
+      "بناء مكوّن React للبحث عن أجهزة البلوتوث المجاورة",
+      "إرسال بايتات أمر الطباعة التجريبي واختبار القص التلقائي"
+    ],
+    "draftedByPartner": "mohamed",
+    "partnerName": "المهندس محمد البحر"
   }
 ]

@@ -2,6 +2,7 @@ import { AiChatMessage, AiMode, MarketOpportunity } from '../types/ai';
 import { PartnerId } from '../types/company';
 import { ProjectItem } from '../types/projects';
 import { AppStorageService } from './storageService';
+import { AuthService } from './authService';
 import { EGYPTIAN_MARKET_OPPORTUNITIES } from '../mock/initialData';
 
 // تنظيف أي مفاتيح قديمة مخزنة في متصفح العميل لحماية الأمان بنسبة 100%
@@ -63,14 +64,21 @@ export class AiCeoService {
     const partnerName = currentPartner === 'mohamed' ? 'بشمهندس محمد البحر' : 'بشمهندس طارق حافظ';
     const otherPartnerName = currentPartner === 'mohamed' ? 'بشمهندس طارق' : 'بشمهندس محمد';
 
-    // 1. الاتصال بالخادم الخلفي الآمن (Gemini Backend Agent)
+    // 1. الاتصال بالخادم الخلفي الآمن (Gemini Backend Agent) مع إرفاق رمز التوثيق المشفر
     try {
+      const bearerToken = await AuthService.getAuthBearerToken(currentPartner);
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'x-partner-id': currentPartner
+      };
+
+      if (bearerToken) {
+        headers['Authorization'] = `Bearer ${bearerToken}`;
+      }
+
       const res = await fetch('/api/gemini/chat', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-partner-id': currentPartner
-        },
+        headers,
         body: JSON.stringify({
           message: userMessage,
           partnerId: currentPartner,

@@ -4,24 +4,47 @@ import { AuditLogger } from '../services/auditLogger.mjs';
 import { TOOL_PERMISSIONS } from './toolDefinitions.mjs';
 
 /**
+ * القائمة البيضاء الصارمة للأدوات المصرح بها (Strict Tool Whitelist)
+ * أي أداة غير مدرجة في هذه القائمة تُحظر فوراً مع تسجيل إنذار أمني
+ */
+export const AUTHORIZED_TOOL_WHITELIST = new Set([
+  'get_company_overview',
+  'get_projects',
+  'get_project_details',
+  'get_tasks',
+  'get_financial_summary',
+  'get_crm_leads',
+  'get_audit_logs',
+  'propose_project_improvement',
+  'draft_new_task'
+]);
+
+/**
  * منفذ أدوات المساعد الذكي
  * يربط كل أداة ببيانات TECHNOLOPIA الحقيقية ويسجل كل حركة أمنياً
  */
 export class ToolExecutors {
   /**
-   * تنفيذ أداة معينة بناءً على اسمها ومدخلاتها مع التحقق من الصلاحيات
+   * تنفيذ أداة معينة بناءً على اسمها ومدخلاتها مع التحقق الصارم من القائمة البيضاء والصلاحيات
    */
   static async execute(toolName, args = {}, partner = { id: 'system', name: 'System' }) {
-    const permission = TOOL_PERMISSIONS[toolName];
-    if (!permission) {
+    // 1. التحقق الصارم من القائمة البيضاء (Strict Whitelist Check)
+    if (!AUTHORIZED_TOOL_WHITELIST.has(toolName)) {
       AuditLogger.log({
-        partnerId: partner.id,
-        eventType: 'TOOL_REJECTED',
+        partnerId: partner.id || 'anonymous',
+        eventType: 'SECURITY_ALERT',
         toolName,
         inputPayload: args,
         status: 'BLOCKED',
-        error: `أداة غير معروفة: ${toolName}`
+        error: `محاولة استدعاء أداة غير مصرح بها خارج القائمة البيضاء المعتمدة: ${toolName}`
       });
+      const secErr = new Error(`مرفوض أمنياً: الأداة المطلوبة (${toolName}) غير مصرح بها في القائمة البيضاء.`);
+      secErr.code = 'UNAUTHORIZED_TOOL';
+      throw secErr;
+    }
+
+    const permission = TOOL_PERMISSIONS[toolName];
+    if (!permission) {
       throw new Error(`الأداة المطلوبة غير مسجلة في النظام: ${toolName}`);
     }
 

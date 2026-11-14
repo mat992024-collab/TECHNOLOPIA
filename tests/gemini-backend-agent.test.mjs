@@ -8,11 +8,16 @@ import { ToolExecutors } from '../server/tools/toolExecutors.mjs';
 import { GEMINI_TOOL_DECLARATIONS, TOOL_PERMISSIONS } from '../server/tools/toolDefinitions.mjs';
 import { AuditLogger } from '../server/services/auditLogger.mjs';
 import { GeminiAgent } from '../server/geminiAgent.mjs';
+import { issuePartnerToken } from '../server/middleware/authMiddleware.mjs';
 
 let server;
 let baseUrl;
+let mohamedToken;
+let tarekToken;
 
 test.before(async () => {
+  mohamedToken = issuePartnerToken('mohamed');
+  tarekToken = issuePartnerToken('tarek');
   await new Promise(resolve => {
     server = http.createServer(app);
     server.listen(0, () => {
@@ -38,7 +43,7 @@ test('1. Health Check: Backend server responds with healthy status', async () =>
   assert.equal(data.service, 'TECHNOLOPIA Gemini Backend Agent');
 });
 
-test('2. Security ACL: Unauthorized request without x-partner-id is rejected with 401', async () => {
+test('2. Security ACL: Unauthorized request without Bearer token is rejected with 401', async () => {
   const res = await fetch(`${baseUrl}/api/gemini/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -50,25 +55,26 @@ test('2. Security ACL: Unauthorized request without x-partner-id is rejected wit
   assert.match(data.error, /غير مصرح/);
 });
 
-test('3. Security ACL: Request with invalid partner id is rejected with 403', async () => {
+test('3. Security ACL: Request with invalid token is rejected with 401', async () => {
   const res = await fetch(`${baseUrl}/api/gemini/chat`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-partner-id': 'hacker_or_guest'
+      'Authorization': 'Bearer invalid_tampered_token_string'
     },
     body: JSON.stringify({ message: 'أعطني معلومات مالية' })
   });
-  assert.equal(res.status, 403);
+  assert.equal(res.status, 401);
   const data = await res.json();
-  assert.equal(data.code, 'FORBIDDEN_PARTNER');
+  assert.equal(data.code, 'INVALID_TOKEN');
 });
 
-test('4. Partner Authentication: Eng. Mohamed El-Bahr is authenticated and authorized', async () => {
+test('4. Partner Authentication: Eng. Mohamed El-Bahr is authenticated and authorized via Bearer Token', async () => {
   const res = await fetch(`${baseUrl}/api/gemini/chat`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${mohamedToken}`,
       'x-partner-id': 'mohamed'
     },
     body: JSON.stringify({ message: 'ما هي المشروعات الحالية؟' })
@@ -80,11 +86,12 @@ test('4. Partner Authentication: Eng. Mohamed El-Bahr is authenticated and autho
   assert.ok(data.reply.length > 20);
 });
 
-test('5. Partner Authentication: Eng. Tarek Hafez is authenticated and authorized', async () => {
+test('5. Partner Authentication: Eng. Tarek Hafez is authenticated and authorized via Bearer Token', async () => {
   const res = await fetch(`${baseUrl}/api/gemini/chat`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${tarekToken}`,
       'x-partner-id': 'tarek'
     },
     body: JSON.stringify({ message: 'ما هي أرباح الشركة وخطة الكاش؟' })
@@ -186,7 +193,7 @@ test('13. Audit Logging: All tool calls and security events are logged in immuta
   const lastLog = recentLogs[0];
   assert.ok(lastLog.id.startsWith('ai-audit-'));
   assert.ok(lastLog.timestamp);
-  assert.ok(['mohamed', 'tarek', 'unknown', 'system'].includes(lastLog.partnerId));
+  assert.ok(['mohamed', 'tarek', 'unknown', 'system', 'anonymous'].includes(lastLog.partnerId));
 });
 
 test('14. Tool Registry Compliance: Exactly 9 official tools conforming to Gemini Function schema', () => {

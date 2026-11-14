@@ -163,6 +163,29 @@ export class RealDataProvider {
   }
 
   /**
+   * كتابة ذرية آمنة لحماية ملفات JSON من التلف أثناء الحفظ مع دعم التوافق مع Windows
+   */
+  static #writeJsonAtomic(filePath, data) {
+    const content = JSON.stringify(data, null, 2);
+    const tmpPath = `${filePath}.tmp.${Date.now()}.${Math.random().toString(36).substring(2, 6)}`;
+    try {
+      fs.writeFileSync(tmpPath, content, 'utf8');
+      try {
+        fs.renameSync(tmpPath, filePath);
+      } catch (err) {
+        if (err.code === 'EPERM' || err.code === 'EBUSY' || err.code === 'EEXIST') {
+          fs.copyFileSync(tmpPath, filePath);
+          try { fs.unlinkSync(tmpPath); } catch (_) {}
+        } else {
+          throw err;
+        }
+      }
+    } catch (e) {
+      fs.writeFileSync(filePath, content, 'utf8');
+    }
+  }
+
+  /**
    * حفظ اقتراح تحسين استباقي من المساعد الذكي كمسودة للمراجعة
    */
   static saveAiProposal(proposal) {
@@ -180,10 +203,11 @@ export class RealDataProvider {
       createdAt: new Date().toISOString(),
       status: 'pending_partner_review',
       requiresPartnerApproval: true,
+      ownerPartnerId: proposal.ownerPartnerId || proposal.proposedByPartner || 'system',
       ...proposal
     };
     proposals.push(record);
-    fs.writeFileSync(proposalsFile, JSON.stringify(proposals, null, 2), 'utf8');
+    this.#writeJsonAtomic(proposalsFile, proposals);
     return record;
   }
 
@@ -198,6 +222,31 @@ export class RealDataProvider {
     } catch (e) {
       return [];
     }
+  }
+
+  /**
+   * اعتماد مقترح تحسين من قبل أحد الشريكين
+   */
+  static approveProposal(proposalId, partner) {
+    const proposalsFile = path.resolve(__dirname, '../../backups/tecnolobia_ai_proposals.json');
+    const proposals = this.getAiProposals();
+    const index = proposals.findIndex(p => p.id === proposalId);
+    if (index === -1) {
+      throw new Error(`المقترح المطلوب (${proposalId}) غير موجود.`);
+    }
+
+    const proposal = proposals[index];
+    if (proposal.status === 'approved') {
+      return proposal; // معتمد مسبقاً
+    }
+
+    proposal.status = 'approved';
+    proposal.approvedBy = partner.id;
+    proposal.approvedAt = new Date().toISOString();
+    proposals[index] = proposal;
+
+    this.#writeJsonAtomic(proposalsFile, proposals);
+    return proposal;
   }
 
   /**
@@ -218,10 +267,62 @@ export class RealDataProvider {
       createdAt: new Date().toISOString(),
       status: 'draft_pending_partner_approval',
       requiresPartnerApproval: true,
+      ownerPartnerId: task.ownerPartnerId || task.draftedByPartner || 'system',
+      isPrivate: task.isPrivate === true,
       ...task
     };
     drafts.push(draftRecord);
-    fs.writeFileSync(draftsFile, JSON.stringify(drafts, null, 2), 'utf8');
+    this.#writeJsonAtomic(draftsFile, drafts);
     return draftRecord;
+  }
+
+  /**
+   * قراءة مسودات المهام
+   */
+  static getDraftTasks(partnerId = null) {
+    const draftsFile = path.resolve(__dirname, '../../backups/tecnolobia_draft_tasks.json');
+    if (!fs.existsSync(draftsFile)) return [];
+    try {
+      let drafts = JSON.parse(fs.readFileSync(draftsFile, 'utf8'));
+      if (partnerId) {
+        // حجب المسودات الخاصة بالشريك الآخر
+        drafts = drafts.filter(d => !d.isPrivate || d.ownerPartnerId === partnerId || d.assignedTo === partnerId);
+      }
+      return drafts;
+    } catch (e) {
+      return [];
+    }
+  }
+
+  /**
+   * تعديل مسودة مهمة مع التحقق الصارم من ملكية الشريك وصلاحياته
+   */
+  static updateDraftTask(taskId, updates, partner) {
+    const draftsFile = path.resolve(__dirname, '../../backups/tecnolobia_draft_tasks.json');
+    const drafts = this.getDraftTasks();
+    const index = drafts.findIndex(t => t.id === taskId);
+    if (index === -1) {
+      throw new Error(`مسودة المهمة (${taskId}) غير موجودة.`);
+    }
+
+    const draft = drafts[index];
+
+    // حماية الخصوصية ومنع التعديل غير المصرح به: إذا كانت المسودة خاصة ومملوكة لشريك آخر
+    if (draft.isPrivate && draft.ownerPartnerId && draft.ownerPartnerId !== partner.id) {
+      const err = new Error(`مرفوض أمنياً: لا يمكنك تعديل مسودة خاصة بالشريك الآخر (${draft.ownerPartnerId})`);
+      err.code = 'FORBIDDEN_PRIVATE_DRAFT';
+      throw err;
+    }
+
+    const updated = {
+      ...draft,
+      ...updates,
+      updatedAt: new Date().toISOString(),
+      lastModifiedBy: partner.id
+    };
+
+    drafts[index] = updated;
+    this.#writeJsonAtomic(draftsFile, drafts);
+    return updated;
   }
 }

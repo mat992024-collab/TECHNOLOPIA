@@ -4,8 +4,8 @@ import { GEMINI_TOOL_DECLARATIONS } from './tools/toolDefinitions.mjs';
 import { ToolExecutors } from './tools/toolExecutors.mjs';
 import { AuditLogger } from './services/auditLogger.mjs';
 
-const PRIMARY_MODEL = 'gemini-1.5-flash';
-const FALLBACK_MODEL = 'gemini-1.5-pro';
+const PRIMARY_MODEL = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
+const FALLBACK_MODEL = process.env.GEMINI_FALLBACK_MODEL || 'gemini-1.5-pro';
 
 const SYSTEM_INSTRUCTION = `أنت المساعد التنفيذي والشريك الاستشاري الذكي (AI Executive Co-Founder & Business Manager) لشركة البرمجيات المصرية TECHNOLOPIA.
 الشركاء المؤسسون: م. محمد البحر (تقني & Full-Stack) وم. طارق حافظ (أعمال & مبيعات)، متساويان في الشراكة.
@@ -19,6 +19,14 @@ const SYSTEM_INSTRUCTION = `أنت المساعد التنفيذي والشري�
 6. الأسلوب: مصري ذكي ومحترف، بدون تنظير أو حشو، تنفيذي سريع يبحث عن الفرص الحقيقية وسرعة تحقيق الإيرادات للشركة.`;
 
 export class GeminiAgent {
+  static getActiveModel() {
+    return process.env.GEMINI_MODEL || PRIMARY_MODEL;
+  }
+
+  static getFallbackModel() {
+    return process.env.GEMINI_FALLBACK_MODEL || FALLBACK_MODEL;
+  }
+
   static getApiKey() {
     return process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || '';
   }
