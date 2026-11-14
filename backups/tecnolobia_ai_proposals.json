@@ -294,5 +294,59 @@
     "problemDiagnosis": "اختبار الحفظ",
     "proposedSolution": "Atomic write test",
     "expectedImpact": "100% persistence"
+  },
+  {
+    "id": "prop-1794687488088-go58o",
+    "createdAt": "2026-11-14T20:18:08.088Z",
+    "status": "pending_partner_review",
+    "requiresPartnerApproval": true,
+    "ownerPartnerId": "mohamed",
+    "projectId": "proj-7",
+    "title": "إضافة دعم الطباعة الحرارية المباشرة للبلوتوث للمنيو الإلكتروني",
+    "category": "technical",
+    "problemDiagnosis": "المطاعم تطلب إرسال الطلب لطابعة المطبخ فورياً دون الحاجة لكمبيوتر مكتبي.",
+    "proposedSolution": "استخدام Web Bluetooth API للاتصال بطابعات ESC/POS الحرارية مباشرة من المتصفح.",
+    "expectedImpact": "زيادة مبيعات النظام بمعدل 40% وإمكانية فرض رسوم إضافية 1,500 ج.م على الميزة.",
+    "proposedByPartner": "mohamed",
+    "partnerName": "المهندس محمد البحر"
+  },
+  {
+    "id": "prop-1794687498859-zie5s",
+    "createdAt": "2026-11-14T20:18:18.859Z",
+    "status": "pending_partner_review",
+    "requiresPartnerApproval": true,
+    "ownerPartnerId": "mohamed",
+    "projectId": "proj-1",
+    "title": "فحص استمرارية البيانات الذرية",
+    "problemDiagnosis": "اختبار الحفظ",
+    "proposedSolution": "Atomic write test",
+    "expectedImpact": "100% persistence"
+  },
+  {
+    "id": "prop-1794687641567-wrlmt",
+    "createdAt": "2026-11-14T20:20:41.567Z",
+    "status": "pending_partner_review",
+    "requiresPartnerApproval": true,
+    "ownerPartnerId": "mohamed",
+    "projectId": "proj-7",
+    "title": "إضافة دعم الطباعة الحرارية المباشرة للبلوتوث للمنيو الإلكتروني",
+    "category": "technical",
+    "problemDiagnosis": "المطاعم تطلب إرسال الطلب لطابعة المطبخ فورياً دون الحاجة لكمبيوتر مكتبي.",
+    "proposedSolution": "استخدام Web Bluetooth API للاتصال بطابعات ESC/POS الحرارية مباشرة من المتصفح.",
+    "expectedImpact": "زيادة مبيعات النظام بمعدل 40% وإمكانية فرض رسوم إضافية 1,500 ج.م على الميزة.",
+    "proposedByPartner": "mohamed",
+    "partnerName": "المهندس محمد البحر"
+  },
+  {
+    "id": "prop-1794687657917-suvm9",
+    "createdAt": "2026-11-14T20:20:57.917Z",
+    "status": "pending_partner_review",
+    "requiresPartnerApproval": true,
+    "ownerPartnerId": "mohamed",
+    "projectId": "proj-1",
+    "title": "فحص استمرارية البيانات الذرية",
+    "problemDiagnosis": "اختبار الحفظ",
+    "proposedSolution": "Atomic write test",
+    "expectedImpact": "100% persistence"
   }
 ]

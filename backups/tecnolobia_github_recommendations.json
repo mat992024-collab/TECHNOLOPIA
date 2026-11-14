@@ -12,8 +12,8 @@
     "effortEstimate": "3 أيام عمل",
     "isConfirmedFact": true,
     "reviewedBy": "tarek",
-    "reviewedAt": "2026-11-14T19:04:35.123Z",
-    "updatedAt": "2026-11-14T19:04:35.104Z",
+    "reviewedAt": "2026-11-14T20:20:56.292Z",
+    "updatedAt": "2026-11-14T20:20:56.248Z",
     "targetFile": "package.json",
     "claimType": "CONFIRMED_TECHNICAL_FACT",
     "confidenceScore": 1,
@@ -35,7 +35,7 @@
     "suggestedSolution": "إضافة ملف .gitignore قياسي للغة المشروع فوراً.",
     "effortEstimate": "15 دقيقة",
     "financialNote": null,
-    "updatedAt": "2026-11-14T19:04:37.809Z"
+    "updatedAt": "2026-11-14T20:21:00.280Z"
   },
   {
     "id": "rec-1794682861088-vbv7",
@@ -53,6 +53,60 @@
     "suggestedSolution": "تجهيز نسخة SaaS سحابية قائمة بذاتها (Micro-Service) يمكن ربطها بأي ERP خارجي عبر REST API.",
     "effortEstimate": "أسبوع عمل واحد",
     "financialNote": "تقدير سوقي استرشادي غير مضمون: يمثل متوسط تكلفة مشاريع تكامل الفوترة للشركات المتوسطة في السوق الخليجي (حوالي 15,000 - 25,000 ريال) وفق مؤشرات السوق الاسترشادية.",
-    "updatedAt": "2026-11-14T19:04:37.809Z"
+    "updatedAt": "2026-11-14T20:21:00.280Z"
+  },
+  {
+    "id": "rec-1794687550123-litf",
+    "createdAt": "2026-11-14T20:19:10.123Z",
+    "status": "pending",
+    "projectName": "pizza-fresh-menu",
+    "targetFile": "README.md",
+    "issue": "غياب ملف التوثيق الفني والتشغيلي (README.md)",
+    "evidence": "مجلد الجذر (Root Directory) لا يحتوي على README.md",
+    "claimType": "CONFIRMED_TECHNICAL_FACT",
+    "confidenceScore": 1,
+    "isConfirmedFact": true,
+    "priority": "medium",
+    "impact": "صعوبة صيانة المشروع أو انضمام مبرمجين جدد بدون دليل تشغيل سريع.",
+    "suggestedSolution": "إنشاء ملف README.md يوضح خطوات التثبيت وTech Stack ومتغيرات البيئة المطلوبة.",
+    "effortEstimate": "ساعة واحدة",
+    "financialNote": null,
+    "updatedAt": "2026-11-14T20:21:49.247Z"
+  },
+  {
+    "id": "rec-1794687550124-k44u",
+    "createdAt": "2026-11-14T20:19:10.124Z",
+    "status": "pending",
+    "projectName": "pizza-fresh-menu",
+    "targetFile": ".gitignore",
+    "issue": "احتمال تسريب ملفات حساسة لعدم وجود .gitignore",
+    "evidence": "مجلد الجذر لا يحتوي على ملف .gitignore",
+    "claimType": "CONFIRMED_TECHNICAL_FACT",
+    "confidenceScore": 1,
+    "isConfirmedFact": true,
+    "priority": "urgent",
+    "impact": "خطر تسريب مجلدات الاعتماديات (node_modules) أو ملفات البيئة (.env).",
+    "suggestedSolution": "إضافة ملف .gitignore قياسي للغة المشروع فوراً.",
+    "effortEstimate": "15 دقيقة",
+    "financialNote": null,
+    "updatedAt": "2026-11-14T20:21:49.247Z"
+  },
+  {
+    "id": "rec-1794687550124-kbyv",
+    "createdAt": "2026-11-14T20:19:10.124Z",
+    "status": "pending",
+    "projectName": "pizza-fresh-menu",
+    "targetFile": "pizza-fresh-menu",
+    "issue": "فرصة كاش سريع: بيع قوالب المنيو الإلكتروني وكاشير المطاعم لاشتراكات سريعة",
+    "evidence": "مشروع pizza-fresh-menu ونظام pizza-fresh-menu الجاهز للنشر المباشر",
+    "claimType": "FINANCIAL_ESTIMATE",
+    "confidenceScore": 0.8,
+    "isConfirmedFact": false,
+    "priority": "urgent",
+    "impact": "إمكانية توفير اشتراكات سريعة لأصحاب المطاعم والكافيهات.",
+    "suggestedSolution": "تجهيز رابط ديمو لايف سريع يعمل بدون تثبيت وإرساله لأصحاب المطاعم عبر واتساب.",
+    "effortEstimate": "يوم عمل واحد",
+    "financialNote": "تقدير مالي استرشادي غير مضمون: يتراوح متوسط سعر بيع قوالب المنيو الإلكتروني للمطعم الواحد بين 3,000 و 8,000 ج.م في السوق المحلي وفق افتراضات المبيعات الحالية.",
+    "updatedAt": "2026-11-14T20:21:49.247Z"
   }
 ]

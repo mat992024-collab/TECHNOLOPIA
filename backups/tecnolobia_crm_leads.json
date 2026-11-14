@@ -1,0 +1,726 @@
+[
+  {
+    "id": "lead-prince-1794599488944",
+    "businessName": "مطعم البرنس",
+    "industry": "مطاعم وكافيهات",
+    "softwareNeed": "نظام كاشير فريش المدمج + منيو باركود QR تفاعلي",
+    "source": "referral",
+    "stage": "CONTACTED",
+    "priority": "high",
+    "dealValueEstimate": 12000,
+    "dealProbability": 75,
+    "assignedPartner": "tarek",
+    "contactInfo": {
+      "contactPerson": "الحاج ناصر البرنس",
+      "phone": "01012345678",
+      "email": "info@elprince-restaurant.com",
+      "city": "الإسكندرية",
+      "address": "سموحة - ش فوزي معاذ"
+    },
+    "notes": [
+      "العميل مهتم جداً بنظام بون المطبخ السريع لتقليل وقت الطوابير في ساعات الذروة.",
+      "تم إرسال فيديو توضيحي للديمو عبر واتساب وينتظر جلسة تجريبية مباشرة.",
+      "[2026-11-14 20:15 - المهندس طارق حافظ]: تم الاتفاق مع صاحب المطعم على موعد المعاينة يوم الأحد القادم الساعة 5 مساءً",
+      "[2026-11-14 20:16 - المهندس طارق حافظ]: تم الاتفاق مع صاحب المطعم على موعد المعاينة يوم الأحد القادم الساعة 5 مساءً",
+      "[2026-11-14 20:17 - المهندس طارق حافظ]: تم الاتفاق مع صاحب المطعم على موعد المعاينة يوم الأحد القادم الساعة 5 مساءً",
+      "[2026-11-14 20:19 - المهندس طارق حافظ]: تم الاتفاق مع صاحب المطعم على موعد المعاينة يوم الأحد القادم الساعة 5 مساءً",
+      "[2026-11-14 20:22 - المهندس طارق حافظ]: تم الاتفاق مع صاحب المطعم على موعد المعاينة يوم الأحد القادم الساعة 5 مساءً"
+    ],
+    "nextFollowUpDate": "2026-11-16",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-13T19:51:28.944Z",
+        "note": "تسجيل العميل كفرصة محتملة عبر ترشيح من شريك أعمال"
+      },
+      {
+        "fromStage": "NEW_LEAD",
+        "toStage": "CONTACTED",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T10:00:00.000Z",
+        "note": "مكالمة هاتفية أولى مع الإدارة وشرح باقات كاشير فريش"
+      }
+    ],
+    "linkedTasks": [
+      "task-1794599488944"
+    ],
+    "isRealProspect": true,
+    "createdAt": "2026-11-13T19:51:28.944Z",
+    "updatedAt": "2026-11-14T20:22:03.390Z"
+  },
+  {
+    "id": "lead-1794687312753-jzlt",
+    "businessName": "كافيه وكريب الباشا",
+    "industry": "مطاعم وسياحة",
+    "softwareNeed": "كاشير بون سريع ومنيو باركود QR",
+    "source": "facebook",
+    "stage": "NEW_LEAD",
+    "priority": "high",
+    "dealValueEstimate": 8500,
+    "dealProbability": 50,
+    "assignedPartner": "tarek",
+    "contactInfo": {
+      "contactPerson": "أ. حسام الباشا",
+      "phone": "01187312730",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": "جليم - على البحر"
+    },
+    "notes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedAt": "2026-11-14T20:15:12.753Z",
+        "note": "تواصل عبر رسائل صفحة الفيسبوك يسأل عن سعر الكاشير"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T20:15:12.753Z",
+    "updatedAt": "2026-11-14T20:15:12.753Z"
+  },
+  {
+    "id": "lead-1794687312776-2r8d",
+    "businessName": "سلسلة صيدليات النور",
+    "industry": "رعاية صحية وتجزئة",
+    "softwareNeed": "الربط مع الفوترة الإلكترونية السحابية",
+    "source": "direct_visit",
+    "stage": "WON",
+    "priority": "medium",
+    "dealValueEstimate": 16000,
+    "dealProbability": 100,
+    "assignedPartner": "mohamed",
+    "contactInfo": {
+      "contactPerson": "",
+      "phone": "01287312775",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": ""
+    },
+    "notes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T20:15:12.776Z",
+        "note": "تسجيل فرصة عميل جديدة في النظام"
+      },
+      {
+        "fromStage": "NEW_LEAD",
+        "toStage": "CONTACTED",
+        "changedAt": "2026-11-14T20:15:12.793Z",
+        "note": "مكالمة زووم مع مدير المشتريات"
+      },
+      {
+        "fromStage": "CONTACTED",
+        "toStage": "INTERESTED",
+        "changedAt": "2026-11-14T20:15:12.811Z",
+        "note": "أبدى اهتماماً كبيراً بعد مشاهدة العرض"
+      },
+      {
+        "fromStage": "INTERESTED",
+        "toStage": "PROPOSAL_SENT",
+        "changedAt": "2026-11-14T20:15:12.829Z",
+        "note": "إرسال العرض الفني والمالي الرسمي"
+      },
+      {
+        "fromStage": "PROPOSAL_SENT",
+        "toStage": "NEGOTIATION",
+        "changedAt": "2026-11-14T20:15:12.848Z",
+        "note": "جلسة تفاوض على دفعة التعاقد والصيانة"
+      },
+      {
+        "fromStage": "NEGOTIATION",
+        "toStage": "WON",
+        "changedAt": "2026-11-14T20:15:12.865Z",
+        "note": "توقيع العقد واستلام الدفعة المقدمة"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T20:15:12.776Z",
+    "updatedAt": "2026-11-14T20:15:12.865Z"
+  },
+  {
+    "id": "lead-1794687312881-yvir",
+    "businessName": "مكتب استشارات هندسية",
+    "industry": "خدمات هندسية",
+    "softwareNeed": "نظام إدارة المشاريع والمهام",
+    "source": "direct_visit",
+    "stage": "NEW_LEAD",
+    "priority": "medium",
+    "dealValueEstimate": 0,
+    "dealProbability": 20,
+    "assignedPartner": "mohamed",
+    "contactInfo": {
+      "contactPerson": "",
+      "phone": "01587312881",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": ""
+    },
+    "notes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T20:15:12.881Z",
+        "note": "تسجيل فرصة عميل جديدة في النظام"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T20:15:12.881Z",
+    "updatedAt": "2026-11-14T20:15:12.881Z"
+  },
+  {
+    "id": "lead-1794687396604-g686",
+    "businessName": "كافيه وكريب الباشا",
+    "industry": "مطاعم وسياحة",
+    "softwareNeed": "كاشير بون سريع ومنيو باركود QR",
+    "source": "facebook",
+    "stage": "NEW_LEAD",
+    "priority": "high",
+    "dealValueEstimate": 8500,
+    "dealProbability": 50,
+    "assignedPartner": "tarek",
+    "contactInfo": {
+      "contactPerson": "أ. حسام الباشا",
+      "phone": "01187396582",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": "جليم - على البحر"
+    },
+    "notes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedAt": "2026-11-14T20:16:36.604Z",
+        "note": "تواصل عبر رسائل صفحة الفيسبوك يسأل عن سعر الكاشير"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T20:16:36.604Z",
+    "updatedAt": "2026-11-14T20:16:36.604Z"
+  },
+  {
+    "id": "lead-1794687396628-w1w3",
+    "businessName": "سلسلة صيدليات النور",
+    "industry": "رعاية صحية وتجزئة",
+    "softwareNeed": "الربط مع الفوترة الإلكترونية السحابية",
+    "source": "direct_visit",
+    "stage": "WON",
+    "priority": "medium",
+    "dealValueEstimate": 16000,
+    "dealProbability": 100,
+    "assignedPartner": "mohamed",
+    "contactInfo": {
+      "contactPerson": "",
+      "phone": "01287396627",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": ""
+    },
+    "notes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T20:16:36.628Z",
+        "note": "تسجيل فرصة عميل جديدة في النظام"
+      },
+      {
+        "fromStage": "NEW_LEAD",
+        "toStage": "CONTACTED",
+        "changedAt": "2026-11-14T20:16:36.646Z",
+        "note": "مكالمة زووم مع مدير المشتريات"
+      },
+      {
+        "fromStage": "CONTACTED",
+        "toStage": "INTERESTED",
+        "changedAt": "2026-11-14T20:16:36.665Z",
+        "note": "أبدى اهتماماً كبيراً بعد مشاهدة العرض"
+      },
+      {
+        "fromStage": "INTERESTED",
+        "toStage": "PROPOSAL_SENT",
+        "changedAt": "2026-11-14T20:16:36.688Z",
+        "note": "إرسال العرض الفني والمالي الرسمي"
+      },
+      {
+        "fromStage": "PROPOSAL_SENT",
+        "toStage": "NEGOTIATION",
+        "changedAt": "2026-11-14T20:16:36.709Z",
+        "note": "جلسة تفاوض على دفعة التعاقد والصيانة"
+      },
+      {
+        "fromStage": "NEGOTIATION",
+        "toStage": "WON",
+        "changedAt": "2026-11-14T20:16:36.727Z",
+        "note": "توقيع العقد واستلام الدفعة المقدمة"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T20:16:36.628Z",
+    "updatedAt": "2026-11-14T20:16:36.727Z"
+  },
+  {
+    "id": "lead-1794687396745-dqfh",
+    "businessName": "مكتب استشارات هندسية",
+    "industry": "خدمات هندسية",
+    "softwareNeed": "نظام إدارة المشاريع والمهام",
+    "source": "direct_visit",
+    "stage": "NEW_LEAD",
+    "priority": "medium",
+    "dealValueEstimate": 0,
+    "dealProbability": 20,
+    "assignedPartner": "mohamed",
+    "contactInfo": {
+      "contactPerson": "",
+      "phone": "01587396745",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": ""
+    },
+    "notes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T20:16:36.745Z",
+        "note": "تسجيل فرصة عميل جديدة في النظام"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T20:16:36.745Z",
+    "updatedAt": "2026-11-14T20:16:36.745Z"
+  },
+  {
+    "id": "lead-1794687454257-rdor",
+    "businessName": "كافيه وكريب الباشا",
+    "industry": "مطاعم وسياحة",
+    "softwareNeed": "كاشير بون سريع ومنيو باركود QR",
+    "source": "facebook",
+    "stage": "NEW_LEAD",
+    "priority": "high",
+    "dealValueEstimate": 8500,
+    "dealProbability": 50,
+    "assignedPartner": "tarek",
+    "contactInfo": {
+      "contactPerson": "أ. حسام الباشا",
+      "phone": "01187454233",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": "جليم - على البحر"
+    },
+    "notes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T20:17:34.257Z",
+        "note": "تواصل عبر رسائل صفحة الفيسبوك يسأل عن سعر الكاشير"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T20:17:34.257Z",
+    "updatedAt": "2026-11-14T20:17:34.257Z"
+  },
+  {
+    "id": "lead-1794687454280-fzon",
+    "businessName": "سلسلة صيدليات النور",
+    "industry": "رعاية صحية وتجزئة",
+    "softwareNeed": "الربط مع الفوترة الإلكترونية السحابية",
+    "source": "direct_visit",
+    "stage": "WON",
+    "priority": "medium",
+    "dealValueEstimate": 16000,
+    "dealProbability": 100,
+    "assignedPartner": "mohamed",
+    "contactInfo": {
+      "contactPerson": "",
+      "phone": "01287454280",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": ""
+    },
+    "notes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T20:17:34.280Z",
+        "note": "تسجيل فرصة عميل جديدة في النظام"
+      },
+      {
+        "fromStage": "NEW_LEAD",
+        "toStage": "CONTACTED",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T20:17:34.299Z",
+        "note": "مكالمة زووم مع مدير المشتريات"
+      },
+      {
+        "fromStage": "CONTACTED",
+        "toStage": "INTERESTED",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T20:17:34.321Z",
+        "note": "أبدى اهتماماً كبيراً بعد مشاهدة العرض"
+      },
+      {
+        "fromStage": "INTERESTED",
+        "toStage": "PROPOSAL_SENT",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T20:17:34.341Z",
+        "note": "إرسال العرض الفني والمالي الرسمي"
+      },
+      {
+        "fromStage": "PROPOSAL_SENT",
+        "toStage": "NEGOTIATION",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T20:17:34.357Z",
+        "note": "جلسة تفاوض على دفعة التعاقد والصيانة"
+      },
+      {
+        "fromStage": "NEGOTIATION",
+        "toStage": "WON",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T20:17:34.378Z",
+        "note": "توقيع العقد واستلام الدفعة المقدمة"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T20:17:34.280Z",
+    "updatedAt": "2026-11-14T20:17:34.378Z"
+  },
+  {
+    "id": "lead-1794687454397-zg8e",
+    "businessName": "مكتب استشارات هندسية",
+    "industry": "خدمات هندسية",
+    "softwareNeed": "نظام إدارة المشاريع والمهام",
+    "source": "direct_visit",
+    "stage": "NEW_LEAD",
+    "priority": "medium",
+    "dealValueEstimate": 0,
+    "dealProbability": 20,
+    "assignedPartner": "mohamed",
+    "contactInfo": {
+      "contactPerson": "",
+      "phone": "01587454397",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": ""
+    },
+    "notes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T20:17:34.397Z",
+        "note": "تسجيل فرصة عميل جديدة في النظام"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T20:17:34.397Z",
+    "updatedAt": "2026-11-14T20:17:34.397Z"
+  },
+  {
+    "id": "lead-1794687551883-s2a9",
+    "businessName": "كافيه وكريب الباشا",
+    "industry": "مطاعم وسياحة",
+    "softwareNeed": "كاشير بون سريع ومنيو باركود QR",
+    "source": "facebook",
+    "stage": "NEW_LEAD",
+    "priority": "high",
+    "dealValueEstimate": 8500,
+    "dealProbability": 50,
+    "assignedPartner": "tarek",
+    "contactInfo": {
+      "contactPerson": "أ. حسام الباشا",
+      "phone": "01187551855",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": "جليم - على البحر"
+    },
+    "notes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T20:19:11.883Z",
+        "note": "تواصل عبر رسائل صفحة الفيسبوك يسأل عن سعر الكاشير"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T20:19:11.883Z",
+    "updatedAt": "2026-11-14T20:19:11.883Z"
+  },
+  {
+    "id": "lead-1794687551911-r7fn",
+    "businessName": "سلسلة صيدليات النور",
+    "industry": "رعاية صحية وتجزئة",
+    "softwareNeed": "الربط مع الفوترة الإلكترونية السحابية",
+    "source": "direct_visit",
+    "stage": "WON",
+    "priority": "medium",
+    "dealValueEstimate": 16000,
+    "dealProbability": 100,
+    "assignedPartner": "mohamed",
+    "contactInfo": {
+      "contactPerson": "",
+      "phone": "01287551910",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": ""
+    },
+    "notes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T20:19:11.911Z",
+        "note": "تسجيل فرصة عميل جديدة في النظام"
+      },
+      {
+        "fromStage": "NEW_LEAD",
+        "toStage": "CONTACTED",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T20:19:11.934Z",
+        "note": "مكالمة زووم مع مدير المشتريات"
+      },
+      {
+        "fromStage": "CONTACTED",
+        "toStage": "INTERESTED",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T20:19:11.958Z",
+        "note": "أبدى اهتماماً كبيراً بعد مشاهدة العرض"
+      },
+      {
+        "fromStage": "INTERESTED",
+        "toStage": "PROPOSAL_SENT",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T20:19:11.978Z",
+        "note": "إرسال العرض الفني والمالي الرسمي"
+      },
+      {
+        "fromStage": "PROPOSAL_SENT",
+        "toStage": "NEGOTIATION",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T20:19:11.998Z",
+        "note": "جلسة تفاوض على دفعة التعاقد والصيانة"
+      },
+      {
+        "fromStage": "NEGOTIATION",
+        "toStage": "WON",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T20:19:12.022Z",
+        "note": "توقيع العقد واستلام الدفعة المقدمة"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T20:19:11.911Z",
+    "updatedAt": "2026-11-14T20:19:12.022Z"
+  },
+  {
+    "id": "lead-1794687552041-vw6u",
+    "businessName": "مكتب استشارات هندسية",
+    "industry": "خدمات هندسية",
+    "softwareNeed": "نظام إدارة المشاريع والمهام",
+    "source": "direct_visit",
+    "stage": "NEW_LEAD",
+    "priority": "medium",
+    "dealValueEstimate": 0,
+    "dealProbability": 20,
+    "assignedPartner": "mohamed",
+    "contactInfo": {
+      "contactPerson": "",
+      "phone": "01587552041",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": ""
+    },
+    "notes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T20:19:12.041Z",
+        "note": "تسجيل فرصة عميل جديدة في النظام"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T20:19:12.041Z",
+    "updatedAt": "2026-11-14T20:19:12.041Z"
+  },
+  {
+    "id": "lead-1794687710942-rdlw",
+    "businessName": "كافيه وكريب الباشا",
+    "industry": "مطاعم وسياحة",
+    "softwareNeed": "كاشير بون سريع ومنيو باركود QR",
+    "source": "facebook",
+    "stage": "NEW_LEAD",
+    "priority": "high",
+    "dealValueEstimate": 8500,
+    "dealProbability": 50,
+    "assignedPartner": "tarek",
+    "contactInfo": {
+      "contactPerson": "أ. حسام الباشا",
+      "phone": "01187710912",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": "جليم - على البحر"
+    },
+    "notes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T20:21:50.942Z",
+        "note": "تواصل عبر رسائل صفحة الفيسبوك يسأل عن سعر الكاشير"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T20:21:50.942Z",
+    "updatedAt": "2026-11-14T20:21:50.942Z"
+  },
+  {
+    "id": "lead-1794687710973-sn68",
+    "businessName": "سلسلة صيدليات النور",
+    "industry": "رعاية صحية وتجزئة",
+    "softwareNeed": "الربط مع الفوترة الإلكترونية السحابية",
+    "source": "direct_visit",
+    "stage": "WON",
+    "priority": "medium",
+    "dealValueEstimate": 16000,
+    "dealProbability": 100,
+    "assignedPartner": "mohamed",
+    "contactInfo": {
+      "contactPerson": "",
+      "phone": "01287710973",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": ""
+    },
+    "notes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T20:21:50.973Z",
+        "note": "تسجيل فرصة عميل جديدة في النظام"
+      },
+      {
+        "fromStage": "NEW_LEAD",
+        "toStage": "CONTACTED",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T20:21:51.001Z",
+        "note": "مكالمة زووم مع مدير المشتريات"
+      },
+      {
+        "fromStage": "CONTACTED",
+        "toStage": "INTERESTED",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T20:21:51.034Z",
+        "note": "أبدى اهتماماً كبيراً بعد مشاهدة العرض"
+      },
+      {
+        "fromStage": "INTERESTED",
+        "toStage": "PROPOSAL_SENT",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T20:21:51.058Z",
+        "note": "إرسال العرض الفني والمالي الرسمي"
+      },
+      {
+        "fromStage": "PROPOSAL_SENT",
+        "toStage": "NEGOTIATION",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T20:21:51.081Z",
+        "note": "جلسة تفاوض على دفعة التعاقد والصيانة"
+      },
+      {
+        "fromStage": "NEGOTIATION",
+        "toStage": "WON",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T20:21:51.104Z",
+        "note": "توقيع العقد واستلام الدفعة المقدمة"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T20:21:50.973Z",
+    "updatedAt": "2026-11-14T20:21:51.104Z"
+  },
+  {
+    "id": "lead-1794687711127-mki6",
+    "businessName": "مكتب استشارات هندسية",
+    "industry": "خدمات هندسية",
+    "softwareNeed": "نظام إدارة المشاريع والمهام",
+    "source": "direct_visit",
+    "stage": "NEW_LEAD",
+    "priority": "medium",
+    "dealValueEstimate": 0,
+    "dealProbability": 20,
+    "assignedPartner": "mohamed",
+    "contactInfo": {
+      "contactPerson": "",
+      "phone": "01587711127",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": ""
+    },
+    "notes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T20:21:51.127Z",
+        "note": "تسجيل فرصة عميل جديدة في النظام"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T20:21:51.127Z",
+    "updatedAt": "2026-11-14T20:21:51.127Z"
+  }
+]

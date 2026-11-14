@@ -105,15 +105,23 @@ export class AuditLogger {
           fs.copyFileSync(tmpPath, AUDIT_FILE);
           try { fs.unlinkSync(tmpPath); } catch (_) {}
         } else {
-          throw err;
+          try { fs.copyFileSync(tmpPath, AUDIT_FILE); } catch (_) {}
+          try { fs.unlinkSync(tmpPath); } catch (_) {}
         }
       }
     } catch (writeErr) {
-      fs.writeFileSync(AUDIT_FILE, content, 'utf8');
+      try {
+        fs.writeFileSync(AUDIT_FILE, content, 'utf8');
+      } catch (directErr) {
+        // حماية الخادم من التوقف في حال وجود قفل مؤقت لملف التدقيق على مستوى نظام التشغيل
+        console.error('[AUDIT_LOGGER_WARN] Transient audit write lock:', directErr.message);
+      }
     }
 
     // تحديث نقطة الفحص المستقلة الموقعة تشفيرياً لحماية السلسلة من إعادة البناء الشامل
-    this.#saveTipCheckpoint(logs.length, logEntry.hash, logEntry.id);
+    try {
+      this.#saveTipCheckpoint(logs.length, logEntry.hash, logEntry.id);
+    } catch (_) {}
 
     return logEntry;
   }

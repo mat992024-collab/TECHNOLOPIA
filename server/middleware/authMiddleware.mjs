@@ -190,13 +190,15 @@ export function requirePartnerAuth(req, res, next) {
     const isExpired = err.code === 'TOKEN_EXPIRED' || err.message?.includes('TOKEN_EXPIRED');
     const errorCode = isExpired ? 'TOKEN_EXPIRED' : 'INVALID_TOKEN';
 
-    AuditLogger.log({
-      partnerId: claimedPartnerId || 'anonymous',
-      eventType: isExpired ? 'AUTH_EXPIRED' : 'AUTH_FAILED',
-      inputPayload: { path: req.path, error: err.message },
-      status: 'BLOCKED',
-      error: err.message
-    });
+    try {
+      AuditLogger.log({
+        partnerId: claimedPartnerId || 'anonymous',
+        eventType: isExpired ? 'AUTH_EXPIRED' : 'AUTH_FAILED',
+        inputPayload: { path: req.path, error: err.message },
+        status: 'BLOCKED',
+        error: err.message
+      });
+    } catch (_) {}
 
     return res.status(401).json({
       success: false,

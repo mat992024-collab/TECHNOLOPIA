@@ -11,6 +11,9 @@ import { RealDataProvider } from './data/realDataProvider.mjs';
 import { fileURLToPath } from 'url';
 import { GitHubService } from './services/githubService.mjs';
 import { GeminiCodeAdvisor } from './services/geminiCodeAdvisor.mjs';
+import { CrmLeadStore, CRM_LEAD_STAGES } from './data/crmLeadStore.mjs';
+import { AiSalesAgent } from './services/aiSalesAgent.mjs';
+import { ExternalSimulationService } from './services/externalSimulationService.mjs';
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -436,6 +439,159 @@ app.get('/api/github/portfolio-report', requirePartnerAuth, async (req, res) => 
     res.json({ success: true, report });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ============================================================================
+// Phase 5.0: Lead Discovery & CRM Sales Engine Endpoints (Simulation-First)
+// ============================================================================
+
+/**
+ * 21. استعراض قائمة العملاء المحتملين مع الفلترة
+ */
+app.get('/api/crm/leads', requirePartnerAuth, (req, res) => {
+  try {
+    const leads = CrmLeadStore.getLeads(req.query);
+    res.json({ success: true, count: leads.length, leads });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * 22. تسجيل عميل محتمل جديد (Lead Discovery)
+ */
+app.post('/api/crm/leads', requirePartnerAuth, (req, res) => {
+  try {
+    const newLead = CrmLeadStore.createLead(req.body, req.partner);
+    res.status(201).json({ success: true, lead: newLead });
+  } catch (err) {
+    res.status(err.code === 'DUPLICATE_LEAD' ? 409 : 400).json({
+      success: false,
+      error: err.message,
+      code: err.code || 'BAD_REQUEST'
+    });
+  }
+});
+
+/**
+ * 23. تفاصيل عميل محدد وسجله الزمني
+ */
+app.get('/api/crm/leads/:id', requirePartnerAuth, (req, res) => {
+  try {
+    const lead = CrmLeadStore.getLeadById(req.params.id);
+    if (!lead) {
+      return res.status(404).json({ success: false, error: 'العميل غير موجود', code: 'LEAD_NOT_FOUND' });
+    }
+    res.json({ success: true, lead });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * 24. تحديث مرحلة العميل في دورة المبيعات مع السجل الزمني
+ */
+app.put('/api/crm/leads/:id/stage', requirePartnerAuth, (req, res) => {
+  try {
+    const { stage, note } = req.body;
+    const updated = CrmLeadStore.updateLeadStage(req.params.id, stage, note, req.partner);
+    res.json({ success: true, lead: updated });
+  } catch (err) {
+    res.status(err.code === 'INVALID_STAGE_TRANSITION' ? 400 : 404).json({
+      success: false,
+      error: err.message,
+      code: err.code || 'TRANSITION_ERROR'
+    });
+  }
+});
+
+/**
+ * 25. إضافة ملاحظة للشريك في سجل متابعات العميل
+ */
+app.post('/api/crm/leads/:id/notes', requirePartnerAuth, (req, res) => {
+  try {
+    const { note } = req.body;
+    const updated = CrmLeadStore.addNote(req.params.id, note, req.partner);
+    res.json({ success: true, lead: updated });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * 26. مؤشرات وإحصائيات لوحة المبيعات (Pipeline Dashboard Analytics)
+ */
+app.get('/api/crm/analytics', requirePartnerAuth, (req, res) => {
+  try {
+    const analytics = CrmLeadStore.getAnalytics(req.partner);
+    res.json({ success: true, analytics });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * 27. استدعاء وكيل المبيعات الذكي (AI Sales Agent Strategy & Pitch)
+ */
+app.post('/api/crm/leads/:id/ai-strategy', requirePartnerAuth, async (req, res) => {
+  try {
+    const lead = CrmLeadStore.getLeadById(req.params.id);
+    if (!lead) {
+      return res.status(404).json({ success: false, error: 'العميل غير موجود', code: 'LEAD_NOT_FOUND' });
+    }
+    const strategy = await AiSalesAgent.generateLeadStrategy(lead, req.partner);
+    res.json({ success: true, strategy });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * 28. استعراض مسودات عروض الأسعار والرسائل التسويقية المحفوظة
+ */
+app.get('/api/crm/ai-drafts', requirePartnerAuth, (req, res) => {
+  try {
+    const drafts = CrmLeadStore.getSalesDrafts(req.query.leadId);
+    res.json({ success: true, count: drafts.length, drafts });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * 29. إعداد وتجهيز مسودة واتساب في نمط المحاكاة الآمن (بدون إرسال خارجي)
+ */
+app.post('/api/crm/simulate-whatsapp', requirePartnerAuth, (req, res) => {
+  try {
+    const { leadId, messageText } = req.body;
+    const sim = ExternalSimulationService.simulateWhatsApp(leadId, messageText, req.partner);
+    res.json(sim);
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * 30. إعداد منشور فيسبوك تسويقي في نمط المحاكاة الآمن (بدون نشر خارجي أو إعلانات)
+ */
+app.post('/api/crm/simulate-facebook', requirePartnerAuth, (req, res) => {
+  try {
+    const sim = ExternalSimulationService.simulateFacebookPost(req.body, req.partner);
+    res.json(sim);
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * 31. فحص صمام الأمان (Guardrail): محاولة الإرسال الحي محظورة في مرحلة المحاكاة
+ */
+app.post('/api/crm/live-dispatch', requirePartnerAuth, (req, res, next) => {
+  try {
+    ExternalSimulationService.sendLiveOutreach();
+  } catch (err) {
+    next(err);
   }
 });
 
