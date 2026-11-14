@@ -1,0 +1,58 @@
+[
+  {
+    "id": "prop-1794679739262-ulgfd",
+    "createdAt": "2026-11-14T18:08:59.262Z",
+    "status": "pending_partner_review",
+    "requiresPartnerApproval": true,
+    "projectId": "proj-7",
+    "title": "إضافة دعم الطباعة الحرارية المباشرة للبلوتوث للمنيو الإلكتروني",
+    "category": "technical",
+    "problemDiagnosis": "المطاعم تطلب إرسال الطلب لطابعة المطبخ فورياً دون الحاجة لكمبيوتر مكتبي.",
+    "proposedSolution": "استخدام Web Bluetooth API للاتصال بطابعات ESC/POS الحرارية مباشرة من المتصفح.",
+    "expectedImpact": "زيادة مبيعات النظام بمعدل 40% وإمكانية فرض رسوم إضافية 1,500 ج.م على الميزة.",
+    "proposedByPartner": "mohamed",
+    "partnerName": "المهندس محمد البحر"
+  },
+  {
+    "id": "prop-1794679771851-uures",
+    "createdAt": "2026-11-14T18:09:31.851Z",
+    "status": "pending_partner_review",
+    "requiresPartnerApproval": true,
+    "projectId": "proj-7",
+    "title": "إضافة دعم الطباعة الحرارية المباشرة للبلوتوث للمنيو الإلكتروني",
+    "category": "technical",
+    "problemDiagnosis": "المطاعم تطلب إرسال الطلب لطابعة المطبخ فورياً دون الحاجة لكمبيوتر مكتبي.",
+    "proposedSolution": "استخدام Web Bluetooth API للاتصال بطابعات ESC/POS الحرارية مباشرة من المتصفح.",
+    "expectedImpact": "زيادة مبيعات النظام بمعدل 40% وإمكانية فرض رسوم إضافية 1,500 ج.م على الميزة.",
+    "proposedByPartner": "mohamed",
+    "partnerName": "المهندس محمد البحر"
+  },
+  {
+    "id": "prop-1794679792660-qnd2w",
+    "createdAt": "2026-11-14T18:09:52.660Z",
+    "status": "pending_partner_review",
+    "requiresPartnerApproval": true,
+    "projectId": "proj-7",
+    "title": "إضافة دعم الطباعة الحرارية المباشرة للبلوتوث للمنيو الإلكتروني",
+    "category": "technical",
+    "problemDiagnosis": "المطاعم تطلب إرسال الطلب لطابعة المطبخ فورياً دون الحاجة لكمبيوتر مكتبي.",
+    "proposedSolution": "استخدام Web Bluetooth API للاتصال بطابعات ESC/POS الحرارية مباشرة من المتصفح.",
+    "expectedImpact": "زيادة مبيعات النظام بمعدل 40% وإمكانية فرض رسوم إضافية 1,500 ج.م على الميزة.",
+    "proposedByPartner": "mohamed",
+    "partnerName": "المهندس محمد البحر"
+  },
+  {
+    "id": "prop-1794679811049-t5rbj",
+    "createdAt": "2026-11-14T18:10:11.049Z",
+    "status": "pending_partner_review",
+    "requiresPartnerApproval": true,
+    "projectId": "proj-7",
+    "title": "إضافة دعم الطباعة الحرارية المباشرة للبلوتوث للمنيو الإلكتروني",
+    "category": "technical",
+    "problemDiagnosis": "المطاعم تطلب إرسال الطلب لطابعة المطبخ فورياً دون الحاجة لكمبيوتر مكتبي.",
+    "proposedSolution": "استخدام Web Bluetooth API للاتصال بطابعات ESC/POS الحرارية مباشرة من المتصفح.",
+    "expectedImpact": "زيادة مبيعات النظام بمعدل 40% وإمكانية فرض رسوم إضافية 1,500 ج.م على الميزة.",
+    "proposedByPartner": "mohamed",
+    "partnerName": "المهندس محمد البحر"
+  }
+]

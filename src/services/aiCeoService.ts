@@ -4,16 +4,18 @@ import { ProjectItem } from '../types/projects';
 import { AppStorageService } from './storageService';
 import { EGYPTIAN_MARKET_OPPORTUNITIES } from '../mock/initialData';
 
-const GEMINI_KEY_STORAGE = 'tecnolobia_gemini_key';
-
-export function getSavedGeminiKey(): string {
-  return typeof window !== 'undefined' ? (localStorage.getItem(GEMINI_KEY_STORAGE) || '') : '';
+// تنظيف أي مفاتيح قديمة مخزنة في متصفح العميل لحماية الأمان بنسبة 100%
+if (typeof window !== 'undefined') {
+  localStorage.removeItem('tecnolobia_gemini_key');
 }
 
-export function saveGeminiKey(key: string): void {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem(GEMINI_KEY_STORAGE, key.trim());
-  }
+export function getSavedGeminiKey(): string {
+  // مفاتيح الـ API لم تعد تُخزن أو تُقرأ من المتصفح إطلاقاً وفق المعمارية الجديدة
+  return '';
+}
+
+export function saveGeminiKey(_key: string): void {
+  // ملغى: يتم تخزين المفاتيح في متغيرات بيئة الخادم السحابي (.env) فقط
 }
 
 export interface ProjectAiReviewResult {
@@ -50,47 +52,53 @@ export interface FacebookPostResult {
 export class AiCeoService {
   
   /**
-   * استشارة المدير الذكي في المحادثة المباشرة
+   * استشارة المدير الذكي في المحادثة المباشرة عبر Backend Agent الآمن
    */
   static async consultCeo(
     userMessage: string,
     currentPartner: PartnerId,
-    mode: AiMode
+    mode: AiMode,
+    conversationHistory: AiChatMessage[] = []
   ): Promise<AiChatMessage> {
     const partnerName = currentPartner === 'mohamed' ? 'بشمهندس محمد البحر' : 'بشمهندس طارق حافظ';
     const otherPartnerName = currentPartner === 'mohamed' ? 'بشمهندس طارق' : 'بشمهندس محمد';
-    const apiKey = getSavedGeminiKey();
 
-    // تحديث إحصائيات الـ Tokens
-    AppStorageService.updateTokenStats(210);
+    // 1. الاتصال بالخادم الخلفي الآمن (Gemini Backend Agent)
+    try {
+      const res = await fetch('/api/gemini/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-partner-id': currentPartner
+        },
+        body: JSON.stringify({
+          message: userMessage,
+          partnerId: currentPartner,
+          conversationHistory: conversationHistory.map(m => ({
+            role: m.sender === 'user' ? 'user' : 'assistant',
+            content: m.text
+          }))
+        })
+      });
 
-    // إذا وُجد مفتاح Gemini، نتصل مباشرة بنموذج Gemini 2.0 Flash
-    if (apiKey) {
-      try {
-        const responseText = await this.callGeminiRaw(
-          apiKey,
-          userMessage,
-          `أنت الآن المدير التنفيذي الذكي (AI CEO & Business Manager) لشركة البرمجيات المصرية Tecnolobia.
-الشركاء المؤسسون: م. محمد البحر (تقني & Full-Stack) وم. طارق حافظ (أعمال & مبيعات)، متساويان تماماً.
-تتحدث الآن مع: ${partnerName}. والشريك الآخر هو: ${otherPartnerName}.
-الوضع الحالي: وضع ${mode === 'advisor' ? 'المستشار (Advisor Mode)' : 'التنفيذ (Execution Mode)'}.
-الأسلوب: مصري ذكي ومحترف، بدون تنظير، مباشر، يبحث عن الكاش السريع وتحويل الأنظمة السابقة (كاشير فريش، مطبعة واجدي، مكتبة مدرسية، منيو QR، بورتفوليو محاماة وديكور) لشركات ومنتجات قوية.
-تذكر قاعدة الأرباح الصارمة (25% محمد، 25% طارق، 25% تطوير أدوات، 25% صدقة جارية).`
-        );
+      if (res.ok) {
+        const data = await res.json();
+        AppStorageService.updateTokenStats(320);
 
         return {
           id: `ai-msg-${Date.now()}`,
           sender: 'ai_ceo',
-          text: responseText,
+          text: data.reply,
           timestamp: new Date().toISOString(),
-          mode
+          mode,
+          toolsUsed: data.toolsUsed
         };
-      } catch (err: any) {
-        console.warn('Gemini 2.0 Flash call failed, falling back to local executive brain:', err);
       }
+    } catch (err) {
+      console.warn('Backend agent unavailable, falling back to local executive brain:', err);
     }
 
-    // المخ التنفيذي المحلي الفوري كبديل سريع ومجاني
+    // 2. المخ التنفيذي المحلي الفوري كبديل سريع في حال عدم تشغيل الخادم
     return this.generateExecutiveResponse(userMessage, partnerName, otherPartnerName, mode, currentPartner);
   }
 

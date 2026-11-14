@@ -16,6 +16,11 @@ export interface AiChatMessage {
     payload: any;
     confirmed: boolean;
   };
+  toolsUsed?: Array<{
+    tool: string;
+    args?: any;
+    result?: any;
+  }>;
 }
 
 export interface MarketOpportunity {

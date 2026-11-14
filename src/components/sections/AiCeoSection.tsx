@@ -39,22 +39,38 @@ export const AiCeoSection: React.FC<AiCeoSectionProps> = ({
   const [inputQuery, setInputQuery] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   
-  // حالة مفتاح Gemini
-  const [geminiKey, setGeminiKey] = useState<string>('');
-  const [showKeyModal, setShowKeyModal] = useState<boolean>(false);
-  const [keyInput, setKeyInput] = useState<string>('');
+  // حالة معمارية الخادم الآمن
+  const [showArchitectureModal, setShowArchitectureModal] = useState<boolean>(false);
+  const [backendStatus, setBackendStatus] = useState<{
+    online: boolean;
+    hasKey: boolean;
+    model: string;
+    toolsCount: number;
+  }>({
+    online: false,
+    hasKey: false,
+    model: 'gemini-1.5-flash',
+    toolsCount: 9
+  });
 
   useEffect(() => {
-    const saved = getSavedGeminiKey();
-    setGeminiKey(saved);
-    setKeyInput(saved);
+    // التحقق من حالة الـ Backend
+    fetch('/api/gemini/status')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setBackendStatus({
+            online: true,
+            hasKey: data.hasApiKeyConfigured,
+            model: data.primaryModel,
+            toolsCount: data.registeredToolsCount
+          });
+        }
+      })
+      .catch(() => {
+        setBackendStatus(prev => ({ ...prev, online: false }));
+      });
   }, []);
-
-  const handleSaveKey = () => {
-    saveGeminiKey(keyInput);
-    setGeminiKey(keyInput);
-    setShowKeyModal(false);
-  };
 
   const [messages, setMessages] = useState<AiChatMessage[]>([
     {
@@ -157,15 +173,16 @@ export const AiCeoSection: React.FC<AiCeoSectionProps> = ({
           </div>
         </div>
 
-        {/* محول وضعي المستشار والتنفيذ ومفتاح API */}
+        {/* مؤشر الخادم الخلفي الآمن ومحول الأوضاع */}
         <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
           <button
-            onClick={() => setShowKeyModal(true)}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 hover:text-white rounded-xl text-xs font-mono border border-slate-800 transition-all"
-            title="إعدادات مفتاح Google Gemini API"
+            onClick={() => setShowArchitectureModal(true)}
+            className="flex items-center gap-2 px-3 py-1.5 bg-slate-950 hover:bg-slate-800 text-slate-200 rounded-xl text-xs font-mono border border-indigo-500/30 transition-all shadow-sm"
+            title="فحص معمارية الخادم الآمن وحالة الأدوات"
           >
-            <Key className="w-3.5 h-3.5 text-amber-400" />
-            <span>{geminiKey ? 'Gemini Key ✓' : 'إضافة Gemini Key'}</span>
+            <span className={`w-2 h-2 rounded-full ${backendStatus.online ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+            <span className="font-bold">Backend Agent: {backendStatus.model}</span>
+            <span className="text-[10px] text-indigo-400 font-sans">({backendStatus.toolsCount} أدوات)</span>
           </button>
 
           <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs w-full sm:w-auto">
@@ -231,6 +248,23 @@ export const AiCeoSection: React.FC<AiCeoSectionProps> = ({
                 </div>
 
                 <div className="whitespace-pre-wrap">{msg.text}</div>
+
+                {/* استعراض الأدوات المستدعاة حقيقياً */}
+                {msg.toolsUsed && msg.toolsUsed.length > 0 && (
+                  <div className="mt-2.5 p-2.5 bg-slate-950/90 rounded-xl border border-indigo-500/30 text-[11px] text-slate-300 space-y-1.5">
+                    <div className="flex items-center gap-1.5 font-bold text-indigo-400">
+                      <Cpu className="w-3.5 h-3.5" />
+                      <span>الأدوات التنفيذية المستدعاة (Function Calling):</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {msg.toolsUsed.map((t, idx) => (
+                        <span key={idx} className="inline-flex items-center gap-1 px-2 py-0.5 bg-indigo-950/80 text-indigo-300 rounded font-mono text-[10px] border border-indigo-800/40">
+                          ⚙️ {t.tool}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* بطاقة الفرصة التجارية إن وجدت في الرد */}
                 {msg.isOpportunityCard && msg.opportunityData && (
@@ -334,54 +368,70 @@ export const AiCeoSection: React.FC<AiCeoSectionProps> = ({
         </button>
       </form>
 
-      {/* نافذة ضبط مفتاح Gemini API */}
-      {showKeyModal && (
+      {/* نافذة استعراض معمارية الخادم الآمن وحالة الأدوات */}
+      {showArchitectureModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+          <div className="bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-lg p-6 space-y-4 shadow-2xl">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-2">
                 <span className="p-2 bg-gradient-to-tr from-indigo-600 to-purple-600 text-white rounded-xl">
-                  <Key className="w-5 h-5" />
+                  <ShieldCheck className="w-5 h-5" />
                 </span>
                 <div>
-                  <h3 className="text-base font-black text-white">إعداد مفتاح Google Gemini</h3>
-                  <p className="text-xs text-slate-400">الاتصال المباشر بنموذج Gemini 2.0 Flash</p>
+                  <h3 className="text-base font-black text-white">معمارية Gemini Backend Agent</h3>
+                  <p className="text-xs text-slate-400">بنية سحابية آمنة ومفصولة تماماً عن المتصفح</p>
                 </div>
               </div>
               <button
-                onClick={() => setShowKeyModal(false)}
+                onClick={() => setShowArchitectureModal(false)}
                 className="p-1 text-slate-400 hover:text-white"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="space-y-3 text-xs">
-              <label className="block text-slate-300 font-bold">أدخل مفتاح Google Gemini API Key الخاص بك:</label>
-              <input
-                type="password"
-                value={keyInput}
-                onChange={(e) => setKeyInput(e.target.value)}
-                placeholder="AIzaSy..."
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white font-mono focus:outline-none focus:border-indigo-500"
-              />
-              <p className="text-[11px] text-slate-400 leading-relaxed">
-                إذا تركته فارغاً، ستستخدم المنصة تلقائياً المحرك التنفيذي الذكي المحلي المبرمج بأفضل ممارسات إدارة الأعمال المصرية دون انقطاع. للحصول على مفتاح مجاني يمكن الدخول على <a href="https://aistudio.google.com/" target="_blank" rel="noopener noreferrer" className="text-indigo-400 underline">Google AI Studio</a>.
-              </p>
+            <div className="space-y-3 text-xs leading-relaxed text-slate-300">
+              <div className="p-3 bg-slate-950 rounded-2xl border border-slate-800 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400">حالة الخادم:</span>
+                  <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${backendStatus.online ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>
+                    {backendStatus.online ? 'متصل وجاهز (Active)' : 'وضع المعاينة المحلية (Local Intent)'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400">النموذج الرسمي:</span>
+                  <span className="font-mono text-indigo-400 font-bold">{backendStatus.model}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400">أدوات النظام الحقيقية:</span>
+                  <span className="text-emerald-400 font-bold">{backendStatus.toolsCount} أدوات (Function Calling)</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400">تأمين المفتاح:</span>
+                  <span className="text-slate-200 font-mono">Server Environment (.env) • صفر مفاتيح في المتصفح</span>
+                </div>
+              </div>
+
+              <div className="p-3 bg-indigo-950/40 rounded-2xl border border-indigo-500/30 text-[11px] space-y-1">
+                <p className="font-bold text-indigo-300">🛡️ حوكمة الصلاحيات (Strict ACL):</p>
+                <p className="text-slate-300">
+                  - جميع استدعاءات البيانات الحقيقية محمية بوسيط التحقق الأمني <code className="text-indigo-300">x-partner-id</code>.
+                </p>
+                <p className="text-slate-300">
+                  - أي مقترح تحسين أو صياغة مهمة يُحفظ كمسودة تتطلب موافقة صريحة من الشريكين قبل الاعتماد.
+                </p>
+                <p className="text-slate-300">
+                  - كل حركة واستدعاء يتم تدوينها في سجل تدقيق غير قابل للتلاعب (Audit Logs).
+                </p>
+              </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+            <div className="flex items-center justify-end pt-3 border-t border-slate-800">
               <button
-                onClick={() => setShowKeyModal(false)}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold"
+                onClick={() => setShowArchitectureModal(false)}
+                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-md"
               >
-                إلغاء
-              </button>
-              <button
-                onClick={handleSaveKey}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-md"
-              >
-                حفظ المفتاح
+                إغلاق
               </button>
             </div>
           </div>

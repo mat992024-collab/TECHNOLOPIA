@@ -5,12 +5,19 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "server": "node server/index.mjs",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:rules": "node --test tests/security-rules-evaluator.test.mjs",
+    "test:agent": "node --test tests/gemini-backend-agent.test.mjs",
+    "test:all": "node --test tests/*.test.mjs"
   },
   "dependencies": {
+    "@google/genai": "^3.3.0",
     "clsx": "^2.1.1",
+    "cors": "^2.8.6",
+    "express": "^5.3.0",
     "firebase": "^13.3.0",
     "lucide-react": "^1.72.0",
     "react": "^19.3.1",

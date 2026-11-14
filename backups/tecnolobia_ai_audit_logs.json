@@ -1,0 +1,530 @@
+[
+  {
+    "id": "ai-audit-1794679739188-2woc",
+    "timestamp": "2026-11-14T18:08:59.188Z",
+    "partnerId": "mohamed",
+    "eventType": "USER_MESSAGE",
+    "toolName": null,
+    "inputPayload": {
+      "message": "ما هي المشروعات الحالية؟"
+    },
+    "outputSummary": null,
+    "permissionLevel": "READ_ONLY",
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "id": "ai-audit-1794679739228-yss4",
+    "timestamp": "2026-11-14T18:08:59.228Z",
+    "partnerId": "mohamed",
+    "eventType": "TOOL_CALL",
+    "toolName": "get_projects",
+    "inputPayload": {},
+    "outputSummary": "[{\"_id\":\"proj-1\",\"category\":\"restaurant_pos\",\"collectedAmount\":0,\"name\":\"نظام كاشير وإدارة مطعم فريش\",\"progressPercent\":100,\"scopeSummary\":\"نظام كاشير وإدارة لمطعم: طباعة فواتير، تتبع المخزون، وحساب المبيعات.\",\"clientName\":\"مطعم فريش (سابقة أعمال)\",\"isQuickCash\":true,\"startDate\":\"2026-01-01\",\"direct",
+    "permissionLevel": "READ_ONLY",
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "id": "ai-audit-1794679739229-jo5d",
+    "timestamp": "2026-11-14T18:08:59.229Z",
+    "partnerId": "mohamed",
+    "eventType": "AGENT_RESPONSE",
+    "toolName": null,
+    "inputPayload": null,
+    "outputSummary": "قمت بفحص قاعدة بيانات المشروعات الحقيقية لشركة TECHNOLOPIA (تم العثور على 8 مشروعات حقيقية). أبرزها:\n- **undefined** (delivered - التقنيات: React/Node)\n- **undefined** (delivered - التقنيات: React/Node)\n- **undefined** (delivered - التقنيات: React/Node)\n- **undefined** (delivered - التقنيات: React/N",
+    "permissionLevel": "READ_ONLY",
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "id": "ai-audit-1794679739241-5nqa",
+    "timestamp": "2026-11-14T18:08:59.241Z",
+    "partnerId": "tarek",
+    "eventType": "USER_MESSAGE",
+    "toolName": null,
+    "inputPayload": {
+      "message": "ما هي أرباح الشركة وخطة الكاش؟"
+    },
+    "outputSummary": null,
+    "permissionLevel": "READ_ONLY",
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "id": "ai-audit-1794679739243-nuys",
+    "timestamp": "2026-11-14T18:08:59.243Z",
+    "partnerId": "tarek",
+    "eventType": "TOOL_CALL",
+    "toolName": "get_financial_summary",
+    "inputPayload": {},
+    "outputSummary": "{\"totalRevenue\":0,\"totalExpenses\":0,\"netProfit\":0,\"distributions\":{\"partnerMohamedShare\":0,\"partnerTarekShare\":0,\"devFundShare\":0,\"sadaqahShare\":0},\"transactionsCount\":0,\"profitCyclesCount\":0,\"isRealData\":true}",
+    "permissionLevel": "READ_ONLY",
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "id": "ai-audit-1794679739244-qbc3",
+    "timestamp": "2026-11-14T18:08:59.244Z",
+    "partnerId": "tarek",
+    "eventType": "AGENT_RESPONSE",
+    "toolName": null,
+    "inputPayload": null,
+    "outputSummary": "قمت بحساب الوضع المالي الحقيقي للشركة وفق معادلة الأرباح الأربعة الصارمة (25% لكل جهة):\n- إجمالي الإيرادات الفعلية: **0 ج.م**\n- إجمالي المصروفات المعتمدة: **0 ج.م**\n- صافي الأرباح القابلة للتوزيع: **0 ج.م**\n*توزيع الأرباح العادل:*\n  - حصة م. محمد البحر (25%): 0 ج.م\n  - حصة م. طارق حافظ (25%): 0 ج.م\n",
+    "permissionLevel": "READ_ONLY",
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "id": "ai-audit-1794679739251-nkbh",
+    "timestamp": "2026-11-14T18:08:59.251Z",
+    "partnerId": "mohamed",
+    "eventType": "TOOL_CALL",
+    "toolName": "get_project_details",
+    "inputPayload": {
+      "projectId": "proj-1"
+    },
+    "outputSummary": "{\"_id\":\"proj-1\",\"category\":\"restaurant_pos\",\"collectedAmount\":0,\"name\":\"نظام كاشير وإدارة مطعم فريش\",\"progressPercent\":100,\"scopeSummary\":\"نظام كاشير وإدارة لمطعم: طباعة فواتير، تتبع المخزون، وحساب المبيعات.\",\"clientName\":\"مطعم فريش (سابقة أعمال)\",\"isQuickCash\":true,\"startDate\":\"2026-01-01\",\"directC",
+    "permissionLevel": "READ_ONLY",
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "id": "ai-audit-1794679739263-fv27",
+    "timestamp": "2026-11-14T18:08:59.263Z",
+    "partnerId": "mohamed",
+    "eventType": "TOOL_CALL",
+    "toolName": "propose_project_improvement",
+    "inputPayload": {
+      "projectId": "proj-7",
+      "title": "إضافة دعم الطباعة الحرارية المباشرة للبلوتوث للمنيو الإلكتروني",
+      "category": "technical",
+      "problemDiagnosis": "المطاعم تطلب إرسال الطلب لطابعة المطبخ فورياً دون الحاجة لكمبيوتر مكتبي.",
+      "proposedSolution": "استخدام Web Bluetooth API للاتصال بطابعات ESC/POS الحرارية مباشرة من المتصفح.",
+      "expectedImpact": "زيادة مبيعات النظام بمعدل 40% وإمكانية فرض رسوم إضافية 1,500 ج.م على الميزة."
+    },
+    "outputSummary": "{\"success\":true,\"message\":\"تم تسجيل مقترح التحسين كمسودة بنجاح بانتظار مراجعة واعتماد الشريكين.\",\"proposal\":{\"id\":\"prop-1794679739262-ulgfd\",\"createdAt\":\"2026-11-14T18:08:59.262Z\",\"status\":\"pending_partner_review\",\"requiresPartnerApproval\":true,\"projectId\":\"proj-7\",\"title\":\"إضافة دعم الطباعة الحراري",
+    "permissionLevel": "DRAFT_PROPOSAL",
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "id": "ai-audit-1794679739268-rqn7",
+    "timestamp": "2026-11-14T18:08:59.268Z",
+    "partnerId": "mohamed",
+    "eventType": "TOOL_CALL",
+    "toolName": "draft_new_task",
+    "inputPayload": {
+      "title": "بناء واجهة إعدادات طابعة البلوتوث لمنيو QR",
+      "description": "تطوير شاشة الربط بطابعة الكاشير وإرسال أمر الطباعة التجريبي.",
+      "assignedTo": "mohamed",
+      "priority": "high",
+      "dueDate": "2026-11-22",
+      "steps": [
+        "فحص بروتوكول Web Bluetooth API في المتصفحات الحديثة",
+        "بناء مكوّن React للبحث عن أجهزة البلوتوث المجاورة",
+        "إرسال بايتات أمر الطباعة التجريبي واختبار القص التلقائي"
+      ]
+    },
+    "outputSummary": "{\"success\":true,\"message\":\"تم إنشاء مسودة المهمة بنجاح مع خطواتها التفصيلية بانتظار اعتماد الشريك.\",\"draftTask\":{\"id\":\"draft-task-1794679739267\",\"createdAt\":\"2026-11-14T18:08:59.267Z\",\"status\":\"draft_pending_partner_approval\",\"requiresPartnerApproval\":true,\"title\":\"بناء واجهة إعدادات طابعة البلوتوث ",
+    "permissionLevel": "DRAFT_PROPOSAL",
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "id": "ai-audit-1794679771818-g6ra",
+    "timestamp": "2026-11-14T18:09:31.818Z",
+    "partnerId": "mohamed",
+    "eventType": "USER_MESSAGE",
+    "toolName": null,
+    "inputPayload": {
+      "message": "ما هي المشروعات الحالية؟"
+    },
+    "outputSummary": null,
+    "permissionLevel": "READ_ONLY",
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "id": "ai-audit-1794679771822-eusx",
+    "timestamp": "2026-11-14T18:09:31.822Z",
+    "partnerId": "mohamed",
+    "eventType": "TOOL_CALL",
+    "toolName": "get_projects",
+    "inputPayload": {},
+    "outputSummary": "[{\"_id\":\"proj-1\",\"category\":\"restaurant_pos\",\"collectedAmount\":0,\"name\":\"نظام كاشير وإدارة مطعم فريش\",\"progressPercent\":100,\"scopeSummary\":\"نظام كاشير وإدارة لمطعم: طباعة فواتير، تتبع المخزون، وحساب المبيعات.\",\"clientName\":\"مطعم فريش (سابقة أعمال)\",\"isQuickCash\":true,\"startDate\":\"2026-01-01\",\"direct",
+    "permissionLevel": "READ_ONLY",
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "id": "ai-audit-1794679771823-4ka0",
+    "timestamp": "2026-11-14T18:09:31.823Z",
+    "partnerId": "mohamed",
+    "eventType": "AGENT_RESPONSE",
+    "toolName": null,
+    "inputPayload": null,
+    "outputSummary": "قمت بفحص قاعدة بيانات المشروعات الحقيقية لشركة TECHNOLOPIA (تم العثور على 8 مشروعات حقيقية). أبرزها:\n- **undefined** (delivered - التقنيات: React/Node)\n- **undefined** (delivered - التقنيات: React/Node)\n- **undefined** (delivered - التقنيات: React/Node)\n- **undefined** (delivered - التقنيات: React/N",
+    "permissionLevel": "READ_ONLY",
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "id": "ai-audit-1794679771832-bqo4",
+    "timestamp": "2026-11-14T18:09:31.832Z",
+    "partnerId": "tarek",
+    "eventType": "USER_MESSAGE",
+    "toolName": null,
+    "inputPayload": {
+      "message": "ما هي أرباح الشركة وخطة الكاش؟"
+    },
+    "outputSummary": null,
+    "permissionLevel": "READ_ONLY",
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "id": "ai-audit-1794679771834-6jlc",
+    "timestamp": "2026-11-14T18:09:31.834Z",
+    "partnerId": "tarek",
+    "eventType": "TOOL_CALL",
+    "toolName": "get_financial_summary",
+    "inputPayload": {},
+    "outputSummary": "{\"totalRevenue\":0,\"totalExpenses\":0,\"netProfit\":0,\"distributions\":{\"partnerMohamedShare\":0,\"partnerTarekShare\":0,\"devFundShare\":0,\"sadaqahShare\":0},\"transactionsCount\":0,\"profitCyclesCount\":0,\"isRealData\":true}",
+    "permissionLevel": "READ_ONLY",
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "id": "ai-audit-1794679771835-8qtz",
+    "timestamp": "2026-11-14T18:09:31.835Z",
+    "partnerId": "tarek",
+    "eventType": "AGENT_RESPONSE",
+    "toolName": null,
+    "inputPayload": null,
+    "outputSummary": "قمت بحساب الوضع المالي الحقيقي للشركة وفق معادلة الأرباح الأربعة الصارمة (25% لكل جهة):\n- إجمالي الإيرادات الفعلية: **0 ج.م**\n- إجمالي المصروفات المعتمدة: **0 ج.م**\n- صافي الأرباح القابلة للتوزيع: **0 ج.م**\n*توزيع الأرباح العادل:*\n  - حصة م. محمد البحر (25%): 0 ج.م\n  - حصة م. طارق حافظ (25%): 0 ج.م\n",
+    "permissionLevel": "READ_ONLY",
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "id": "ai-audit-1794679771842-7obz",
+    "timestamp": "2026-11-14T18:09:31.842Z",
+    "partnerId": "mohamed",
+    "eventType": "TOOL_CALL",
+    "toolName": "get_project_details",
+    "inputPayload": {
+      "projectId": "proj-1"
+    },
+    "outputSummary": "{\"_id\":\"proj-1\",\"category\":\"restaurant_pos\",\"collectedAmount\":0,\"name\":\"نظام كاشير وإدارة مطعم فريش\",\"progressPercent\":100,\"scopeSummary\":\"نظام كاشير وإدارة لمطعم: طباعة فواتير، تتبع المخزون، وحساب المبيعات.\",\"clientName\":\"مطعم فريش (سابقة أعمال)\",\"isQuickCash\":true,\"startDate\":\"2026-01-01\",\"directC",
+    "permissionLevel": "READ_ONLY",
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "id": "ai-audit-1794679771851-hux2",
+    "timestamp": "2026-11-14T18:09:31.851Z",
+    "partnerId": "mohamed",
+    "eventType": "TOOL_CALL",
+    "toolName": "propose_project_improvement",
+    "inputPayload": {
+      "projectId": "proj-7",
+      "title": "إضافة دعم الطباعة الحرارية المباشرة للبلوتوث للمنيو الإلكتروني",
+      "category": "technical",
+      "problemDiagnosis": "المطاعم تطلب إرسال الطلب لطابعة المطبخ فورياً دون الحاجة لكمبيوتر مكتبي.",
+      "proposedSolution": "استخدام Web Bluetooth API للاتصال بطابعات ESC/POS الحرارية مباشرة من المتصفح.",
+      "expectedImpact": "زيادة مبيعات النظام بمعدل 40% وإمكانية فرض رسوم إضافية 1,500 ج.م على الميزة."
+    },
+    "outputSummary": "{\"success\":true,\"message\":\"تم تسجيل مقترح التحسين كمسودة بنجاح بانتظار مراجعة واعتماد الشريكين.\",\"proposal\":{\"id\":\"prop-1794679771851-uures\",\"createdAt\":\"2026-11-14T18:09:31.851Z\",\"status\":\"pending_partner_review\",\"requiresPartnerApproval\":true,\"projectId\":\"proj-7\",\"title\":\"إضافة دعم الطباعة الحراري",
+    "permissionLevel": "DRAFT_PROPOSAL",
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "id": "ai-audit-1794679771855-3o3e",
+    "timestamp": "2026-11-14T18:09:31.855Z",
+    "partnerId": "mohamed",
+    "eventType": "TOOL_CALL",
+    "toolName": "draft_new_task",
+    "inputPayload": {
+      "title": "بناء واجهة إعدادات طابعة البلوتوث لمنيو QR",
+      "description": "تطوير شاشة الربط بطابعة الكاشير وإرسال أمر الطباعة التجريبي.",
+      "assignedTo": "mohamed",
+      "priority": "high",
+      "dueDate": "2026-11-22",
+      "steps": [
+        "فحص بروتوكول Web Bluetooth API في المتصفحات الحديثة",
+        "بناء مكوّن React للبحث عن أجهزة البلوتوث المجاورة",
+        "إرسال بايتات أمر الطباعة التجريبي واختبار القص التلقائي"
+      ]
+    },
+    "outputSummary": "{\"success\":true,\"message\":\"تم إنشاء مسودة المهمة بنجاح مع خطواتها التفصيلية بانتظار اعتماد الشريك.\",\"draftTask\":{\"id\":\"draft-task-1794679771854\",\"createdAt\":\"2026-11-14T18:09:31.854Z\",\"status\":\"draft_pending_partner_approval\",\"requiresPartnerApproval\":true,\"title\":\"بناء واجهة إعدادات طابعة البلوتوث ",
+    "permissionLevel": "DRAFT_PROPOSAL",
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "id": "ai-audit-1794679792627-0d4h",
+    "timestamp": "2026-11-14T18:09:52.627Z",
+    "partnerId": "mohamed",
+    "eventType": "USER_MESSAGE",
+    "toolName": null,
+    "inputPayload": {
+      "message": "ما هي المشروعات الحالية؟"
+    },
+    "outputSummary": null,
+    "permissionLevel": "READ_ONLY",
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "id": "ai-audit-1794679792631-a0uo",
+    "timestamp": "2026-11-14T18:09:52.631Z",
+    "partnerId": "mohamed",
+    "eventType": "TOOL_CALL",
+    "toolName": "get_projects",
+    "inputPayload": {},
+    "outputSummary": "[{\"_id\":\"proj-1\",\"category\":\"restaurant_pos\",\"collectedAmount\":0,\"name\":\"نظام كاشير وإدارة مطعم فريش\",\"progressPercent\":100,\"scopeSummary\":\"نظام كاشير وإدارة لمطعم: طباعة فواتير، تتبع المخزون، وحساب المبيعات.\",\"clientName\":\"مطعم فريش (سابقة أعمال)\",\"isQuickCash\":true,\"startDate\":\"2026-01-01\",\"direct",
+    "permissionLevel": "READ_ONLY",
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "id": "ai-audit-1794679792632-dr48",
+    "timestamp": "2026-11-14T18:09:52.632Z",
+    "partnerId": "mohamed",
+    "eventType": "AGENT_RESPONSE",
+    "toolName": null,
+    "inputPayload": null,
+    "outputSummary": "قمت بفحص قاعدة بيانات المشروعات الحقيقية لشركة TECHNOLOPIA (تم العثور على 8 مشروعات حقيقية). أبرزها:\n- **undefined** (delivered - التقنيات: React/Node)\n- **undefined** (delivered - التقنيات: React/Node)\n- **undefined** (delivered - التقنيات: React/Node)\n- **undefined** (delivered - التقنيات: React/N",
+    "permissionLevel": "READ_ONLY",
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "id": "ai-audit-1794679792640-lm1f",
+    "timestamp": "2026-11-14T18:09:52.640Z",
+    "partnerId": "tarek",
+    "eventType": "USER_MESSAGE",
+    "toolName": null,
+    "inputPayload": {
+      "message": "ما هي أرباح الشركة وخطة الكاش؟"
+    },
+    "outputSummary": null,
+    "permissionLevel": "READ_ONLY",
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "id": "ai-audit-1794679792642-3o65",
+    "timestamp": "2026-11-14T18:09:52.642Z",
+    "partnerId": "tarek",
+    "eventType": "TOOL_CALL",
+    "toolName": "get_financial_summary",
+    "inputPayload": {},
+    "outputSummary": "{\"totalRevenue\":0,\"totalExpenses\":0,\"netProfit\":0,\"distributions\":{\"partnerMohamedShare\":0,\"partnerTarekShare\":0,\"devFundShare\":0,\"sadaqahShare\":0},\"transactionsCount\":0,\"profitCyclesCount\":0,\"isRealData\":true}",
+    "permissionLevel": "READ_ONLY",
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "id": "ai-audit-1794679792644-qr0u",
+    "timestamp": "2026-11-14T18:09:52.644Z",
+    "partnerId": "tarek",
+    "eventType": "AGENT_RESPONSE",
+    "toolName": null,
+    "inputPayload": null,
+    "outputSummary": "قمت بحساب الوضع المالي الحقيقي للشركة وفق معادلة الأرباح الأربعة الصارمة (25% لكل جهة):\n- إجمالي الإيرادات الفعلية: **0 ج.م**\n- إجمالي المصروفات المعتمدة: **0 ج.م**\n- صافي الأرباح القابلة للتوزيع: **0 ج.م**\n*توزيع الأرباح العادل:*\n  - حصة م. محمد البحر (25%): 0 ج.م\n  - حصة م. طارق حافظ (25%): 0 ج.م\n",
+    "permissionLevel": "READ_ONLY",
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "id": "ai-audit-1794679792652-xhdu",
+    "timestamp": "2026-11-14T18:09:52.652Z",
+    "partnerId": "mohamed",
+    "eventType": "TOOL_CALL",
+    "toolName": "get_project_details",
+    "inputPayload": {
+      "projectId": "proj-1"
+    },
+    "outputSummary": "{\"_id\":\"proj-1\",\"category\":\"restaurant_pos\",\"collectedAmount\":0,\"name\":\"نظام كاشير وإدارة مطعم فريش\",\"progressPercent\":100,\"scopeSummary\":\"نظام كاشير وإدارة لمطعم: طباعة فواتير، تتبع المخزون، وحساب المبيعات.\",\"clientName\":\"مطعم فريش (سابقة أعمال)\",\"isQuickCash\":true,\"startDate\":\"2026-01-01\",\"directC",
+    "permissionLevel": "READ_ONLY",
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "id": "ai-audit-1794679792661-9y5t",
+    "timestamp": "2026-11-14T18:09:52.661Z",
+    "partnerId": "mohamed",
+    "eventType": "TOOL_CALL",
+    "toolName": "propose_project_improvement",
+    "inputPayload": {
+      "projectId": "proj-7",
+      "title": "إضافة دعم الطباعة الحرارية المباشرة للبلوتوث للمنيو الإلكتروني",
+      "category": "technical",
+      "problemDiagnosis": "المطاعم تطلب إرسال الطلب لطابعة المطبخ فورياً دون الحاجة لكمبيوتر مكتبي.",
+      "proposedSolution": "استخدام Web Bluetooth API للاتصال بطابعات ESC/POS الحرارية مباشرة من المتصفح.",
+      "expectedImpact": "زيادة مبيعات النظام بمعدل 40% وإمكانية فرض رسوم إضافية 1,500 ج.م على الميزة."
+    },
+    "outputSummary": "{\"success\":true,\"message\":\"تم تسجيل مقترح التحسين كمسودة بنجاح بانتظار مراجعة واعتماد الشريكين.\",\"proposal\":{\"id\":\"prop-1794679792660-qnd2w\",\"createdAt\":\"2026-11-14T18:09:52.660Z\",\"status\":\"pending_partner_review\",\"requiresPartnerApproval\":true,\"projectId\":\"proj-7\",\"title\":\"إضافة دعم الطباعة الحراري",
+    "permissionLevel": "DRAFT_PROPOSAL",
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "id": "ai-audit-1794679792668-dpb5",
+    "timestamp": "2026-11-14T18:09:52.668Z",
+    "partnerId": "mohamed",
+    "eventType": "TOOL_CALL",
+    "toolName": "draft_new_task",
+    "inputPayload": {
+      "title": "بناء واجهة إعدادات طابعة البلوتوث لمنيو QR",
+      "description": "تطوير شاشة الربط بطابعة الكاشير وإرسال أمر الطباعة التجريبي.",
+      "assignedTo": "mohamed",
+      "priority": "high",
+      "dueDate": "2026-11-22",
+      "steps": [
+        "فحص بروتوكول Web Bluetooth API في المتصفحات الحديثة",
+        "بناء مكوّن React للبحث عن أجهزة البلوتوث المجاورة",
+        "إرسال بايتات أمر الطباعة التجريبي واختبار القص التلقائي"
+      ]
+    },
+    "outputSummary": "{\"success\":true,\"message\":\"تم إنشاء مسودة المهمة بنجاح مع خطواتها التفصيلية بانتظار اعتماد الشريك.\",\"draftTask\":{\"id\":\"draft-task-1794679792667\",\"createdAt\":\"2026-11-14T18:09:52.667Z\",\"status\":\"draft_pending_partner_approval\",\"requiresPartnerApproval\":true,\"title\":\"بناء واجهة إعدادات طابعة البلوتوث ",
+    "permissionLevel": "DRAFT_PROPOSAL",
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "id": "ai-audit-1794679810968-0xyk",
+    "timestamp": "2026-11-14T18:10:10.968Z",
+    "partnerId": "mohamed",
+    "eventType": "USER_MESSAGE",
+    "toolName": null,
+    "inputPayload": {
+      "message": "ما هي المشروعات الحالية؟"
+    },
+    "outputSummary": null,
+    "permissionLevel": "READ_ONLY",
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "id": "ai-audit-1794679810972-qnur",
+    "timestamp": "2026-11-14T18:10:10.972Z",
+    "partnerId": "mohamed",
+    "eventType": "TOOL_CALL",
+    "toolName": "get_projects",
+    "inputPayload": {},
+    "outputSummary": "[{\"_id\":\"proj-1\",\"category\":\"restaurant_pos\",\"collectedAmount\":0,\"name\":\"نظام كاشير وإدارة مطعم فريش\",\"progressPercent\":100,\"scopeSummary\":\"نظام كاشير وإدارة لمطعم: طباعة فواتير، تتبع المخزون، وحساب المبيعات.\",\"clientName\":\"مطعم فريش (سابقة أعمال)\",\"isQuickCash\":true,\"startDate\":\"2026-01-01\",\"direct",
+    "permissionLevel": "READ_ONLY",
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "id": "ai-audit-1794679810974-7avl",
+    "timestamp": "2026-11-14T18:10:10.974Z",
+    "partnerId": "mohamed",
+    "eventType": "AGENT_RESPONSE",
+    "toolName": null,
+    "inputPayload": null,
+    "outputSummary": "قمت بفحص قاعدة بيانات المشروعات الحقيقية لشركة TECHNOLOPIA (تم العثور على 8 مشروعات حقيقية). أبرزها:\n- **نظام كاشير وإدارة مطعم فريش** (delivered - التقنيات: React/Node)\n- **نظام إدارة مطبعة واجدي** (delivered - التقنيات: React/Node)\n- **نظام إدارة مكتبة مدرسية** (delivered - التقنيات: React/Node)\n-",
+    "permissionLevel": "READ_ONLY",
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "id": "ai-audit-1794679810988-zpwy",
+    "timestamp": "2026-11-14T18:10:10.988Z",
+    "partnerId": "tarek",
+    "eventType": "USER_MESSAGE",
+    "toolName": null,
+    "inputPayload": {
+      "message": "ما هي أرباح الشركة وخطة الكاش؟"
+    },
+    "outputSummary": null,
+    "permissionLevel": "READ_ONLY",
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "id": "ai-audit-1794679810991-3s8x",
+    "timestamp": "2026-11-14T18:10:10.991Z",
+    "partnerId": "tarek",
+    "eventType": "TOOL_CALL",
+    "toolName": "get_financial_summary",
+    "inputPayload": {},
+    "outputSummary": "{\"totalRevenue\":0,\"totalExpenses\":0,\"netProfit\":0,\"distributions\":{\"partnerMohamedShare\":0,\"partnerTarekShare\":0,\"devFundShare\":0,\"sadaqahShare\":0},\"transactionsCount\":0,\"profitCyclesCount\":0,\"isRealData\":true}",
+    "permissionLevel": "READ_ONLY",
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "id": "ai-audit-1794679810994-m71r",
+    "timestamp": "2026-11-14T18:10:10.994Z",
+    "partnerId": "tarek",
+    "eventType": "AGENT_RESPONSE",
+    "toolName": null,
+    "inputPayload": null,
+    "outputSummary": "قمت بحساب الوضع المالي الحقيقي للشركة وفق معادلة الأرباح الأربعة الصارمة (25% لكل جهة):\n- إجمالي الإيرادات الفعلية: **0 ج.م**\n- إجمالي المصروفات المعتمدة: **0 ج.م**\n- صافي الأرباح القابلة للتوزيع: **0 ج.م**\n*توزيع الأرباح العادل:*\n  - حصة م. محمد البحر (25%): 0 ج.م\n  - حصة م. طارق حافظ (25%): 0 ج.م\n",
+    "permissionLevel": "READ_ONLY",
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "id": "ai-audit-1794679811023-1ua1",
+    "timestamp": "2026-11-14T18:10:11.023Z",
+    "partnerId": "mohamed",
+    "eventType": "TOOL_CALL",
+    "toolName": "get_project_details",
+    "inputPayload": {
+      "projectId": "proj-1"
+    },
+    "outputSummary": "{\"_id\":\"proj-1\",\"category\":\"restaurant_pos\",\"collectedAmount\":0,\"name\":\"نظام كاشير وإدارة مطعم فريش\",\"progressPercent\":100,\"scopeSummary\":\"نظام كاشير وإدارة لمطعم: طباعة فواتير، تتبع المخزون، وحساب المبيعات.\",\"clientName\":\"مطعم فريش (سابقة أعمال)\",\"isQuickCash\":true,\"startDate\":\"2026-01-01\",\"directC",
+    "permissionLevel": "READ_ONLY",
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "id": "ai-audit-1794679811054-zb4h",
+    "timestamp": "2026-11-14T18:10:11.054Z",
+    "partnerId": "mohamed",
+    "eventType": "TOOL_CALL",
+    "toolName": "propose_project_improvement",
+    "inputPayload": {
+      "projectId": "proj-7",
+      "title": "إضافة دعم الطباعة الحرارية المباشرة للبلوتوث للمنيو الإلكتروني",
+      "category": "technical",
+      "problemDiagnosis": "المطاعم تطلب إرسال الطلب لطابعة المطبخ فورياً دون الحاجة لكمبيوتر مكتبي.",
+      "proposedSolution": "استخدام Web Bluetooth API للاتصال بطابعات ESC/POS الحرارية مباشرة من المتصفح.",
+      "expectedImpact": "زيادة مبيعات النظام بمعدل 40% وإمكانية فرض رسوم إضافية 1,500 ج.م على الميزة."
+    },
+    "outputSummary": "{\"success\":true,\"message\":\"تم تسجيل مقترح التحسين كمسودة بنجاح بانتظار مراجعة واعتماد الشريكين.\",\"proposal\":{\"id\":\"prop-1794679811049-t5rbj\",\"createdAt\":\"2026-11-14T18:10:11.049Z\",\"status\":\"pending_partner_review\",\"requiresPartnerApproval\":true,\"projectId\":\"proj-7\",\"title\":\"إضافة دعم الطباعة الحراري",
+    "permissionLevel": "DRAFT_PROPOSAL",
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "id": "ai-audit-1794679811068-jn71",
+    "timestamp": "2026-11-14T18:10:11.068Z",
+    "partnerId": "mohamed",
+    "eventType": "TOOL_CALL",
+    "toolName": "draft_new_task",
+    "inputPayload": {
+      "title": "بناء واجهة إعدادات طابعة البلوتوث لمنيو QR",
+      "description": "تطوير شاشة الربط بطابعة الكاشير وإرسال أمر الطباعة التجريبي.",
+      "assignedTo": "mohamed",
+      "priority": "high",
+      "dueDate": "2026-11-22",
+      "steps": [
+        "فحص بروتوكول Web Bluetooth API في المتصفحات الحديثة",
+        "بناء مكوّن React للبحث عن أجهزة البلوتوث المجاورة",
+        "إرسال بايتات أمر الطباعة التجريبي واختبار القص التلقائي"
+      ]
+    },
+    "outputSummary": "{\"success\":true,\"message\":\"تم إنشاء مسودة المهمة بنجاح مع خطواتها التفصيلية بانتظار اعتماد الشريك.\",\"draftTask\":{\"id\":\"draft-task-1794679811064\",\"createdAt\":\"2026-11-14T18:10:11.064Z\",\"status\":\"draft_pending_partner_approval\",\"requiresPartnerApproval\":true,\"title\":\"بناء واجهة إعدادات طابعة البلوتوث ",
+    "permissionLevel": "DRAFT_PROPOSAL",
+    "status": "SUCCESS",
+    "error": null
+  }
+]
