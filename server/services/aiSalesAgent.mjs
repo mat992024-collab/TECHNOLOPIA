@@ -3,6 +3,8 @@ import { GeminiAgent } from '../geminiAgent.mjs';
 import { CrmLeadStore } from '../data/crmLeadStore.mjs';
 import { AuditLogger } from './auditLogger.mjs';
 
+export const OFFICIAL_PRICING_DISCLAIMER = 'تنبيه ملزم: هذا السعر استرشادي غير ملزم وتقديري مبني على متوسط أسعار السوق المصري ولا يمثل سعراً رسمياً أو تعاقدياً للشركة. يُحظر تقديم أي وعود بخصومات أو تقسيط أو خدمات مجانية أو ضمانات دون موافقة خطية صريحة من الشريكين المؤسسين.';
+
 /**
  * وكيل المبيعات الذكي لشركة TECHNOLOPIA (AI Sales & Pitch Agent)
  * يعتمد على محفظة منتجات وسوابق أعمال الشركة الحقيقية ويولد عروضاً استرشادية منضبطة
@@ -35,11 +37,12 @@ export class AiSalesAgent {
 - المدينة: ${contactInfo?.city || 'الإسكندرية'}
 - ملاحظات الشركاء السابقة: ${(notes || []).join(' | ') || 'لا توجد ملاحظات سابقة'}
 
-التعليمات الصارمة:
-1. لا تخترع أسعاراً وهمية أو تخفيضات غير معتمدة أو ضمانات غير حقيقية على الإطلاق.
-2. اكتب رسالة تسويقية محترمة باللهجة المصرية الراقية والعملية (Business Casual) تناسب إرسالها على واتساب من الشريك (${partner.name}).
-3. قدم نصيحة تفاوض ذكية للشريك لسرعة إغلاق الصفقة (Closing Deal).
-4. حدد نطاق سعر استرشادي يتناسب مع متوسط أسعار السوق المصري مع التوضيح التام بأنه غير ملزم ويتطلب اعتماد الشريكين.
+التعليمات الصارمة والمقدسة:
+1. الأسعار المقترحة هي أسعار استرشادية تقديرية فقط وليست أسعاراً رسمية أو معتمدة أو ملزمة للشركة.
+2. يُحظر تماماً اختراع أو تقديم أي وعود بأسعار رسمية، أو خصومات غير معتمدة، أو عروض تقسيط مالي، أو خدمات مجانية إضافية، أو شهادات ضمان دون موافقة مسبقة من الشريكين المؤسسين.
+3. اكتب رسالة تسويقية محترمة وراقية بالعامية المصرية العملية (Business Casual) تناسب إرسالها على واتساب من الشريك (${partner.name}) وتركز على حل مشكلة العميل الحقيقية ودعوة لجلسة ديمو تجريبية بدون أي التزام مالي.
+4. قدم نصيحة تفاوض ذكية للشريك لسرعة إغلاق الصفقة (Closing Deal).
+5. حافظ دائماً على إخلاء المسؤولية المعتمد.
 
 المطلوب إخراج النتيجة بتنسيق JSON حصرياً بالشكل التالي:
 {
@@ -73,7 +76,11 @@ export class AiSalesAgent {
           recommendedService: parsed.recommendedService || this.#inferServiceFromNeed(softwareNeed, industry),
           indicativePriceMin: Number(parsed.indicativePriceMin) || (dealValueEstimate ? Math.round(dealValueEstimate * 0.8) : 5000),
           indicativePriceMax: Number(parsed.indicativePriceMax) || (dealValueEstimate ? Math.round(dealValueEstimate * 1.2) : 10000),
-          pricingNote: 'تقدير استرشادي غير ملزم يتطلب موافقة الشريكين قبل تقديمه للعميل.',
+          pricingNote: OFFICIAL_PRICING_DISCLAIMER,
+          pricingDisclaimer: OFFICIAL_PRICING_DISCLAIMER,
+          isOfficialPrice: false,
+          isBindingOffer: false,
+          requiresPartnerApproval: true,
           marketingPitchMessage: parsed.marketingPitchMessage || this.#generateFallbackPitch(lead, partner),
           negotiationTactics: parsed.negotiationTactics || 'التركيز على سرعة التشغيل وعرض ديمو عملي مباشر بدون التزام.',
           closeProbabilityEstimate: Number(parsed.closeProbabilityEstimate) || 70,
@@ -143,7 +150,11 @@ export class AiSalesAgent {
       recommendedService,
       indicativePriceMin: minPrice,
       indicativePriceMax: maxPrice,
-      pricingNote: 'تقدير استرشادي غير ملزم يتطلب موافقة الشريكين قبل تقديمه للعميل.',
+      pricingNote: OFFICIAL_PRICING_DISCLAIMER,
+      pricingDisclaimer: OFFICIAL_PRICING_DISCLAIMER,
+      isOfficialPrice: false,
+      isBindingOffer: false,
+      requiresPartnerApproval: true,
       marketingPitchMessage: this.#generateFallbackPitch(lead, partner),
       negotiationTactics: `1. التركيز على ميزة تجربة النظام (Demo) عملياً لمدة 24 ساعة.\n2. إبراز سابقة الأعمال الحقيقية المشابهة بشركة TECHNOLOPIA.\n3. اقتراح دفعة مقدمة 50% والباقي عند التسليم والتشغيل النهائي.`,
       closeProbabilityEstimate: 75,

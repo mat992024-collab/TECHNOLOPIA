@@ -24,7 +24,13 @@
       "[2026-11-14 20:16 - المهندس طارق حافظ]: تم الاتفاق مع صاحب المطعم على موعد المعاينة يوم الأحد القادم الساعة 5 مساءً",
       "[2026-11-14 20:17 - المهندس طارق حافظ]: تم الاتفاق مع صاحب المطعم على موعد المعاينة يوم الأحد القادم الساعة 5 مساءً",
       "[2026-11-14 20:19 - المهندس طارق حافظ]: تم الاتفاق مع صاحب المطعم على موعد المعاينة يوم الأحد القادم الساعة 5 مساءً",
-      "[2026-11-14 20:22 - المهندس طارق حافظ]: تم الاتفاق مع صاحب المطعم على موعد المعاينة يوم الأحد القادم الساعة 5 مساءً"
+      "[2026-11-14 20:22 - المهندس طارق حافظ]: تم الاتفاق مع صاحب المطعم على موعد المعاينة يوم الأحد القادم الساعة 5 مساءً",
+      "[2026-11-14 22:26 - المهندس طارق حافظ]: تم الاتفاق مع صاحب المطعم على موعد المعاينة يوم الأحد القادم الساعة 5 مساءً",
+      "[2026-11-14 22:45 - المهندس طارق حافظ]: تم الاتفاق مع صاحب المطعم على موعد المعاينة يوم الأحد القادم الساعة 5 مساءً",
+      "[2026-11-14 22:45 - المهندس طارق حافظ]: تم الاتفاق مع صاحب المطعم على موعد المعاينة يوم الأحد القادم الساعة 5 مساءً",
+      "[2026-11-14 22:46 - المهندس طارق حافظ]: تم الاتفاق مع صاحب المطعم على موعد المعاينة يوم الأحد القادم الساعة 5 مساءً",
+      "[2026-11-14 22:49 - المهندس طارق حافظ]: تم الاتفاق مع صاحب المطعم على موعد المعاينة يوم الأحد القادم الساعة 5 مساءً",
+      "[2026-11-14 22:51 - المهندس طارق حافظ]: تم الاتفاق مع صاحب المطعم على موعد المعاينة يوم الأحد القادم الساعة 5 مساءً"
     ],
     "nextFollowUpDate": "2026-11-16",
     "history": [
@@ -48,7 +54,7 @@
     ],
     "isRealProspect": true,
     "createdAt": "2026-11-13T19:51:28.944Z",
-    "updatedAt": "2026-11-14T20:22:03.390Z"
+    "updatedAt": "2026-11-14T22:51:29.806Z"
   },
   {
     "id": "lead-1794687312753-jzlt",
@@ -722,5 +728,1733 @@
     "isRealProspect": true,
     "createdAt": "2026-11-14T20:21:51.127Z",
     "updatedAt": "2026-11-14T20:21:51.127Z"
+  },
+  {
+    "id": "lead-1794695177929-n9y0",
+    "businessName": "كافيه وكريب الباشا",
+    "industry": "مطاعم وسياحة",
+    "softwareNeed": "كاشير بون سريع ومنيو باركود QR",
+    "source": "facebook",
+    "stage": "NEW_LEAD",
+    "priority": "high",
+    "dealValueEstimate": 8500,
+    "collectedAmount": 0,
+    "invoicedAmount": 0,
+    "outstandingBalance": 8500,
+    "isContractSigned": false,
+    "isPaymentCollected": false,
+    "isPrivate": false,
+    "ownerPartnerId": "tarek",
+    "dealProbability": 50,
+    "assignedPartner": "tarek",
+    "contactInfo": {
+      "contactPerson": "أ. حسام الباشا",
+      "phone": "01195177907",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": "جليم - على البحر"
+    },
+    "notes": [],
+    "privateNotes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:26:17.929Z",
+        "note": "تواصل عبر رسائل صفحة الفيسبوك يسأل عن سعر الكاشير"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T22:26:17.929Z",
+    "updatedAt": "2026-11-14T22:26:17.929Z"
+  },
+  {
+    "id": "lead-1794695177955-hv8u",
+    "businessName": "سلسلة صيدليات النور",
+    "industry": "رعاية صحية وتجزئة",
+    "softwareNeed": "الربط مع الفوترة الإلكترونية السحابية",
+    "source": "direct_visit",
+    "stage": "WON",
+    "priority": "medium",
+    "dealValueEstimate": 16000,
+    "collectedAmount": 0,
+    "invoicedAmount": 0,
+    "outstandingBalance": 16000,
+    "isContractSigned": true,
+    "isPaymentCollected": false,
+    "isPrivate": false,
+    "ownerPartnerId": "mohamed",
+    "dealProbability": 100,
+    "assignedPartner": "mohamed",
+    "contactInfo": {
+      "contactPerson": "",
+      "phone": "01295177954",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": ""
+    },
+    "notes": [],
+    "privateNotes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T22:26:17.955Z",
+        "note": "تسجيل فرصة عميل جديدة في النظام"
+      },
+      {
+        "fromStage": "NEW_LEAD",
+        "toStage": "CONTACTED",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T22:26:17.977Z",
+        "note": "مكالمة زووم مع مدير المشتريات"
+      },
+      {
+        "fromStage": "CONTACTED",
+        "toStage": "INTERESTED",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T22:26:18.002Z",
+        "note": "أبدى اهتماماً كبيراً بعد مشاهدة العرض"
+      },
+      {
+        "fromStage": "INTERESTED",
+        "toStage": "PROPOSAL_SENT",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:26:18.024Z",
+        "note": "إرسال العرض الفني والمالي الرسمي"
+      },
+      {
+        "fromStage": "PROPOSAL_SENT",
+        "toStage": "NEGOTIATION",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:26:18.048Z",
+        "note": "جلسة تفاوض على دفعة التعاقد والصيانة"
+      },
+      {
+        "fromStage": "NEGOTIATION",
+        "toStage": "WON",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:26:18.070Z",
+        "note": "توقيع العقد واستلام الدفعة المقدمة"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T22:26:17.955Z",
+    "updatedAt": "2026-11-14T22:26:18.070Z"
+  },
+  {
+    "id": "lead-1794695178092-p3hk",
+    "businessName": "مكتب استشارات هندسية",
+    "industry": "خدمات هندسية",
+    "softwareNeed": "نظام إدارة المشاريع والمهام",
+    "source": "direct_visit",
+    "stage": "NEW_LEAD",
+    "priority": "medium",
+    "dealValueEstimate": 0,
+    "collectedAmount": 0,
+    "invoicedAmount": 0,
+    "outstandingBalance": 0,
+    "isContractSigned": false,
+    "isPaymentCollected": false,
+    "isPrivate": false,
+    "ownerPartnerId": "mohamed",
+    "dealProbability": 20,
+    "assignedPartner": "mohamed",
+    "contactInfo": {
+      "contactPerson": "",
+      "phone": "01595178091",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": ""
+    },
+    "notes": [],
+    "privateNotes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T22:26:18.092Z",
+        "note": "تسجيل فرصة عميل جديدة في النظام"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T22:26:18.092Z",
+    "updatedAt": "2026-11-14T22:26:18.092Z"
+  },
+  {
+    "id": "lead-1794695814756-sc2o",
+    "businessName": "شركة الساحل للاستيراد",
+    "industry": "تجارة واستيراد",
+    "softwareNeed": "الفاتورة الإلكترونية والمخازن",
+    "source": "direct_visit",
+    "stage": "WON",
+    "priority": "medium",
+    "dealValueEstimate": 15000,
+    "collectedAmount": 0,
+    "invoicedAmount": 0,
+    "outstandingBalance": 15000,
+    "isContractSigned": true,
+    "isPaymentCollected": false,
+    "isPrivate": false,
+    "ownerPartnerId": "tarek",
+    "dealProbability": 100,
+    "assignedPartner": "tarek",
+    "contactInfo": {
+      "contactPerson": "",
+      "phone": "01295814756",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": ""
+    },
+    "notes": [],
+    "privateNotes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:36:54.756Z",
+        "note": "تسجيل فرصة عميل جديدة في النظام"
+      },
+      {
+        "fromStage": "NEW_LEAD",
+        "toStage": "CONTACTED",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:36:54.776Z",
+        "note": "مكالمة هاتفية"
+      },
+      {
+        "fromStage": "CONTACTED",
+        "toStage": "INTERESTED",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:36:54.795Z",
+        "note": "أبدى اهتماماً"
+      },
+      {
+        "fromStage": "INTERESTED",
+        "toStage": "PROPOSAL_SENT",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:36:54.815Z",
+        "note": "إرسال العرض"
+      },
+      {
+        "fromStage": "PROPOSAL_SENT",
+        "toStage": "NEGOTIATION",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:36:54.833Z",
+        "note": "تفاوض نهائي"
+      },
+      {
+        "fromStage": "NEGOTIATION",
+        "toStage": "WON",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:36:54.851Z",
+        "note": "توقيع العقد الرسمي"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T22:36:54.756Z",
+    "updatedAt": "2026-11-14T22:36:54.851Z"
+  },
+  {
+    "id": "lead-1794696255184-d36v",
+    "businessName": "مشروع سري خاص بمحمد",
+    "industry": "استشارات خاصة",
+    "softwareNeed": "نظام حماية خاص",
+    "source": "direct_visit",
+    "stage": "NEW_LEAD",
+    "priority": "medium",
+    "dealValueEstimate": 0,
+    "collectedAmount": 0,
+    "invoicedAmount": 0,
+    "outstandingBalance": 0,
+    "isContractSigned": false,
+    "isPaymentCollected": false,
+    "isPrivate": true,
+    "ownerPartnerId": "mohamed",
+    "dealProbability": 20,
+    "assignedPartner": "mohamed",
+    "contactInfo": {
+      "contactPerson": "",
+      "phone": "01096255183",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": ""
+    },
+    "notes": [],
+    "privateNotes": [
+      {
+        "id": "pnote-1794696255213-ycxl",
+        "partnerId": "mohamed",
+        "partnerName": "المهندس محمد البحر",
+        "timestamp": "2026-11-14 22:44",
+        "text": "ملاحظة سرية: العميل طلب شروط خاصة جداً لا يراها إلا محمد"
+      }
+    ],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T22:44:15.184Z",
+        "note": "تسجيل فرصة عميل جديدة في النظام"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T22:44:15.184Z",
+    "updatedAt": "2026-11-14T22:44:15.213Z"
+  },
+  {
+    "id": "lead-1794696287172-6rbs",
+    "businessName": "كافيه وكريب الباشا",
+    "industry": "مطاعم وسياحة",
+    "softwareNeed": "كاشير بون سريع ومنيو باركود QR",
+    "source": "facebook",
+    "stage": "NEW_LEAD",
+    "priority": "high",
+    "dealValueEstimate": 8500,
+    "collectedAmount": 0,
+    "invoicedAmount": 0,
+    "outstandingBalance": 8500,
+    "isContractSigned": false,
+    "isPaymentCollected": false,
+    "isPrivate": false,
+    "ownerPartnerId": "tarek",
+    "dealProbability": 50,
+    "assignedPartner": "tarek",
+    "contactInfo": {
+      "contactPerson": "أ. حسام الباشا",
+      "phone": "01196287152",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": "جليم - على البحر"
+    },
+    "notes": [],
+    "privateNotes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:44:47.172Z",
+        "note": "تواصل عبر رسائل صفحة الفيسبوك يسأل عن سعر الكاشير"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T22:44:47.172Z",
+    "updatedAt": "2026-11-14T22:44:47.172Z"
+  },
+  {
+    "id": "lead-1794696287199-ftsu",
+    "businessName": "سلسلة صيدليات النور",
+    "industry": "رعاية صحية وتجزئة",
+    "softwareNeed": "الربط مع الفوترة الإلكترونية السحابية",
+    "source": "direct_visit",
+    "stage": "WON",
+    "priority": "medium",
+    "dealValueEstimate": 16000,
+    "collectedAmount": 0,
+    "invoicedAmount": 0,
+    "outstandingBalance": 16000,
+    "isContractSigned": true,
+    "isPaymentCollected": false,
+    "isPrivate": false,
+    "ownerPartnerId": "mohamed",
+    "dealProbability": 100,
+    "assignedPartner": "mohamed",
+    "contactInfo": {
+      "contactPerson": "",
+      "phone": "01296287198",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": ""
+    },
+    "notes": [],
+    "privateNotes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T22:44:47.199Z",
+        "note": "تسجيل فرصة عميل جديدة في النظام"
+      },
+      {
+        "fromStage": "NEW_LEAD",
+        "toStage": "CONTACTED",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T22:44:47.221Z",
+        "note": "مكالمة زووم مع مدير المشتريات"
+      },
+      {
+        "fromStage": "CONTACTED",
+        "toStage": "INTERESTED",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T22:44:47.246Z",
+        "note": "أبدى اهتماماً كبيراً بعد مشاهدة العرض"
+      },
+      {
+        "fromStage": "INTERESTED",
+        "toStage": "PROPOSAL_SENT",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:44:47.269Z",
+        "note": "إرسال العرض الفني والمالي الرسمي"
+      },
+      {
+        "fromStage": "PROPOSAL_SENT",
+        "toStage": "NEGOTIATION",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:44:47.291Z",
+        "note": "جلسة تفاوض على دفعة التعاقد والصيانة"
+      },
+      {
+        "fromStage": "NEGOTIATION",
+        "toStage": "WON",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:44:47.315Z",
+        "note": "توقيع العقد واستلام الدفعة المقدمة"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T22:44:47.199Z",
+    "updatedAt": "2026-11-14T22:44:47.315Z"
+  },
+  {
+    "id": "lead-1794696287340-9y2p",
+    "businessName": "مكتب استشارات هندسية",
+    "industry": "خدمات هندسية",
+    "softwareNeed": "نظام إدارة المشاريع والمهام",
+    "source": "direct_visit",
+    "stage": "NEW_LEAD",
+    "priority": "medium",
+    "dealValueEstimate": 0,
+    "collectedAmount": 0,
+    "invoicedAmount": 0,
+    "outstandingBalance": 0,
+    "isContractSigned": false,
+    "isPaymentCollected": false,
+    "isPrivate": false,
+    "ownerPartnerId": "mohamed",
+    "dealProbability": 20,
+    "assignedPartner": "mohamed",
+    "contactInfo": {
+      "contactPerson": "",
+      "phone": "01596287339",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": ""
+    },
+    "notes": [],
+    "privateNotes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T22:44:47.340Z",
+        "note": "تسجيل فرصة عميل جديدة في النظام"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T22:44:47.340Z",
+    "updatedAt": "2026-11-14T22:44:47.340Z"
+  },
+  {
+    "id": "lead-1794696320656-pgih",
+    "businessName": "شركة الساحل للاستيراد",
+    "industry": "تجارة واستيراد",
+    "softwareNeed": "الفاتورة الإلكترونية والمخازن",
+    "source": "direct_visit",
+    "stage": "WON",
+    "priority": "medium",
+    "dealValueEstimate": 15000,
+    "collectedAmount": 0,
+    "invoicedAmount": 0,
+    "outstandingBalance": 15000,
+    "isContractSigned": true,
+    "isPaymentCollected": false,
+    "isPrivate": false,
+    "ownerPartnerId": "tarek",
+    "dealProbability": 100,
+    "assignedPartner": "tarek",
+    "contactInfo": {
+      "contactPerson": "",
+      "phone": "01296320655",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": ""
+    },
+    "notes": [],
+    "privateNotes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:45:20.656Z",
+        "note": "تسجيل فرصة عميل جديدة في النظام"
+      },
+      {
+        "fromStage": "NEW_LEAD",
+        "toStage": "CONTACTED",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:45:20.676Z",
+        "note": "مكالمة هاتفية"
+      },
+      {
+        "fromStage": "CONTACTED",
+        "toStage": "INTERESTED",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:45:20.695Z",
+        "note": "أبدى اهتماماً"
+      },
+      {
+        "fromStage": "INTERESTED",
+        "toStage": "PROPOSAL_SENT",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:45:20.715Z",
+        "note": "إرسال العرض"
+      },
+      {
+        "fromStage": "PROPOSAL_SENT",
+        "toStage": "NEGOTIATION",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:45:20.733Z",
+        "note": "تفاوض نهائي"
+      },
+      {
+        "fromStage": "NEGOTIATION",
+        "toStage": "WON",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:45:20.752Z",
+        "note": "توقيع العقد الرسمي"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T22:45:20.656Z",
+    "updatedAt": "2026-11-14T22:45:20.752Z"
+  },
+  {
+    "id": "lead-1794696332931-r1k8",
+    "businessName": "كافيه وكريب الباشا",
+    "industry": "مطاعم وسياحة",
+    "softwareNeed": "كاشير بون سريع ومنيو باركود QR",
+    "source": "facebook",
+    "stage": "NEW_LEAD",
+    "priority": "high",
+    "dealValueEstimate": 8500,
+    "collectedAmount": 0,
+    "invoicedAmount": 0,
+    "outstandingBalance": 8500,
+    "isContractSigned": false,
+    "isPaymentCollected": false,
+    "isPrivate": false,
+    "ownerPartnerId": "tarek",
+    "dealProbability": 50,
+    "assignedPartner": "tarek",
+    "contactInfo": {
+      "contactPerson": "أ. حسام الباشا",
+      "phone": "01196332911",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": "جليم - على البحر"
+    },
+    "notes": [],
+    "privateNotes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:45:32.931Z",
+        "note": "تواصل عبر رسائل صفحة الفيسبوك يسأل عن سعر الكاشير"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T22:45:32.931Z",
+    "updatedAt": "2026-11-14T22:45:32.931Z"
+  },
+  {
+    "id": "lead-1794696332956-gpul",
+    "businessName": "سلسلة صيدليات النور",
+    "industry": "رعاية صحية وتجزئة",
+    "softwareNeed": "الربط مع الفوترة الإلكترونية السحابية",
+    "source": "direct_visit",
+    "stage": "WON",
+    "priority": "medium",
+    "dealValueEstimate": 16000,
+    "collectedAmount": 0,
+    "invoicedAmount": 0,
+    "outstandingBalance": 16000,
+    "isContractSigned": true,
+    "isPaymentCollected": false,
+    "isPrivate": false,
+    "ownerPartnerId": "mohamed",
+    "dealProbability": 100,
+    "assignedPartner": "mohamed",
+    "contactInfo": {
+      "contactPerson": "",
+      "phone": "01296332956",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": ""
+    },
+    "notes": [],
+    "privateNotes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T22:45:32.956Z",
+        "note": "تسجيل فرصة عميل جديدة في النظام"
+      },
+      {
+        "fromStage": "NEW_LEAD",
+        "toStage": "CONTACTED",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T22:45:32.979Z",
+        "note": "مكالمة زووم مع مدير المشتريات"
+      },
+      {
+        "fromStage": "CONTACTED",
+        "toStage": "INTERESTED",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T22:45:33.003Z",
+        "note": "أبدى اهتماماً كبيراً بعد مشاهدة العرض"
+      },
+      {
+        "fromStage": "INTERESTED",
+        "toStage": "PROPOSAL_SENT",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:45:33.024Z",
+        "note": "إرسال العرض الفني والمالي الرسمي"
+      },
+      {
+        "fromStage": "PROPOSAL_SENT",
+        "toStage": "NEGOTIATION",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:45:33.047Z",
+        "note": "جلسة تفاوض على دفعة التعاقد والصيانة"
+      },
+      {
+        "fromStage": "NEGOTIATION",
+        "toStage": "WON",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:45:33.069Z",
+        "note": "توقيع العقد واستلام الدفعة المقدمة"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T22:45:32.956Z",
+    "updatedAt": "2026-11-14T22:45:33.069Z"
+  },
+  {
+    "id": "lead-1794696333091-49vu",
+    "businessName": "مكتب استشارات هندسية",
+    "industry": "خدمات هندسية",
+    "softwareNeed": "نظام إدارة المشاريع والمهام",
+    "source": "direct_visit",
+    "stage": "NEW_LEAD",
+    "priority": "medium",
+    "dealValueEstimate": 0,
+    "collectedAmount": 0,
+    "invoicedAmount": 0,
+    "outstandingBalance": 0,
+    "isContractSigned": false,
+    "isPaymentCollected": false,
+    "isPrivate": false,
+    "ownerPartnerId": "mohamed",
+    "dealProbability": 20,
+    "assignedPartner": "mohamed",
+    "contactInfo": {
+      "contactPerson": "",
+      "phone": "01596333090",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": ""
+    },
+    "notes": [],
+    "privateNotes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T22:45:33.091Z",
+        "note": "تسجيل فرصة عميل جديدة في النظام"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T22:45:33.091Z",
+    "updatedAt": "2026-11-14T22:45:33.091Z"
+  },
+  {
+    "id": "lead-1794696335565-3t12",
+    "businessName": "مشروع سري خاص بمحمد",
+    "industry": "استشارات خاصة",
+    "softwareNeed": "نظام حماية خاص",
+    "source": "direct_visit",
+    "stage": "NEW_LEAD",
+    "priority": "medium",
+    "dealValueEstimate": 0,
+    "collectedAmount": 0,
+    "invoicedAmount": 0,
+    "outstandingBalance": 0,
+    "isContractSigned": false,
+    "isPaymentCollected": false,
+    "isPrivate": true,
+    "ownerPartnerId": "mohamed",
+    "dealProbability": 20,
+    "assignedPartner": "mohamed",
+    "contactInfo": {
+      "contactPerson": "",
+      "phone": "01096335564",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": ""
+    },
+    "notes": [],
+    "privateNotes": [
+      {
+        "id": "pnote-1794696335597-7jee",
+        "partnerId": "mohamed",
+        "partnerName": "المهندس محمد البحر",
+        "timestamp": "2026-11-14 22:45",
+        "text": "ملاحظة سرية: العميل طلب شروط خاصة جداً لا يراها إلا محمد"
+      }
+    ],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T22:45:35.565Z",
+        "note": "تسجيل فرصة عميل جديدة في النظام"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T22:45:35.565Z",
+    "updatedAt": "2026-11-14T22:45:35.597Z"
+  },
+  {
+    "id": "lead-1794696362763-4uhx",
+    "businessName": "شركة الساحل للاستيراد",
+    "industry": "تجارة واستيراد",
+    "softwareNeed": "الفاتورة الإلكترونية والمخازن",
+    "source": "direct_visit",
+    "stage": "WON",
+    "priority": "medium",
+    "dealValueEstimate": 15000,
+    "collectedAmount": 0,
+    "invoicedAmount": 0,
+    "outstandingBalance": 15000,
+    "isContractSigned": true,
+    "isPaymentCollected": false,
+    "isPrivate": false,
+    "ownerPartnerId": "tarek",
+    "dealProbability": 100,
+    "assignedPartner": "tarek",
+    "contactInfo": {
+      "contactPerson": "",
+      "phone": "01296362763",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": ""
+    },
+    "notes": [],
+    "privateNotes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:46:02.763Z",
+        "note": "تسجيل فرصة عميل جديدة في النظام"
+      },
+      {
+        "fromStage": "NEW_LEAD",
+        "toStage": "CONTACTED",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:46:02.783Z",
+        "note": "مكالمة هاتفية"
+      },
+      {
+        "fromStage": "CONTACTED",
+        "toStage": "INTERESTED",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:46:02.803Z",
+        "note": "أبدى اهتماماً"
+      },
+      {
+        "fromStage": "INTERESTED",
+        "toStage": "PROPOSAL_SENT",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:46:02.823Z",
+        "note": "إرسال العرض"
+      },
+      {
+        "fromStage": "PROPOSAL_SENT",
+        "toStage": "NEGOTIATION",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:46:02.842Z",
+        "note": "تفاوض نهائي"
+      },
+      {
+        "fromStage": "NEGOTIATION",
+        "toStage": "WON",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:46:02.862Z",
+        "note": "توقيع العقد الرسمي"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T22:46:02.763Z",
+    "updatedAt": "2026-11-14T22:46:02.862Z"
+  },
+  {
+    "id": "lead-1794696377780-9ejc",
+    "businessName": "مشروع سري خاص بمحمد",
+    "industry": "استشارات خاصة",
+    "softwareNeed": "نظام حماية خاص",
+    "source": "direct_visit",
+    "stage": "NEW_LEAD",
+    "priority": "medium",
+    "dealValueEstimate": 0,
+    "collectedAmount": 0,
+    "invoicedAmount": 0,
+    "outstandingBalance": 0,
+    "isContractSigned": false,
+    "isPaymentCollected": false,
+    "isPrivate": true,
+    "ownerPartnerId": "mohamed",
+    "dealProbability": 20,
+    "assignedPartner": "mohamed",
+    "contactInfo": {
+      "contactPerson": "",
+      "phone": "01096377779",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": ""
+    },
+    "notes": [],
+    "privateNotes": [
+      {
+        "id": "pnote-1794696377814-xc8e",
+        "partnerId": "mohamed",
+        "partnerName": "المهندس محمد البحر",
+        "timestamp": "2026-11-14 22:46",
+        "text": "ملاحظة سرية: العميل طلب شروط خاصة جداً لا يراها إلا محمد"
+      }
+    ],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T22:46:17.780Z",
+        "note": "تسجيل فرصة عميل جديدة في النظام"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T22:46:17.780Z",
+    "updatedAt": "2026-11-14T22:46:17.814Z"
+  },
+  {
+    "id": "lead-1794696401910-dejh",
+    "businessName": "كافيه وكريب الباشا",
+    "industry": "مطاعم وسياحة",
+    "softwareNeed": "كاشير بون سريع ومنيو باركود QR",
+    "source": "facebook",
+    "stage": "NEW_LEAD",
+    "priority": "high",
+    "dealValueEstimate": 8500,
+    "collectedAmount": 0,
+    "invoicedAmount": 0,
+    "outstandingBalance": 8500,
+    "isContractSigned": false,
+    "isPaymentCollected": false,
+    "isPrivate": false,
+    "ownerPartnerId": "tarek",
+    "dealProbability": 50,
+    "assignedPartner": "tarek",
+    "contactInfo": {
+      "contactPerson": "أ. حسام الباشا",
+      "phone": "01196401889",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": "جليم - على البحر"
+    },
+    "notes": [],
+    "privateNotes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:46:41.910Z",
+        "note": "تواصل عبر رسائل صفحة الفيسبوك يسأل عن سعر الكاشير"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T22:46:41.910Z",
+    "updatedAt": "2026-11-14T22:46:41.910Z"
+  },
+  {
+    "id": "lead-1794696401936-8onu",
+    "businessName": "سلسلة صيدليات النور",
+    "industry": "رعاية صحية وتجزئة",
+    "softwareNeed": "الربط مع الفوترة الإلكترونية السحابية",
+    "source": "direct_visit",
+    "stage": "WON",
+    "priority": "medium",
+    "dealValueEstimate": 16000,
+    "collectedAmount": 0,
+    "invoicedAmount": 0,
+    "outstandingBalance": 16000,
+    "isContractSigned": true,
+    "isPaymentCollected": false,
+    "isPrivate": false,
+    "ownerPartnerId": "mohamed",
+    "dealProbability": 100,
+    "assignedPartner": "mohamed",
+    "contactInfo": {
+      "contactPerson": "",
+      "phone": "01296401936",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": ""
+    },
+    "notes": [],
+    "privateNotes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T22:46:41.936Z",
+        "note": "تسجيل فرصة عميل جديدة في النظام"
+      },
+      {
+        "fromStage": "NEW_LEAD",
+        "toStage": "CONTACTED",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T22:46:41.960Z",
+        "note": "مكالمة زووم مع مدير المشتريات"
+      },
+      {
+        "fromStage": "CONTACTED",
+        "toStage": "INTERESTED",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T22:46:41.985Z",
+        "note": "أبدى اهتماماً كبيراً بعد مشاهدة العرض"
+      },
+      {
+        "fromStage": "INTERESTED",
+        "toStage": "PROPOSAL_SENT",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:46:42.007Z",
+        "note": "إرسال العرض الفني والمالي الرسمي"
+      },
+      {
+        "fromStage": "PROPOSAL_SENT",
+        "toStage": "NEGOTIATION",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:46:42.029Z",
+        "note": "جلسة تفاوض على دفعة التعاقد والصيانة"
+      },
+      {
+        "fromStage": "NEGOTIATION",
+        "toStage": "WON",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:46:42.052Z",
+        "note": "توقيع العقد واستلام الدفعة المقدمة"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T22:46:41.936Z",
+    "updatedAt": "2026-11-14T22:46:42.052Z"
+  },
+  {
+    "id": "lead-1794696402074-ns5a",
+    "businessName": "مكتب استشارات هندسية",
+    "industry": "خدمات هندسية",
+    "softwareNeed": "نظام إدارة المشاريع والمهام",
+    "source": "direct_visit",
+    "stage": "NEW_LEAD",
+    "priority": "medium",
+    "dealValueEstimate": 0,
+    "collectedAmount": 0,
+    "invoicedAmount": 0,
+    "outstandingBalance": 0,
+    "isContractSigned": false,
+    "isPaymentCollected": false,
+    "isPrivate": false,
+    "ownerPartnerId": "mohamed",
+    "dealProbability": 20,
+    "assignedPartner": "mohamed",
+    "contactInfo": {
+      "contactPerson": "",
+      "phone": "01596402073",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": ""
+    },
+    "notes": [],
+    "privateNotes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T22:46:42.074Z",
+        "note": "تسجيل فرصة عميل جديدة في النظام"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T22:46:42.074Z",
+    "updatedAt": "2026-11-14T22:46:42.074Z"
+  },
+  {
+    "id": "lead-1794696528009-c1ah",
+    "businessName": "شركة الساحل للاستيراد",
+    "industry": "تجارة واستيراد",
+    "softwareNeed": "الفاتورة الإلكترونية والمخازن",
+    "source": "direct_visit",
+    "stage": "WON",
+    "priority": "medium",
+    "dealValueEstimate": 15000,
+    "collectedAmount": 0,
+    "invoicedAmount": 0,
+    "outstandingBalance": 15000,
+    "isContractSigned": true,
+    "isPaymentCollected": false,
+    "isPrivate": false,
+    "ownerPartnerId": "tarek",
+    "dealProbability": 100,
+    "assignedPartner": "tarek",
+    "contactInfo": {
+      "contactPerson": "",
+      "phone": "01296528008",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": ""
+    },
+    "notes": [],
+    "privateNotes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:48:48.009Z",
+        "note": "تسجيل فرصة عميل جديدة في النظام"
+      },
+      {
+        "fromStage": "NEW_LEAD",
+        "toStage": "CONTACTED",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:48:48.028Z",
+        "note": "مكالمة هاتفية"
+      },
+      {
+        "fromStage": "CONTACTED",
+        "toStage": "INTERESTED",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:48:48.047Z",
+        "note": "أبدى اهتماماً"
+      },
+      {
+        "fromStage": "INTERESTED",
+        "toStage": "PROPOSAL_SENT",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:48:48.067Z",
+        "note": "إرسال العرض"
+      },
+      {
+        "fromStage": "PROPOSAL_SENT",
+        "toStage": "NEGOTIATION",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:48:48.087Z",
+        "note": "تفاوض نهائي"
+      },
+      {
+        "fromStage": "NEGOTIATION",
+        "toStage": "WON",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:48:48.110Z",
+        "note": "توقيع العقد الرسمي"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T22:48:48.009Z",
+    "updatedAt": "2026-11-14T22:48:48.110Z"
+  },
+  {
+    "id": "lead-1794696541583-gp4v",
+    "businessName": "مشروع سري خاص بمحمد",
+    "industry": "استشارات خاصة",
+    "softwareNeed": "نظام حماية خاص",
+    "source": "direct_visit",
+    "stage": "NEW_LEAD",
+    "priority": "medium",
+    "dealValueEstimate": 0,
+    "collectedAmount": 0,
+    "invoicedAmount": 0,
+    "outstandingBalance": 0,
+    "isContractSigned": false,
+    "isPaymentCollected": false,
+    "isPrivate": true,
+    "ownerPartnerId": "mohamed",
+    "dealProbability": 20,
+    "assignedPartner": "mohamed",
+    "contactInfo": {
+      "contactPerson": "",
+      "phone": "01096541582",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": ""
+    },
+    "notes": [],
+    "privateNotes": [
+      {
+        "id": "pnote-1794696541614-8evw",
+        "partnerId": "mohamed",
+        "partnerName": "المهندس محمد البحر",
+        "timestamp": "2026-11-14 22:49",
+        "text": "ملاحظة سرية: العميل طلب شروط خاصة جداً لا يراها إلا محمد"
+      }
+    ],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T22:49:01.583Z",
+        "note": "تسجيل فرصة عميل جديدة في النظام"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T22:49:01.583Z",
+    "updatedAt": "2026-11-14T22:49:01.614Z"
+  },
+  {
+    "id": "lead-1794696560461-gi5w",
+    "businessName": "كافيه وكريب الباشا",
+    "industry": "مطاعم وسياحة",
+    "softwareNeed": "كاشير بون سريع ومنيو باركود QR",
+    "source": "facebook",
+    "stage": "NEW_LEAD",
+    "priority": "high",
+    "dealValueEstimate": 8500,
+    "collectedAmount": 0,
+    "invoicedAmount": 0,
+    "outstandingBalance": 8500,
+    "isContractSigned": false,
+    "isPaymentCollected": false,
+    "isPrivate": false,
+    "ownerPartnerId": "tarek",
+    "dealProbability": 50,
+    "assignedPartner": "tarek",
+    "contactInfo": {
+      "contactPerson": "أ. حسام الباشا",
+      "phone": "01196560441",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": "جليم - على البحر"
+    },
+    "notes": [],
+    "privateNotes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:49:20.461Z",
+        "note": "تواصل عبر رسائل صفحة الفيسبوك يسأل عن سعر الكاشير"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T22:49:20.461Z",
+    "updatedAt": "2026-11-14T22:49:20.461Z"
+  },
+  {
+    "id": "lead-1794696560489-qt71",
+    "businessName": "سلسلة صيدليات النور",
+    "industry": "رعاية صحية وتجزئة",
+    "softwareNeed": "الربط مع الفوترة الإلكترونية السحابية",
+    "source": "direct_visit",
+    "stage": "WON",
+    "priority": "medium",
+    "dealValueEstimate": 16000,
+    "collectedAmount": 0,
+    "invoicedAmount": 0,
+    "outstandingBalance": 16000,
+    "isContractSigned": true,
+    "isPaymentCollected": false,
+    "isPrivate": false,
+    "ownerPartnerId": "mohamed",
+    "dealProbability": 100,
+    "assignedPartner": "mohamed",
+    "contactInfo": {
+      "contactPerson": "",
+      "phone": "01296560489",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": ""
+    },
+    "notes": [],
+    "privateNotes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T22:49:20.489Z",
+        "note": "تسجيل فرصة عميل جديدة في النظام"
+      },
+      {
+        "fromStage": "NEW_LEAD",
+        "toStage": "CONTACTED",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T22:49:20.516Z",
+        "note": "مكالمة زووم مع مدير المشتريات"
+      },
+      {
+        "fromStage": "CONTACTED",
+        "toStage": "INTERESTED",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T22:49:20.540Z",
+        "note": "أبدى اهتماماً كبيراً بعد مشاهدة العرض"
+      },
+      {
+        "fromStage": "INTERESTED",
+        "toStage": "PROPOSAL_SENT",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:49:20.564Z",
+        "note": "إرسال العرض الفني والمالي الرسمي"
+      },
+      {
+        "fromStage": "PROPOSAL_SENT",
+        "toStage": "NEGOTIATION",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:49:20.588Z",
+        "note": "جلسة تفاوض على دفعة التعاقد والصيانة"
+      },
+      {
+        "fromStage": "NEGOTIATION",
+        "toStage": "WON",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:49:20.612Z",
+        "note": "توقيع العقد واستلام الدفعة المقدمة"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T22:49:20.489Z",
+    "updatedAt": "2026-11-14T22:49:20.612Z"
+  },
+  {
+    "id": "lead-1794696560635-43el",
+    "businessName": "مكتب استشارات هندسية",
+    "industry": "خدمات هندسية",
+    "softwareNeed": "نظام إدارة المشاريع والمهام",
+    "source": "direct_visit",
+    "stage": "NEW_LEAD",
+    "priority": "medium",
+    "dealValueEstimate": 0,
+    "collectedAmount": 0,
+    "invoicedAmount": 0,
+    "outstandingBalance": 0,
+    "isContractSigned": false,
+    "isPaymentCollected": false,
+    "isPrivate": false,
+    "ownerPartnerId": "mohamed",
+    "dealProbability": 20,
+    "assignedPartner": "mohamed",
+    "contactInfo": {
+      "contactPerson": "",
+      "phone": "01596560634",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": ""
+    },
+    "notes": [],
+    "privateNotes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T22:49:20.635Z",
+        "note": "تسجيل فرصة عميل جديدة في النظام"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T22:49:20.635Z",
+    "updatedAt": "2026-11-14T22:49:20.635Z"
+  },
+  {
+    "id": "lead-1794696583225-kgl5",
+    "businessName": "شركة الساحل للاستيراد",
+    "industry": "تجارة واستيراد",
+    "softwareNeed": "الفاتورة الإلكترونية والمخازن",
+    "source": "direct_visit",
+    "stage": "WON",
+    "priority": "medium",
+    "dealValueEstimate": 15000,
+    "collectedAmount": 0,
+    "invoicedAmount": 0,
+    "outstandingBalance": 15000,
+    "isContractSigned": true,
+    "isPaymentCollected": false,
+    "isPrivate": false,
+    "ownerPartnerId": "tarek",
+    "dealProbability": 100,
+    "assignedPartner": "tarek",
+    "contactInfo": {
+      "contactPerson": "",
+      "phone": "01296583225",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": ""
+    },
+    "notes": [],
+    "privateNotes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:49:43.225Z",
+        "note": "تسجيل فرصة عميل جديدة في النظام"
+      },
+      {
+        "fromStage": "NEW_LEAD",
+        "toStage": "CONTACTED",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:49:43.246Z",
+        "note": "مكالمة هاتفية"
+      },
+      {
+        "fromStage": "CONTACTED",
+        "toStage": "INTERESTED",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:49:43.267Z",
+        "note": "أبدى اهتماماً"
+      },
+      {
+        "fromStage": "INTERESTED",
+        "toStage": "PROPOSAL_SENT",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:49:43.289Z",
+        "note": "إرسال العرض"
+      },
+      {
+        "fromStage": "PROPOSAL_SENT",
+        "toStage": "NEGOTIATION",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:49:43.311Z",
+        "note": "تفاوض نهائي"
+      },
+      {
+        "fromStage": "NEGOTIATION",
+        "toStage": "WON",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:49:43.332Z",
+        "note": "توقيع العقد الرسمي"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T22:49:43.225Z",
+    "updatedAt": "2026-11-14T22:49:43.332Z"
+  },
+  {
+    "id": "lead-1794696593943-foar",
+    "businessName": "مشروع سري خاص بمحمد",
+    "industry": "استشارات خاصة",
+    "softwareNeed": "نظام حماية خاص",
+    "source": "direct_visit",
+    "stage": "NEW_LEAD",
+    "priority": "medium",
+    "dealValueEstimate": 0,
+    "collectedAmount": 0,
+    "invoicedAmount": 0,
+    "outstandingBalance": 0,
+    "isContractSigned": false,
+    "isPaymentCollected": false,
+    "isPrivate": true,
+    "ownerPartnerId": "mohamed",
+    "dealProbability": 20,
+    "assignedPartner": "mohamed",
+    "contactInfo": {
+      "contactPerson": "",
+      "phone": "01096593942",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": ""
+    },
+    "notes": [],
+    "privateNotes": [
+      {
+        "id": "pnote-1794696593974-4x8w",
+        "partnerId": "mohamed",
+        "partnerName": "المهندس محمد البحر",
+        "timestamp": "2026-11-14 22:49",
+        "text": "ملاحظة سرية: العميل طلب شروط خاصة جداً لا يراها إلا محمد"
+      }
+    ],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T22:49:53.943Z",
+        "note": "تسجيل فرصة عميل جديدة في النظام"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T22:49:53.943Z",
+    "updatedAt": "2026-11-14T22:49:53.974Z"
+  },
+  {
+    "id": "lead-1794696678063-r3up",
+    "businessName": "كافيه وكريب الباشا",
+    "industry": "مطاعم وسياحة",
+    "softwareNeed": "كاشير بون سريع ومنيو باركود QR",
+    "source": "facebook",
+    "stage": "NEW_LEAD",
+    "priority": "high",
+    "dealValueEstimate": 8500,
+    "collectedAmount": 0,
+    "invoicedAmount": 0,
+    "outstandingBalance": 8500,
+    "isContractSigned": false,
+    "isPaymentCollected": false,
+    "isPrivate": false,
+    "ownerPartnerId": "tarek",
+    "dealProbability": 50,
+    "assignedPartner": "tarek",
+    "contactInfo": {
+      "contactPerson": "أ. حسام الباشا",
+      "phone": "01196678035",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": "جليم - على البحر"
+    },
+    "notes": [],
+    "privateNotes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:51:18.063Z",
+        "note": "تواصل عبر رسائل صفحة الفيسبوك يسأل عن سعر الكاشير"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T22:51:18.063Z",
+    "updatedAt": "2026-11-14T22:51:18.063Z"
+  },
+  {
+    "id": "lead-1794696678100-6h3v",
+    "businessName": "سلسلة صيدليات النور",
+    "industry": "رعاية صحية وتجزئة",
+    "softwareNeed": "الربط مع الفوترة الإلكترونية السحابية",
+    "source": "direct_visit",
+    "stage": "WON",
+    "priority": "medium",
+    "dealValueEstimate": 16000,
+    "collectedAmount": 0,
+    "invoicedAmount": 0,
+    "outstandingBalance": 16000,
+    "isContractSigned": true,
+    "isPaymentCollected": false,
+    "isPrivate": false,
+    "ownerPartnerId": "mohamed",
+    "dealProbability": 100,
+    "assignedPartner": "mohamed",
+    "contactInfo": {
+      "contactPerson": "",
+      "phone": "01296678099",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": ""
+    },
+    "notes": [],
+    "privateNotes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T22:51:18.100Z",
+        "note": "تسجيل فرصة عميل جديدة في النظام"
+      },
+      {
+        "fromStage": "NEW_LEAD",
+        "toStage": "CONTACTED",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T22:51:18.136Z",
+        "note": "مكالمة زووم مع مدير المشتريات"
+      },
+      {
+        "fromStage": "CONTACTED",
+        "toStage": "INTERESTED",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T22:51:18.165Z",
+        "note": "أبدى اهتماماً كبيراً بعد مشاهدة العرض"
+      },
+      {
+        "fromStage": "INTERESTED",
+        "toStage": "PROPOSAL_SENT",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:51:18.196Z",
+        "note": "إرسال العرض الفني والمالي الرسمي"
+      },
+      {
+        "fromStage": "PROPOSAL_SENT",
+        "toStage": "NEGOTIATION",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:51:18.224Z",
+        "note": "جلسة تفاوض على دفعة التعاقد والصيانة"
+      },
+      {
+        "fromStage": "NEGOTIATION",
+        "toStage": "WON",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:51:18.254Z",
+        "note": "توقيع العقد واستلام الدفعة المقدمة"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T22:51:18.100Z",
+    "updatedAt": "2026-11-14T22:51:18.254Z"
+  },
+  {
+    "id": "lead-1794696678285-spzv",
+    "businessName": "مكتب استشارات هندسية",
+    "industry": "خدمات هندسية",
+    "softwareNeed": "نظام إدارة المشاريع والمهام",
+    "source": "direct_visit",
+    "stage": "NEW_LEAD",
+    "priority": "medium",
+    "dealValueEstimate": 0,
+    "collectedAmount": 0,
+    "invoicedAmount": 0,
+    "outstandingBalance": 0,
+    "isContractSigned": false,
+    "isPaymentCollected": false,
+    "isPrivate": false,
+    "ownerPartnerId": "mohamed",
+    "dealProbability": 20,
+    "assignedPartner": "mohamed",
+    "contactInfo": {
+      "contactPerson": "",
+      "phone": "01596678284",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": ""
+    },
+    "notes": [],
+    "privateNotes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T22:51:18.285Z",
+        "note": "تسجيل فرصة عميل جديدة في النظام"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T22:51:18.285Z",
+    "updatedAt": "2026-11-14T22:51:18.285Z"
+  },
+  {
+    "id": "lead-1794696701054-zatu",
+    "businessName": "شركة الساحل للاستيراد",
+    "industry": "تجارة واستيراد",
+    "softwareNeed": "الفاتورة الإلكترونية والمخازن",
+    "source": "direct_visit",
+    "stage": "WON",
+    "priority": "medium",
+    "dealValueEstimate": 15000,
+    "collectedAmount": 0,
+    "invoicedAmount": 0,
+    "outstandingBalance": 15000,
+    "isContractSigned": true,
+    "isPaymentCollected": false,
+    "isPrivate": false,
+    "ownerPartnerId": "tarek",
+    "dealProbability": 100,
+    "assignedPartner": "tarek",
+    "contactInfo": {
+      "contactPerson": "",
+      "phone": "01296701052",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": ""
+    },
+    "notes": [],
+    "privateNotes": [],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:51:41.054Z",
+        "note": "تسجيل فرصة عميل جديدة في النظام"
+      },
+      {
+        "fromStage": "NEW_LEAD",
+        "toStage": "CONTACTED",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:51:41.077Z",
+        "note": "مكالمة هاتفية"
+      },
+      {
+        "fromStage": "CONTACTED",
+        "toStage": "INTERESTED",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:51:41.100Z",
+        "note": "أبدى اهتماماً"
+      },
+      {
+        "fromStage": "INTERESTED",
+        "toStage": "PROPOSAL_SENT",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:51:41.123Z",
+        "note": "إرسال العرض"
+      },
+      {
+        "fromStage": "PROPOSAL_SENT",
+        "toStage": "NEGOTIATION",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:51:41.145Z",
+        "note": "تفاوض نهائي"
+      },
+      {
+        "fromStage": "NEGOTIATION",
+        "toStage": "WON",
+        "changedBy": "tarek",
+        "changedAt": "2026-11-14T22:51:41.170Z",
+        "note": "توقيع العقد الرسمي"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T22:51:41.054Z",
+    "updatedAt": "2026-11-14T22:51:41.170Z"
+  },
+  {
+    "id": "lead-1794696712333-wngo",
+    "businessName": "مشروع سري خاص بمحمد",
+    "industry": "استشارات خاصة",
+    "softwareNeed": "نظام حماية خاص",
+    "source": "direct_visit",
+    "stage": "NEW_LEAD",
+    "priority": "medium",
+    "dealValueEstimate": 0,
+    "collectedAmount": 0,
+    "invoicedAmount": 0,
+    "outstandingBalance": 0,
+    "isContractSigned": false,
+    "isPaymentCollected": false,
+    "isPrivate": true,
+    "ownerPartnerId": "mohamed",
+    "dealProbability": 20,
+    "assignedPartner": "mohamed",
+    "contactInfo": {
+      "contactPerson": "",
+      "phone": "01096712332",
+      "email": "",
+      "city": "الإسكندرية",
+      "address": ""
+    },
+    "notes": [],
+    "privateNotes": [
+      {
+        "id": "pnote-1794696712367-0gz3",
+        "partnerId": "mohamed",
+        "partnerName": "المهندس محمد البحر",
+        "timestamp": "2026-11-14 22:51",
+        "text": "ملاحظة سرية: العميل طلب شروط خاصة جداً لا يراها إلا محمد"
+      }
+    ],
+    "nextFollowUpDate": "2026-11-17",
+    "history": [
+      {
+        "fromStage": "NONE",
+        "toStage": "NEW_LEAD",
+        "changedBy": "mohamed",
+        "changedAt": "2026-11-14T22:51:52.333Z",
+        "note": "تسجيل فرصة عميل جديدة في النظام"
+      }
+    ],
+    "linkedTasks": [],
+    "isRealProspect": true,
+    "createdAt": "2026-11-14T22:51:52.333Z",
+    "updatedAt": "2026-11-14T22:51:52.367Z"
   }
 ]

@@ -32,6 +32,9 @@ import { issuePartnerToken } from '../server/middleware/authMiddleware.mjs';
 import { CrmLeadStore, CRM_LEAD_STAGES } from '../server/data/crmLeadStore.mjs';
 import { AuditLogger } from '../server/services/auditLogger.mjs';
 import { ExternalSimulationService } from '../server/services/externalSimulationService.mjs';
+import { GeminiAgent } from '../server/geminiAgent.mjs';
+import { RealDataProvider } from '../server/data/realDataProvider.mjs';
+import { AiSalesAgent, OFFICIAL_PRICING_DISCLAIMER } from '../server/services/aiSalesAgent.mjs';
 
 let server;
 let baseUrl;
@@ -392,4 +395,180 @@ test('12. Partner Notes: Adding partner note records timestamped note and logs a
   const noteLog = logs.find(l => l.eventType === 'CRM_NOTE_ADDED');
   assert.ok(noteLog);
   assert.equal(noteLog.partnerId, 'tarek');
+});
+
+// ============================================================================
+// 8. اختبارات المراجعة النهائية الصارمة للمرحلة الخامسة (Phase 5.0 Final Review Tests)
+// ============================================================================
+
+test('13. Final Review Point 1: Gemini Model Configuration & Cascade Integrity (No gemini-2.5-flash)', async () => {
+  // 1. التحقق من النموذج الأساسي المعتمد
+  const activeModel = GeminiAgent.getActiveModel();
+  assert.equal(activeModel, 'gemini-3.8-flash');
+
+  // 2. التحقق من استبعاد النموذج الموقوف gemini-2.5-flash
+  const fallbackModel = GeminiAgent.getFallbackModel();
+  assert.notEqual(fallbackModel, 'gemini-2.5-flash');
+  assert.ok(['gemini-3-flash-preview', 'gemini-flash-lite-latest'].includes(fallbackModel));
+
+  // 3. التحقق من عمل وكيل المبيعات الذكي بالنموذج الحي أو المحرك المحلي بدون أي اعتماد على 2.5
+  const mockLead = {
+    id: `lead-model-audit-${Date.now()}`,
+    businessName: 'كافيه تجريبي للتدقيق',
+    industry: 'مطاعم',
+    softwareNeed: 'كاشير وبون سريع',
+    dealValueEstimate: 7000
+  };
+  const partner = { id: 'mohamed', name: 'المهندس محمد البحر' };
+  const strategy = await AiSalesAgent.generateLeadStrategy(mockLead, partner);
+  assert.ok(strategy);
+  assert.notEqual(strategy.generatedByModel, 'gemini-2.5-flash');
+  assert.ok(strategy.generatedByModel.includes('gemini') || strategy.generatedByModel.includes('Deterministic'));
+});
+
+test('14. Final Review Point 2: Financial Accuracy & WON != Collected Funds Separation', async () => {
+  // 1. تسجيل عميل جديد بقيمة متفق عليها 15,000 ج.م
+  const phone = `012${Date.now().toString().slice(-8)}`;
+  const created = CrmLeadStore.createLead({
+    businessName: 'شركة الساحل للاستيراد',
+    industry: 'تجارة واستيراد',
+    softwareNeed: 'الفاتورة الإلكترونية والمخازن',
+    phone,
+    dealValueEstimate: 15000
+  }, { id: 'tarek', name: 'المهندس طارق حافظ' });
+
+  assert.equal(created.collectedAmount, 0);
+  assert.equal(created.outstandingBalance, 15000);
+  assert.equal(created.isPaymentCollected, false);
+  assert.equal(created.isContractSigned, false);
+
+  // 2. ترقية العميل عبر المراحل وصولاً إلى WON
+  CrmLeadStore.updateLeadStage(created.id, CRM_LEAD_STAGES.CONTACTED, 'مكالمة هاتفية', { id: 'tarek', name: 'المهندس طارق حافظ' });
+  CrmLeadStore.updateLeadStage(created.id, CRM_LEAD_STAGES.INTERESTED, 'أبدى اهتماماً', { id: 'tarek', name: 'المهندس طارق حافظ' });
+  CrmLeadStore.updateLeadStage(created.id, CRM_LEAD_STAGES.PROPOSAL_SENT, 'إرسال العرض', { id: 'tarek', name: 'المهندس طارق حافظ' });
+  CrmLeadStore.updateLeadStage(created.id, CRM_LEAD_STAGES.NEGOTIATION, 'تفاوض نهائي', { id: 'tarek', name: 'المهندس طارق حافظ' });
+  const wonLead = CrmLeadStore.updateLeadStage(created.id, CRM_LEAD_STAGES.WON, 'توقيع العقد الرسمي', { id: 'tarek', name: 'المهندس طارق حافظ' });
+
+  // 3. التحقق الحاسم: WON يعني توقيع العقد فقط ولا يعني تحصيل الأموال!
+  assert.equal(wonLead.stage, CRM_LEAD_STAGES.WON);
+  assert.equal(wonLead.isContractSigned, true);
+  assert.equal(wonLead.isPaymentCollected, false, 'WON stage must NOT imply payment collected!');
+  assert.equal(wonLead.collectedAmount, 0, 'Collected cash remains 0 until actual financial transaction receipt');
+
+  // 4. التحقق من لوحة التحليلات والفصل بين قيمة التعاقد والنقدية المحصلة
+  const analytics = CrmLeadStore.getAnalytics({ id: 'tarek', role: 'partner' });
+  assert.ok(analytics.totalContractedWonValue >= 15000);
+  assert.ok(analytics.outstandingReceivables >= 15000);
+  assert.match(analytics.financialDistinctionNotice, /لا يُعد دليلاً على تحصيل الأموال/);
+
+  // 5. التحقق الصارم من صون معادلة الأرباح الـ 25% وعدم تأثرها بمراحل CRM
+  const finances = RealDataProvider.getFinancialSummary();
+  assert.equal(finances.distributions.partnerMohamedShare, finances.distributions.partnerTarekShare);
+  assert.equal(finances.distributions.partnerMohamedShare, finances.distributions.devFundShare);
+  assert.equal(finances.distributions.partnerMohamedShare, finances.distributions.sadaqahShare);
+});
+
+test('15. Final Review Point 3: AI Pricing & Sales Promises (Non-binding, no unauthorized discounts/installments)', async () => {
+  const mockLead = {
+    id: `lead-pricing-audit-${Date.now()}`,
+    businessName: 'مطبعة المستقبل الفني',
+    industry: 'مطابع ودعاية',
+    softwareNeed: 'حساب هالك الزنكات وأوامر الشغل',
+    dealValueEstimate: 12000,
+    contactInfo: { contactPerson: 'أ. سامح', city: 'الإسكندرية' }
+  };
+  const partner = { id: 'tarek', name: 'المهندس طارق حافظ' };
+  const strategy = await AiSalesAgent.generateLeadStrategy(mockLead, partner);
+
+  // التحقق من أن السعر استرشادي وليس رسمياً
+  assert.equal(strategy.isOfficialPrice, false);
+  assert.equal(strategy.isBindingOffer, false);
+  assert.equal(strategy.requiresPartnerApproval, true);
+  assert.ok(strategy.pricingDisclaimer);
+  assert.match(strategy.pricingDisclaimer, /استرشادي/);
+  assert.match(strategy.pricingDisclaimer, /غير ملزم/);
+  assert.match(strategy.pricingDisclaimer, /يُحظر تقديم أي وعود بخصومات أو تقسيط أو خدمات مجانية/);
+
+  // التحقق من خلو الرسالة من أي وعود بخصومات غير معتمدة أو تقسيط وهمي
+  assert.doesNotMatch(strategy.marketingPitchMessage, /خصم خاص 50%/);
+  assert.doesNotMatch(strategy.marketingPitchMessage, /تقسيط بدون فوائد/);
+  assert.doesNotMatch(strategy.marketingPitchMessage, /ضمان مدى الحياة/);
+});
+
+test('16. Final Review Point 4: Partner Data Isolation, Private Notes, & Draft Ownership Protection', async () => {
+  // 1. محمد ينشئ عميلاً محتملاً خاصاً به (isPrivate: true)
+  const phone = `010${Date.now().toString().slice(-8)}`;
+  const privateLead = CrmLeadStore.createLead({
+    businessName: 'مشروع سري خاص بمحمد',
+    industry: 'استشارات خاصة',
+    softwareNeed: 'نظام حماية خاص',
+    phone,
+    isPrivate: true,
+    ownerPartnerId: 'mohamed',
+    assignedPartner: 'mohamed'
+  }, { id: 'mohamed', name: 'المهندس محمد البحر' });
+
+  // 2. طارق يحاول الوصول المباشر للعميل الخاص بمحمد عبر API
+  const resForbidden = await fetch(`${baseUrl}/api/crm/leads/${privateLead.id}`, {
+    headers: { 'Authorization': `Bearer ${tarekToken}` }
+  });
+  assert.equal(resForbidden.status, 403);
+  const dataForbidden = await resForbidden.json();
+  assert.equal(dataForbidden.code, 'FORBIDDEN_LEAD_ACCESS');
+
+  // 3. محمد يستطيع الوصول بنجاح لعميله الخاص
+  const resMohamed = await fetch(`${baseUrl}/api/crm/leads/${privateLead.id}`, {
+    headers: { 'Authorization': `Bearer ${mohamedToken}` }
+  });
+  assert.equal(resMohamed.status, 200);
+
+  // 4. عزل الملاحظات الخاصة (Private Notes Isolation)
+  // محمد يضيف ملاحظة سرية خاصة به
+  const privateNoteText = 'ملاحظة سرية: العميل طلب شروط خاصة جداً لا يراها إلا محمد';
+  await fetch(`${baseUrl}/api/crm/leads/${privateLead.id}/notes`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${mohamedToken}`
+    },
+    body: JSON.stringify({ note: privateNoteText, isPrivate: true })
+  });
+
+  // التحقق من أن طارق لا يرى العميل الخاص في قائمته
+  const tarekLeads = CrmLeadStore.getLeads({}, { id: 'tarek', name: 'المهندس طارق حافظ' });
+  const leakedLead = tarekLeads.find(l => l.id === privateLead.id);
+  assert.equal(leakedLead, undefined, 'Private lead of Mohamed must NOT appear in Tarek lead list!');
+
+  // 5. حماية ملكية مسودات المبيعات (Draft Ownership Protection)
+  const privateDraft = CrmLeadStore.saveSalesDraft({
+    leadId: privateLead.id,
+    businessName: privateLead.businessName,
+    partnerId: 'mohamed',
+    isPrivate: true,
+    outreachPitchMessage: 'مسودة خاصة بمحمد'
+  });
+
+  // طارق يحاول تعديل مسودة محمد الخاصة
+  const resTamper = await fetch(`${baseUrl}/api/crm/ai-drafts/${privateDraft.id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${tarekToken}`
+    },
+    body: JSON.stringify({ outreachPitchMessage: 'محاولة تعديل غير مصرح بها من طارق' })
+  });
+  assert.equal(resTamper.status, 403);
+  const tamperData = await resTamper.json();
+  assert.equal(tamperData.code, 'FORBIDDEN_NOT_DRAFT_OWNER');
+
+  // 6. التحقق من منع انتحال الهوية (Anti-Spoofing) على مسارات CRM
+  const resSpoof = await fetch(`${baseUrl}/api/crm/leads`, {
+    headers: {
+      'Authorization': `Bearer ${mohamedToken}`,
+      'x-partner-id': 'tarek'
+    }
+  });
+  assert.equal(resSpoof.status, 403);
+  const spoofData = await resSpoof.json();
+  assert.equal(spoofData.code, 'FORBIDDEN_IMPERSONATION');
 });

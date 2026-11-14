@@ -447,11 +447,11 @@ app.get('/api/github/portfolio-report', requirePartnerAuth, async (req, res) => 
 // ============================================================================
 
 /**
- * 21. استعراض قائمة العملاء المحتملين مع الفلترة
+ * 21. استعراض قائمة العملاء المحتملين مع الفلترة وعزل بيانات الشريك
  */
 app.get('/api/crm/leads', requirePartnerAuth, (req, res) => {
   try {
-    const leads = CrmLeadStore.getLeads(req.query);
+    const leads = CrmLeadStore.getLeads(req.query, req.partner);
     res.json({ success: true, count: leads.length, leads });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -475,17 +475,21 @@ app.post('/api/crm/leads', requirePartnerAuth, (req, res) => {
 });
 
 /**
- * 23. تفاصيل عميل محدد وسجله الزمني
+ * 23. تفاصيل عميل محدد وسجله الزمني مع عزل الوصول
  */
 app.get('/api/crm/leads/:id', requirePartnerAuth, (req, res) => {
   try {
-    const lead = CrmLeadStore.getLeadById(req.params.id);
+    const lead = CrmLeadStore.getLeadById(req.params.id, req.partner);
     if (!lead) {
       return res.status(404).json({ success: false, error: 'العميل غير موجود', code: 'LEAD_NOT_FOUND' });
     }
     res.json({ success: true, lead });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(err.status || (err.code === 'FORBIDDEN_LEAD_ACCESS' ? 403 : 500)).json({
+      success: false,
+      error: err.message,
+      code: err.code || 'LEAD_ACCESS_ERROR'
+    });
   }
 });
 
@@ -507,15 +511,19 @@ app.put('/api/crm/leads/:id/stage', requirePartnerAuth, (req, res) => {
 });
 
 /**
- * 25. إضافة ملاحظة للشريك في سجل متابعات العميل
+ * 25. إضافة ملاحظة للشريك في سجل متابعات العميل مع خيار الملاحظة الخاصة
  */
 app.post('/api/crm/leads/:id/notes', requirePartnerAuth, (req, res) => {
   try {
-    const { note } = req.body;
-    const updated = CrmLeadStore.addNote(req.params.id, note, req.partner);
+    const { note, isPrivate } = req.body;
+    const updated = CrmLeadStore.addNote(req.params.id, note, req.partner, isPrivate);
     res.json({ success: true, lead: updated });
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+    res.status(err.status || 400).json({
+      success: false,
+      error: err.message,
+      code: err.code || 'NOTE_ERROR'
+    });
   }
 });
 
@@ -536,26 +544,42 @@ app.get('/api/crm/analytics', requirePartnerAuth, (req, res) => {
  */
 app.post('/api/crm/leads/:id/ai-strategy', requirePartnerAuth, async (req, res) => {
   try {
-    const lead = CrmLeadStore.getLeadById(req.params.id);
+    const lead = CrmLeadStore.getLeadById(req.params.id, req.partner);
     if (!lead) {
       return res.status(404).json({ success: false, error: 'العميل غير موجود', code: 'LEAD_NOT_FOUND' });
     }
     const strategy = await AiSalesAgent.generateLeadStrategy(lead, req.partner);
     res.json({ success: true, strategy });
   } catch (err) {
+    res.status(err.status || 500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * 28. استعراض مسودات عروض الأسعار والرسائل التسويقية المحفوظة مع عزل الشريك
+ */
+app.get('/api/crm/ai-drafts', requirePartnerAuth, (req, res) => {
+  try {
+    const drafts = CrmLeadStore.getSalesDrafts(req.query.leadId, req.partner);
+    res.json({ success: true, count: drafts.length, drafts });
+  } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
 /**
- * 28. استعراض مسودات عروض الأسعار والرسائل التسويقية المحفوظة
+ * 28b. تعديل مسودة مبيعات مع التحقق الصارم من ملكية الشريك (Draft Ownership Protection)
  */
-app.get('/api/crm/ai-drafts', requirePartnerAuth, (req, res) => {
+app.put('/api/crm/ai-drafts/:id', requirePartnerAuth, (req, res) => {
   try {
-    const drafts = CrmLeadStore.getSalesDrafts(req.query.leadId);
-    res.json({ success: true, count: drafts.length, drafts });
+    const updated = CrmLeadStore.updateSalesDraft(req.params.id, req.body, req.partner);
+    res.json({ success: true, draft: updated });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(err.status || (err.code === 'FORBIDDEN_NOT_DRAFT_OWNER' ? 403 : 400)).json({
+      success: false,
+      error: err.message,
+      code: err.code || 'DRAFT_UPDATE_ERROR'
+    });
   }
 });
 

@@ -105,10 +105,19 @@ export class CrmLeadStore {
   }
 
   /**
-   * استرجاع جميع العملاء مع إمكانية الفلترة
+   * استرجاع جميع العملاء مع إمكانية الفلترة وعزل بيانات الشريك الخاصة
    */
-  static getLeads(filters = {}) {
+  static getLeads(filters = {}, partner = null) {
     let leads = this.#loadLeads();
+    const partnerId = partner?.partnerId || partner?.id;
+
+    // عزل العملاء الخاصين: إذا كان العميل خاصاً بشريك، لا يظهر للشريك الآخر
+    if (partnerId) {
+      leads = leads.filter(l => {
+        if (!l.isPrivate) return true;
+        return l.ownerPartnerId === partnerId || l.assignedPartner === partnerId;
+      });
+    }
 
     if (filters.stage && filters.stage !== 'all') {
       leads = leads.filter(l => l.stage === filters.stage);
@@ -132,15 +141,42 @@ export class CrmLeadStore {
       );
     }
 
+    // تنقية الملاحظات الخاصة بحيث يرى كل شريك ملاحظاته الخاصة فقط
+    if (partnerId) {
+      leads = leads.map(l => this.#sanitizeLeadForPartner(l, partnerId));
+    }
+
     return leads;
   }
 
   /**
-   * استرجاع عميل محدد بمعرفه
+   * تنقية العميل من الملاحظات السرية الخاصة بشريك آخر
    */
-  static getLeadById(id) {
+  static #sanitizeLeadForPartner(lead, partnerId) {
+    const sanitized = { ...lead };
+    if (Array.isArray(sanitized.privateNotes)) {
+      sanitized.privateNotes = sanitized.privateNotes.filter(n => n.partnerId === partnerId);
+    }
+    return sanitized;
+  }
+
+  /**
+   * استرجاع عميل محدد بمعرفه مع التحقق من صلاحيات العزل
+   */
+  static getLeadById(id, partner = null) {
     const leads = this.#loadLeads();
-    return leads.find(l => l.id === id) || null;
+    const found = leads.find(l => l.id === id);
+    if (!found) return null;
+
+    const partnerId = partner?.partnerId || partner?.id;
+    if (partnerId && found.isPrivate && found.ownerPartnerId !== partnerId && found.assignedPartner !== partnerId) {
+      const err = new Error(`غير مصرح: العميل (${id}) مسجل كفرصة خاصة بالشريك الآخر.`);
+      err.code = 'FORBIDDEN_LEAD_ACCESS';
+      err.status = 403;
+      throw err;
+    }
+
+    return partnerId ? this.#sanitizeLeadForPartner(found, partnerId) : found;
   }
 
   /**
@@ -170,6 +206,9 @@ export class CrmLeadStore {
       throw err;
     }
 
+    const dealValueEstimate = Number(payload.dealValueEstimate) || Number(payload.expectedBudget) || 0;
+    const collectedAmount = Number(payload.collectedAmount) || 0;
+
     const newLead = {
       id: `lead-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
       businessName: payload.businessName.trim(),
@@ -178,7 +217,14 @@ export class CrmLeadStore {
       source: payload.source || 'direct_visit',
       stage: CRM_LEAD_STAGES.NEW_LEAD,
       priority: payload.priority || 'medium',
-      dealValueEstimate: Number(payload.dealValueEstimate) || Number(payload.expectedBudget) || 0,
+      dealValueEstimate,
+      collectedAmount,
+      invoicedAmount: Number(payload.invoicedAmount) || 0,
+      outstandingBalance: Math.max(0, dealValueEstimate - collectedAmount),
+      isContractSigned: false,
+      isPaymentCollected: Boolean(collectedAmount >= dealValueEstimate && dealValueEstimate > 0),
+      isPrivate: Boolean(payload.isPrivate),
+      ownerPartnerId: payload.ownerPartnerId || (partner?.partnerId || partner?.id) || 'mohamed',
       dealProbability: Number(payload.dealProbability) || 20,
       assignedPartner: payload.assignedPartner || (partner?.partnerId || partner?.id) || 'mohamed',
       contactInfo: {
@@ -189,6 +235,7 @@ export class CrmLeadStore {
         address: payload.contactInfo?.address || payload.address || ''
       },
       notes: payload.notes ? (Array.isArray(payload.notes) ? payload.notes : [payload.notes]) : [],
+      privateNotes: payload.privateNotes || [],
       nextFollowUpDate: payload.nextFollowUpDate || new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0],
       history: [
         {
@@ -259,8 +306,16 @@ export class CrmLeadStore {
     // تحديث نسبة الاحتمالية التقديرية حسب المرحلة إذا لم تكن محددة يدوياً
     if (targetStage === CRM_LEAD_STAGES.WON) {
       currentLead.dealProbability = 100;
+      currentLead.isContractSigned = true;
+      // تنبيه حوكمة مالي: مرحلة WON تعني إتمام التعاقد فقط ولا تُعد دليلاً على تحصيل النقدية
+      currentLead.isPaymentCollected = Boolean(
+        currentLead.collectedAmount && 
+        currentLead.dealValueEstimate > 0 && 
+        currentLead.collectedAmount >= currentLead.dealValueEstimate
+      );
     } else if (targetStage === CRM_LEAD_STAGES.LOST) {
       currentLead.dealProbability = 0;
+      currentLead.isContractSigned = false;
     } else if (targetStage === CRM_LEAD_STAGES.NEGOTIATION) {
       currentLead.dealProbability = Math.max(currentLead.dealProbability, 80);
     } else if (targetStage === CRM_LEAD_STAGES.PROPOSAL_SENT) {
@@ -296,34 +351,55 @@ export class CrmLeadStore {
   }
 
   /**
-   * إضافة ملاحظة جديدة للعميل
+   * إضافة ملاحظة جديدة للعميل مع دعم الملاحظات السرية المعزولة للشريك
    */
-  static addNote(id, noteText, partner) {
+  static addNote(id, noteText, partner, isPrivate = false) {
     if (!noteText || typeof noteText !== 'string' || !noteText.trim()) {
       throw new Error('نص الملاحظة مطلوب');
     }
 
+    const partnerId = partner?.partnerId || partner?.id || 'anonymous';
     const leads = this.#loadLeads();
     const index = leads.findIndex(l => l.id === id);
     if (index === -1) {
       throw new Error(`العميل بالمعرف (${id}) غير موجود.`);
     }
 
-    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
-    const formattedNote = `[${timestamp} - ${partner.name}]: ${noteText.trim()}`;
-    leads[index].notes.push(formattedNote);
-    leads[index].updatedAt = new Date().toISOString();
+    const lead = leads[index];
+    if (lead.isPrivate && lead.ownerPartnerId !== partnerId && lead.assignedPartner !== partnerId) {
+      const err = new Error('غير مصرح: لا تملك صلاحية إضافة ملاحظات على عميل خاص بشريك آخر.');
+      err.code = 'FORBIDDEN_LEAD_ACCESS';
+      err.status = 403;
+      throw err;
+    }
 
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    if (isPrivate) {
+      if (!Array.isArray(lead.privateNotes)) lead.privateNotes = [];
+      lead.privateNotes.push({
+        id: `pnote-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+        partnerId,
+        partnerName: partner.name || partnerId,
+        timestamp,
+        text: noteText.trim()
+      });
+    } else {
+      const formattedNote = `[${timestamp} - ${partner.name}]: ${noteText.trim()}`;
+      lead.notes.push(formattedNote);
+    }
+    lead.updatedAt = new Date().toISOString();
+
+    leads[index] = lead;
     this.#saveLeads(leads);
 
     AuditLogger.log({
-      partnerId: partner?.partnerId || partner?.id || 'anonymous',
-      eventType: 'CRM_NOTE_ADDED',
-      inputPayload: { leadId: id, noteText: formattedNote },
+      partnerId,
+      eventType: isPrivate ? 'CRM_PRIVATE_NOTE_ADDED' : 'CRM_NOTE_ADDED',
+      inputPayload: { leadId: id, isPrivate },
       status: 'SUCCESS'
     });
 
-    return leads[index];
+    return this.#sanitizeLeadForPartner(lead, partnerId);
   }
 
   /**
@@ -340,19 +416,24 @@ export class CrmLeadStore {
 
     const sourceDistribution = {};
     let totalPipelineValue = 0;
-    let totalWonValue = 0;
+    let totalContractedWonValue = 0;
+    let totalCollectedCash = 0;
+    let totalOutstandingReceivables = 0;
     let wonCount = 0;
     let lostCount = 0;
     const overdueFollowUps = [];
 
     const partnerPerformance = {
-      mohamed: { assignedCount: 0, wonCount: 0, pipelineValue: 0, wonValue: 0 },
-      tarek: { assignedCount: 0, wonCount: 0, pipelineValue: 0, wonValue: 0 }
+      mohamed: { assignedCount: 0, wonCount: 0, pipelineValue: 0, wonValue: 0, collectedCash: 0 },
+      tarek: { assignedCount: 0, wonCount: 0, pipelineValue: 0, wonValue: 0, collectedCash: 0 }
     };
 
     leads.forEach(l => {
       const val = Number(l.dealValueEstimate) || 0;
+      const collected = Number(l.collectedAmount) || 0;
       const stage = l.stage;
+
+      totalCollectedCash += collected;
 
       // تفصيل المراحل
       if (stageBreakdown[stage]) {
@@ -364,10 +445,11 @@ export class CrmLeadStore {
       const src = l.source || 'other';
       sourceDistribution[src] = (sourceDistribution[src] || 0) + 1;
 
-      // حسابات القيمة
+      // حسابات القيمة مع الفصل الحاسم بين قيمة التعاقد والتحصيل النقدي الفعلي
       if (stage === CRM_LEAD_STAGES.WON) {
-        totalWonValue += val;
+        totalContractedWonValue += val;
         wonCount += 1;
+        totalOutstandingReceivables += Math.max(0, val - collected);
       } else if (stage === CRM_LEAD_STAGES.LOST) {
         lostCount += 1;
       } else {
@@ -379,6 +461,7 @@ export class CrmLeadStore {
       const p = l.assignedPartner;
       if (p === 'mohamed' || p === 'both') {
         partnerPerformance.mohamed.assignedCount += 1;
+        partnerPerformance.mohamed.collectedCash += collected;
         if (stage === CRM_LEAD_STAGES.WON) {
           partnerPerformance.mohamed.wonCount += 1;
           partnerPerformance.mohamed.wonValue += val;
@@ -388,6 +471,7 @@ export class CrmLeadStore {
       }
       if (p === 'tarek' || p === 'both') {
         partnerPerformance.tarek.assignedCount += 1;
+        partnerPerformance.tarek.collectedCash += collected;
         if (stage === CRM_LEAD_STAGES.WON) {
           partnerPerformance.tarek.wonCount += 1;
           partnerPerformance.tarek.wonValue += val;
@@ -416,7 +500,11 @@ export class CrmLeadStore {
       totalLeads: leads.length,
       activePipelineCount: leads.filter(l => l.stage !== CRM_LEAD_STAGES.WON && l.stage !== CRM_LEAD_STAGES.LOST).length,
       totalPipelineValue,
-      totalWonValue,
+      totalWonValue: totalContractedWonValue, // للتوافق العكسي: إجمالي قيمة التعاقدات المغلقة
+      totalContractedWonValue,
+      totalCollectedCash, // المبالغ المحصلة فعلياً
+      outstandingReceivables: totalOutstandingReceivables, // المبالغ المستحقة المتبقية
+      financialDistinctionNotice: 'تحذير مالي رقابي: انتقال العميل إلى مرحلة WON يمثل إبرام التعاقد فقط ولا يُعد دليلاً على تحصيل الأموال. التحصيل المالي الفعلي يُقيد حصراً بإيصالات المعاملات النقدية والبنكية.',
       conversionRate,
       wonCount,
       lostCount,
@@ -425,7 +513,7 @@ export class CrmLeadStore {
       partnerPerformance,
       overdueFollowUpsCount: overdueFollowUps.length,
       overdueFollowUps,
-      currentPartnerRole: partner.role || 'partner'
+      currentPartnerRole: partner?.role || 'partner'
     };
   }
 
@@ -445,6 +533,8 @@ export class CrmLeadStore {
     const draft = {
       id: `sales-draft-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
       status: 'pending_partner_review',
+      isPrivate: Boolean(draftData.isPrivate),
+      partnerId: draftData.partnerId || 'mohamed',
       createdAt: new Date().toISOString(),
       ...draftData
     };
@@ -454,14 +544,52 @@ export class CrmLeadStore {
     return draft;
   }
 
-  static getSalesDrafts(leadId = null) {
+  static getSalesDrafts(leadId = null, partner = null) {
     if (!fs.existsSync(DRAFTS_FILE)) return [];
     try {
-      const drafts = JSON.parse(fs.readFileSync(DRAFTS_FILE, 'utf8'));
-      if (leadId) return drafts.filter(d => d.leadId === leadId);
+      let drafts = JSON.parse(fs.readFileSync(DRAFTS_FILE, 'utf8'));
+      if (leadId) drafts = drafts.filter(d => d.leadId === leadId);
+
+      const partnerId = partner?.partnerId || partner?.id;
+      if (partnerId) {
+        // عزل المسودات الخاصة: المسودة الخاصة لا يراها إلا الشريك المنشئ
+        drafts = drafts.filter(d => {
+          if (!d.isPrivate) return true;
+          return d.partnerId === partnerId;
+        });
+      }
       return drafts;
     } catch {
       return [];
     }
+  }
+
+  static updateSalesDraft(draftId, updates, partner) {
+    if (!fs.existsSync(DRAFTS_FILE)) {
+      const err = new Error('لا توجد مسودات مسجلة');
+      err.code = 'NOT_FOUND';
+      throw err;
+    }
+
+    const drafts = JSON.parse(fs.readFileSync(DRAFTS_FILE, 'utf8'));
+    const index = drafts.findIndex(d => d.id === draftId);
+    if (index === -1) {
+      const err = new Error(`المسودة بالمعرف (${draftId}) غير موجودة.`);
+      err.code = 'NOT_FOUND';
+      throw err;
+    }
+
+    const draft = drafts[index];
+    const partnerId = partner?.partnerId || partner?.id;
+    if (draft.isPrivate && draft.partnerId !== partnerId) {
+      const err = new Error('FORBIDDEN_NOT_DRAFT_OWNER: لا تملك صلاحية تعديل مسودة خاصة بشريك آخر.');
+      err.code = 'FORBIDDEN_NOT_DRAFT_OWNER';
+      err.status = 403;
+      throw err;
+    }
+
+    drafts[index] = { ...draft, ...updates, updatedAt: new Date().toISOString() };
+    fs.writeFileSync(DRAFTS_FILE, JSON.stringify(drafts, null, 2), 'utf8');
+    return drafts[index];
   }
 }
