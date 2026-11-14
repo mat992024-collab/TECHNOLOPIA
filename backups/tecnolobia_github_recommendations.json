@@ -1,0 +1,18 @@
+[
+  {
+    "id": "rec-1794680659677-dy50",
+    "createdAt": "2026-11-14T18:24:19.677Z",
+    "status": "approved",
+    "projectName": "TECHNOLOPIA",
+    "issue": "عدم وجود حزمة اختبارات مؤتمتة (Unit/Integration Tests)",
+    "evidence": "غياب vitest / jest من package.json وعدم وجود مجلد tests",
+    "priority": "high",
+    "impact": "صعوبة عمل Refactoring دون الخوف من كسر الوظائف الأساسية للنظام.",
+    "suggestedSolution": "تثبيت Vitest أو Node Test Runner وكتابة اختبارات للمحرك المالي والوظائف الحيوية.",
+    "effortEstimate": "3 أيام عمل",
+    "isConfirmedFact": true,
+    "reviewedBy": "tarek",
+    "reviewedAt": "2026-11-14T18:29:45.324Z",
+    "updatedAt": "2026-11-14T18:29:45.315Z"
+  }
+]

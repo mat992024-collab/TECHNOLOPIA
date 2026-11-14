@@ -9,6 +9,7 @@ import { DevelopmentFundSection } from './components/sections/DevelopmentFundSec
 import { SadaqahFundSection } from './components/sections/SadaqahFundSection';
 import { PartnerAccountSection } from './components/sections/PartnerAccountSection';
 import { AiCeoSection } from './components/sections/AiCeoSection';
+import { ProjectsHubSection } from './components/sections/ProjectsHubSection';
 import { ProjectsSection } from './components/sections/ProjectsSection';
 import { TasksSection } from './components/sections/TasksSection';
 import { CrmSection } from './components/sections/CrmSection';
@@ -535,6 +536,12 @@ export function App() {
             />
           )}
 
+          {activeTab === 'projects_hub' && (
+            <ProjectsHubSection
+              currentPartner={currentPartner}
+            />
+          )}
+
           {activeTab === 'projects' && (
             <ProjectsSection
               projects={projects}
@@ -542,6 +549,7 @@ export function App() {
               onAddProject={handleAddProject}
               onUpdateStatus={handleUpdateProjectStatus}
               onUpdateProject={handleUpdateProject}
+              onOpenProjectsHub={() => setActiveTab('projects_hub')}
             />
           )}
 

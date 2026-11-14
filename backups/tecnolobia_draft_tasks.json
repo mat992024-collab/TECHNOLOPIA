@@ -70,5 +70,59 @@
     ],
     "draftedByPartner": "mohamed",
     "partnerName": "المهندس محمد البحر"
+  },
+  {
+    "id": "draft-task-1794680611631",
+    "createdAt": "2026-11-14T18:23:31.631Z",
+    "status": "draft_pending_partner_approval",
+    "requiresPartnerApproval": true,
+    "title": "بناء واجهة إعدادات طابعة البلوتوث لمنيو QR",
+    "description": "تطوير شاشة الربط بطابعة الكاشير وإرسال أمر الطباعة التجريبي.",
+    "assignedTo": "mohamed",
+    "priority": "high",
+    "dueDate": "2026-11-22",
+    "steps": [
+      "فحص بروتوكول Web Bluetooth API في المتصفحات الحديثة",
+      "بناء مكوّن React للبحث عن أجهزة البلوتوث المجاورة",
+      "إرسال بايتات أمر الطباعة التجريبي واختبار القص التلقائي"
+    ],
+    "draftedByPartner": "mohamed",
+    "partnerName": "المهندس محمد البحر"
+  },
+  {
+    "id": "draft-task-1794680669344",
+    "createdAt": "2026-11-14T18:24:29.344Z",
+    "status": "draft_pending_partner_approval",
+    "requiresPartnerApproval": true,
+    "title": "بناء واجهة إعدادات طابعة البلوتوث لمنيو QR",
+    "description": "تطوير شاشة الربط بطابعة الكاشير وإرسال أمر الطباعة التجريبي.",
+    "assignedTo": "mohamed",
+    "priority": "high",
+    "dueDate": "2026-11-22",
+    "steps": [
+      "فحص بروتوكول Web Bluetooth API في المتصفحات الحديثة",
+      "بناء مكوّن React للبحث عن أجهزة البلوتوث المجاورة",
+      "إرسال بايتات أمر الطباعة التجريبي واختبار القص التلقائي"
+    ],
+    "draftedByPartner": "mohamed",
+    "partnerName": "المهندس محمد البحر"
+  },
+  {
+    "id": "draft-task-1794680969404",
+    "createdAt": "2026-11-14T18:29:29.404Z",
+    "status": "draft_pending_partner_approval",
+    "requiresPartnerApproval": true,
+    "title": "بناء واجهة إعدادات طابعة البلوتوث لمنيو QR",
+    "description": "تطوير شاشة الربط بطابعة الكاشير وإرسال أمر الطباعة التجريبي.",
+    "assignedTo": "mohamed",
+    "priority": "high",
+    "dueDate": "2026-11-22",
+    "steps": [
+      "فحص بروتوكول Web Bluetooth API في المتصفحات الحديثة",
+      "بناء مكوّن React للبحث عن أجهزة البلوتوث المجاورة",
+      "إرسال بايتات أمر الطباعة التجريبي واختبار القص التلقائي"
+    ],
+    "draftedByPartner": "mohamed",
+    "partnerName": "المهندس محمد البحر"
   }
 ]

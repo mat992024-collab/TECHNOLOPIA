@@ -27,3 +27,7 @@ dist-ssr
 .env
 .env.*
 !.env.example
+
+# Secure Credentials & OAuth Tokens
+*github_accounts_secure.json
+*.secure.json

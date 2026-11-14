@@ -17,13 +17,15 @@ import {
   X,
   PieChart,
   ShieldCheck,
-  Scale
+  Scale,
+  FolderTree
 } from 'lucide-react';
 import { PartnerId } from '../types/company';
 
 export type ActiveTab = 
   | 'dashboard'
   | 'ai_ceo'
+  | 'projects_hub'
   | 'governance'
   | 'profit_calculator'
   | 'finance'
@@ -115,6 +117,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
     {
       title: 'إدارة المشروعات والعمليات',
       items: [
+        { 
+          id: 'projects_hub' as ActiveTab, 
+          label: 'مركز GitHub والمشروعات', 
+          icon: FolderTree,
+          badge: 'الجديد',
+          badgeColor: 'bg-indigo-600 text-white'
+        },
         { id: 'projects' as ActiveTab, label: 'المشروعات وسابقة الأعمال', icon: Briefcase },
         { id: 'tasks' as ActiveTab, label: 'المهام وتوزيع العمل', icon: CheckSquare },
         { id: 'crm' as ActiveTab, label: 'إدارة العملاء (CRM)', icon: Users },

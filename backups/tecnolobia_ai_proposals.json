@@ -54,5 +54,47 @@
     "expectedImpact": "زيادة مبيعات النظام بمعدل 40% وإمكانية فرض رسوم إضافية 1,500 ج.م على الميزة.",
     "proposedByPartner": "mohamed",
     "partnerName": "المهندس محمد البحر"
+  },
+  {
+    "id": "prop-1794680611629-lgcsv",
+    "createdAt": "2026-11-14T18:23:31.629Z",
+    "status": "pending_partner_review",
+    "requiresPartnerApproval": true,
+    "projectId": "proj-7",
+    "title": "إضافة دعم الطباعة الحرارية المباشرة للبلوتوث للمنيو الإلكتروني",
+    "category": "technical",
+    "problemDiagnosis": "المطاعم تطلب إرسال الطلب لطابعة المطبخ فورياً دون الحاجة لكمبيوتر مكتبي.",
+    "proposedSolution": "استخدام Web Bluetooth API للاتصال بطابعات ESC/POS الحرارية مباشرة من المتصفح.",
+    "expectedImpact": "زيادة مبيعات النظام بمعدل 40% وإمكانية فرض رسوم إضافية 1,500 ج.م على الميزة.",
+    "proposedByPartner": "mohamed",
+    "partnerName": "المهندس محمد البحر"
+  },
+  {
+    "id": "prop-1794680669341-exiye",
+    "createdAt": "2026-11-14T18:24:29.341Z",
+    "status": "pending_partner_review",
+    "requiresPartnerApproval": true,
+    "projectId": "proj-7",
+    "title": "إضافة دعم الطباعة الحرارية المباشرة للبلوتوث للمنيو الإلكتروني",
+    "category": "technical",
+    "problemDiagnosis": "المطاعم تطلب إرسال الطلب لطابعة المطبخ فورياً دون الحاجة لكمبيوتر مكتبي.",
+    "proposedSolution": "استخدام Web Bluetooth API للاتصال بطابعات ESC/POS الحرارية مباشرة من المتصفح.",
+    "expectedImpact": "زيادة مبيعات النظام بمعدل 40% وإمكانية فرض رسوم إضافية 1,500 ج.م على الميزة.",
+    "proposedByPartner": "mohamed",
+    "partnerName": "المهندس محمد البحر"
+  },
+  {
+    "id": "prop-1794680969401-73vva",
+    "createdAt": "2026-11-14T18:29:29.401Z",
+    "status": "pending_partner_review",
+    "requiresPartnerApproval": true,
+    "projectId": "proj-7",
+    "title": "إضافة دعم الطباعة الحرارية المباشرة للبلوتوث للمنيو الإلكتروني",
+    "category": "technical",
+    "problemDiagnosis": "المطاعم تطلب إرسال الطلب لطابعة المطبخ فورياً دون الحاجة لكمبيوتر مكتبي.",
+    "proposedSolution": "استخدام Web Bluetooth API للاتصال بطابعات ESC/POS الحرارية مباشرة من المتصفح.",
+    "expectedImpact": "زيادة مبيعات النظام بمعدل 40% وإمكانية فرض رسوم إضافية 1,500 ج.م على الميزة.",
+    "proposedByPartner": "mohamed",
+    "partnerName": "المهندس محمد البحر"
   }
 ]

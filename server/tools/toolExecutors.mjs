@@ -2,6 +2,8 @@
 import { RealDataProvider } from '../data/realDataProvider.mjs';
 import { AuditLogger } from '../services/auditLogger.mjs';
 import { TOOL_PERMISSIONS } from './toolDefinitions.mjs';
+import { GitHubService } from '../services/githubService.mjs';
+import { GeminiCodeAdvisor } from '../services/geminiCodeAdvisor.mjs';
 
 /**
  * منفذ أدوات المساعد الذكي
@@ -85,6 +87,28 @@ export class ToolExecutors {
             message: 'تم إنشاء مسودة المهمة بنجاح مع خطواتها التفصيلية بانتظار اعتماد الشريك.',
             draftTask
           };
+          break;
+        }
+
+        case 'github_get_accounts': {
+          result = await GitHubService.getAccountsStatus();
+          break;
+        }
+
+        case 'github_list_repositories': {
+          result = await GitHubService.listAllRepositories();
+          break;
+        }
+
+        case 'github_analyze_repository': {
+          const allRepos = await GitHubService.listAllRepositories();
+          const target = allRepos.find(r => r.name.toLowerCase() === args.repoName?.toLowerCase() || r.fullName?.toLowerCase() === args.repoName?.toLowerCase());
+          if (!target) {
+            result = { error: `المستودع (${args.repoName}) غير موجود في الحسابات المتصلة.` };
+          } else {
+            const details = await GitHubService.getRepositoryDetails(target.owner, target.name);
+            result = await GeminiCodeAdvisor.analyzeProject(details, partner);
+          }
           break;
         }
 
