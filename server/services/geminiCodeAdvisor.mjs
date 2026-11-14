@@ -51,17 +51,14 @@ export class GeminiCodeAdvisor {
 
     if (GeminiAgent.getApiKey()) {
       try {
-        const client = GeminiAgent.getClient();
-        const response = await client.models.generateContent({
+        const generation = await GeminiAgent.generateContent(prompt, {
           model: activeModel,
-          contents: prompt,
-          config: {
-            temperature: 0.2
-          }
+          partnerId: partner.partnerId || partner.id
         });
-        analysisResult = this.#parseGeminiAnalysis(response.text, repoDetails);
+        analysisResult = this.#parseGeminiAnalysis(generation.text, repoDetails, generation.model);
       } catch (err) {
-        console.warn(`Gemini live analysis using ${activeModel} failed, using deterministic code rule evaluator:`, err.message);
+        const sanitizedErr = GeminiAgent.sanitizeError(err);
+        console.warn(`Gemini live analysis using ${activeModel} failed (${sanitizedErr}), using deterministic code rule evaluator`);
         analysisResult = this.#evaluateDeterministicCodeRules(repoDetails);
       }
     } else {
@@ -266,9 +263,13 @@ export class GeminiCodeAdvisor {
     };
   }
 
-  static #parseGeminiAnalysis(rawText, repoDetails) {
+  static #parseGeminiAnalysis(rawText, repoDetails, modelUsed) {
     const base = this.#evaluateDeterministicCodeRules(repoDetails);
-    base.architectureAssessment = rawText.substring(0, 500) + '...';
+    if (rawText) {
+      base.architectureAssessment = rawText.substring(0, 1000);
+      base.liveAiModelUsed = modelUsed || GeminiAgent.getActiveModel();
+      base.isLiveAiGenerated = true;
+    }
     return base;
   }
 }

@@ -443,12 +443,13 @@ app.get('/api/github/portfolio-report', requirePartnerAuth, async (req, res) => 
 app.use((err, req, res, next) => {
   const status = err.status || 500;
   const isSecurityViolation = err.code?.startsWith('FORBIDDEN') || err.code?.startsWith('UNAUTHORIZED');
+  const sanitizedMessage = GeminiAgent.sanitizeError(err.message || 'حدث خطأ داخلي في الخادم.');
 
-  console.error(`[SERVER_ERROR] [${req.method} ${req.path}]:`, err.message);
+  console.error(`[SERVER_ERROR] [${req.method} ${req.path}]:`, sanitizedMessage);
 
   res.status(status).json({
     success: false,
-    error: err.message || 'حدث خطأ داخلي في الخادم.',
+    error: sanitizedMessage,
     code: err.code || (isSecurityViolation ? 'SECURITY_ERROR' : 'INTERNAL_SERVER_ERROR')
   });
 });

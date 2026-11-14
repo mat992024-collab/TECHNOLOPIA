@@ -5,7 +5,9 @@ import { ToolExecutors } from './tools/toolExecutors.mjs';
 import { AuditLogger } from './services/auditLogger.mjs';
 
 const PRIMARY_MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
-const FALLBACK_MODEL = process.env.GEMINI_FALLBACK_MODEL || 'gemini-2.5-flash';
+const FALLBACK_MODEL = (process.env.GEMINI_FALLBACK_MODEL && process.env.GEMINI_FALLBACK_MODEL !== 'gemini-2.5-flash')
+  ? process.env.GEMINI_FALLBACK_MODEL
+  : 'gemini-3-flash-preview';
 
 const SYSTEM_INSTRUCTION = `أنت المساعد التنفيذي والشريك الاستشاري الذكي (AI Executive Co-Founder & Business Manager) لشركة البرمجيات المصرية TECHNOLOPIA.
 الشركاء المؤسسون: م. محمد البحر (تقني & Full-Stack) وم. طارق حافظ (أعمال & مبيعات)، متساويان في الشراكة.
@@ -24,43 +26,228 @@ export class GeminiAgent {
   }
 
   static getFallbackModel() {
-    return process.env.GEMINI_FALLBACK_MODEL || FALLBACK_MODEL;
+    const model = process.env.GEMINI_FALLBACK_MODEL;
+    if (!model || model === 'gemini-2.5-flash') return 'gemini-3-flash-preview';
+    return model;
   }
 
   static getApiKey() {
     return process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || '';
   }
 
-  static getClient() {
-    const apiKey = this.getApiKey();
+  /**
+   * تنقية نصوص الأخطاء وسجلات التتبع لحظر تسريب أي مفاتيح سرية نهائياً
+   */
+  static sanitizeError(err) {
+    if (!err) return '';
+    const msg = typeof err === 'string' ? err : (err.message || String(err));
+    return msg
+      .replace(/AQ\.[A-Za-z0-9_-]+/g, '[REDACTED_API_KEY]')
+      .replace(/AIza[0-9A-Za-z-_]{35}/g, '[REDACTED_API_KEY]');
+  }
+
+  /**
+   * تحديد ما إذا كان الخطأ عابراً يستوجب إعادة المحاولة (503, 429, 500, 502, 504, Timeout)
+   */
+  static isTransientError(err) {
+    if (!err) return false;
+    const status = err.status || err.statusCode || (err.response && err.response.status);
+    if ([503, 429, 500, 502, 504].includes(status)) return true;
+
+    const msg = String(err.message || err || '').toLowerCase();
+    const transientKeywords = [
+      '503', 'unavailable', 'high demand', 'spikes in demand', 'overloaded',
+      '429', 'resource_exhausted', 'rate limit', 'quota exceeded',
+      '500', 'internal error', '502', 'bad gateway', '504', 'gateway timeout',
+      'timeout', 'etimedout', 'econnreset', 'network error', 'fetch failed'
+    ];
+    return transientKeywords.some(keyword => msg.includes(keyword));
+  }
+
+  /**
+   * فحص ما إذا كان الخطأ متعلقاً بصلاحية أو سحب المفتاح
+   */
+  static isAuthError(err) {
+    if (!err) return false;
+    const status = err.status || err.statusCode || (err.response && err.response.status);
+    const msg = String(err.message || err || '').toLowerCase();
+    if ([400, 401, 403].includes(status)) {
+      return msg.includes('api_key_invalid') || msg.includes('api key') || msg.includes('invalid') || msg.includes('unauthenticated') || status === 401;
+    }
+    return msg.includes('api_key_invalid') || msg.includes('api key not valid');
+  }
+
+  /**
+   * سياسة إعادة المحاولة باستخدام التراجع الأسي (Exponential Backoff with Jitter)
+   */
+  static async callWithRetry(fn, options = {}) {
+    const maxRetries = options.maxRetries ?? 2;
+    const baseDelay = options.baseDelay ?? 1000;
+    const backoffFactor = options.backoffFactor ?? 2;
+    const partnerId = options.partnerId || 'system';
+
+    let lastError = null;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        return await fn(attempt);
+      } catch (err) {
+        lastError = err;
+        const isTransient = this.isTransientError(err);
+        const isAuth = this.isAuthError(err);
+
+        // إذا كان خطأ مصادقة صريح، نوقف المحاولات فوراً
+        if (isAuth) {
+          AuditLogger.log({
+            partnerId,
+            eventType: 'AGENT_AUTH_ERROR',
+            inputPayload: { error: this.sanitizeError(err) },
+            status: 'ERROR'
+          });
+          throw err;
+        }
+
+        // إذا لم يكن خطأ عابراً أو استنفدنا عدد المحاولات الأقصى
+        if (!isTransient || attempt >= maxRetries) {
+          throw err;
+        }
+
+        const delay = (baseDelay * Math.pow(backoffFactor, attempt)) + Math.floor(Math.random() * 250);
+        AuditLogger.log({
+          partnerId,
+          eventType: 'API_RETRY_ATTEMPT',
+          inputPayload: {
+            attempt: attempt + 1,
+            maxRetries,
+            delayMs: delay,
+            error: this.sanitizeError(err)
+          },
+          status: 'INFO'
+        });
+
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+
+    throw lastError;
+  }
+
+  static getClient(apiKeyOverride) {
+    const apiKey = apiKeyOverride || this.getApiKey();
     if (!apiKey) return null;
-    return new GoogleGenAI({ apiKey });
+    return new GoogleGenAI({
+      apiKey,
+      httpOptions: { apiVersion: 'v1beta' }
+    });
+  }
+
+  /**
+   * توليد محتوى نصي مباشر مع دعم Retry و Fallback التلقائي متعدد المستويات
+   */
+  static async generateContent(prompt, options = {}) {
+    const apiKey = options.apiKey !== undefined ? options.apiKey : this.getApiKey();
+    if (!apiKey) {
+      throw new Error('NO_API_KEY: Gemini API Key is not configured');
+    }
+
+    const ai = this.getClient(apiKey);
+    const primaryModel = options.model || this.getActiveModel();
+    const fallbackModel = options.fallbackModel || this.getFallbackModel();
+    const partnerId = options.partnerId || 'system';
+
+    const candidateModels = [primaryModel];
+    if (fallbackModel && !candidateModels.includes(fallbackModel)) candidateModels.push(fallbackModel);
+    if (!candidateModels.includes('gemini-flash-lite-latest')) candidateModels.push('gemini-flash-lite-latest');
+
+    const executeCall = async (model) => {
+      return await this.callWithRetry(async () => {
+        const response = await ai.models.generateContent({
+          model,
+          contents: prompt,
+          config: {
+            systemInstruction: options.systemInstruction || SYSTEM_INSTRUCTION,
+            temperature: options.temperature ?? 0.2
+          }
+        });
+        return {
+          text: response.text || '',
+          model,
+          rawResponse: response
+        };
+      }, {
+        maxRetries: options.maxRetries ?? 2,
+        baseDelay: options.baseDelay ?? 1000,
+        partnerId
+      });
+    };
+
+    let lastError = null;
+    for (let i = 0; i < candidateModels.length; i++) {
+      const currentModel = candidateModels[i];
+      try {
+        if (i > 0) {
+          AuditLogger.log({
+            partnerId,
+            eventType: 'MODEL_FALLBACK',
+            inputPayload: {
+              from: candidateModels[i - 1],
+              to: currentModel,
+              reason: this.sanitizeError(lastError)
+            },
+            status: 'SUCCESS'
+          });
+        }
+
+        const result = await executeCall(currentModel);
+        if (i > 0) {
+          result.fallbackEngaged = true;
+          result.primaryModelAttempted = primaryModel;
+        }
+        return result;
+      } catch (err) {
+        lastError = err;
+        if (this.isAuthError(err)) {
+          throw err;
+        }
+        if (!this.isTransientError(err) && i === candidateModels.length - 1) {
+          throw err;
+        }
+      }
+    }
+
+    throw lastError;
   }
 
   /**
    * إرسال رسالة إلى المساعد التنفيذي ومعالجة استدعاء الأدوات تلقائياً (Function Calling Loop)
+   * مع حماية كاملة من HTTP 503 والانتقال التلقائي للنموذج البديل والتعامل مع أخطاء المفتاح
    */
-  static async chat(userMessage, partner, conversationHistory = []) {
-    const apiKey = this.getApiKey();
+  static async chat(userMessage, partner, conversationHistory = [], options = {}) {
+    const apiKey = options.apiKey !== undefined ? options.apiKey : this.getApiKey();
 
     // 1. تسجيل رسالة المستخدم في سجل التدقيق
     AuditLogger.log({
-      partnerId: partner.id,
+      partnerId: partner?.id || 'unknown',
       eventType: 'USER_MESSAGE',
       inputPayload: { message: userMessage },
       status: 'SUCCESS'
     });
 
-    // 2. إذا لم يكن المفتاح متوفراً في ملف البيئة، تشغيل المحرك الذكي الاحتياطي (Local Intent Engine)
+    // 2. إذا لم يكن المفتاح متوفراً، تشغيل المحرك الذكي الاحتياطي (Local Intent Engine)
     if (!apiKey) {
       return this.handleLocalIntentFallback(userMessage, partner);
     }
 
-    const ai = this.getClient();
-    let currentModel = PRIMARY_MODEL;
+    const ai = this.getClient(apiKey);
+    const primaryModel = options.model || this.getActiveModel();
+    const fallbackModel = options.fallbackModel || this.getFallbackModel();
 
-    try {
-      // بناء سجل المحادثة المتسلسل
+    const candidateModels = [primaryModel];
+    if (fallbackModel && !candidateModels.includes(fallbackModel)) candidateModels.push(fallbackModel);
+    if (!candidateModels.includes('gemini-flash-lite-latest')) candidateModels.push('gemini-flash-lite-latest');
+
+    // بناء سجل المحادثة المتسلسل
+    const buildInitialContents = () => {
       const contents = [];
       conversationHistory.forEach(msg => {
         contents.push({
@@ -72,21 +259,31 @@ export class GeminiAgent {
         role: 'user',
         parts: [{ text: userMessage }]
       });
+      return contents;
+    };
 
-      // استدعاء Gemini مع تفعيل Function Calling
-      let response = await ai.models.generateContent({
-        model: currentModel,
-        contents,
-        config: {
-          systemInstruction: SYSTEM_INSTRUCTION,
-          tools: [{ functionDeclarations: GEMINI_TOOL_DECLARATIONS }],
-          temperature: 0.2
-        }
-      });
-
+    // تنفيذ حلقة استدعاء الأدوات لنموذج محدد
+    const runChatWithModel = async (modelToUse) => {
+      const contents = buildInitialContents();
       const toolsUsed = [];
       let iterations = 0;
       const MAX_ITERATIONS = 5;
+
+      let response = await this.callWithRetry(async () => {
+        return await ai.models.generateContent({
+          model: modelToUse,
+          contents,
+          config: {
+            systemInstruction: SYSTEM_INSTRUCTION,
+            tools: [{ functionDeclarations: GEMINI_TOOL_DECLARATIONS }],
+            temperature: 0.2
+          }
+        });
+      }, {
+        maxRetries: options.maxRetries ?? 2,
+        baseDelay: options.baseDelay ?? 1000,
+        partnerId: partner?.id
+      });
 
       // حلقة استدعاء الأدوات (Tool Calling Loop)
       while (response.functionCalls && response.functionCalls.length > 0 && iterations < MAX_ITERATIONS) {
@@ -103,11 +300,12 @@ export class GeminiAgent {
           result: executionResult.data
         });
 
-        // إرسال نتيجة الأداة إلى Gemini ليكمل صياغة الرد
-        contents.push({
+        // الحفاظ على أجزاء رد النموذج كاملة بما فيها thought_signature لتوافق Gemini 3
+        const modelContent = response.candidates?.[0]?.content || {
           role: 'model',
           parts: [{ functionCall }]
-        });
+        };
+        contents.push(modelContent);
 
         contents.push({
           role: 'user',
@@ -119,51 +317,110 @@ export class GeminiAgent {
           }]
         });
 
-        response = await ai.models.generateContent({
-          model: currentModel,
-          contents,
-          config: {
-            systemInstruction: SYSTEM_INSTRUCTION,
-            tools: [{ functionDeclarations: GEMINI_TOOL_DECLARATIONS }],
-            temperature: 0.2
-          }
+        response = await this.callWithRetry(async () => {
+          return await ai.models.generateContent({
+            model: modelToUse,
+            contents,
+            config: {
+              systemInstruction: SYSTEM_INSTRUCTION,
+              tools: [{ functionDeclarations: GEMINI_TOOL_DECLARATIONS }],
+              temperature: 0.2
+            }
+          });
+        }, {
+          maxRetries: options.maxRetries ?? 2,
+          baseDelay: options.baseDelay ?? 1000,
+          partnerId: partner?.id
         });
       }
 
       const replyText = response.text || 'تم معالجة الطلب بنجاح عبر أدوات النظام.';
+      return { replyText, toolsUsed };
+    };
 
-      // تسجيل رد المساعد في سجل التدقيق
-      AuditLogger.log({
-        partnerId: partner.id,
-        eventType: 'AGENT_RESPONSE',
-        outputSummary: replyText.substring(0, 300),
-        status: 'SUCCESS'
-      });
+    let lastError = null;
 
-      return {
-        success: true,
-        model: currentModel,
-        reply: replyText,
-        toolsUsed,
-        liveApiKeyUsed: true
-      };
+    for (let i = 0; i < candidateModels.length; i++) {
+      const currentModel = candidateModels[i];
 
-    } catch (err) {
-      // تجربة النموذج الاحتياطي FALLBACK_MODEL في حال واجه النموذج الأساسي ضغطاً
-      if (currentModel === PRIMARY_MODEL && err.message?.includes('503') || err.message?.includes('overloaded')) {
-        currentModel = FALLBACK_MODEL;
-        // محاولة بديلة...
+      try {
+        if (i > 0) {
+          AuditLogger.log({
+            partnerId: partner?.id || 'unknown',
+            eventType: 'MODEL_FALLBACK',
+            inputPayload: {
+              from: candidateModels[i - 1],
+              to: currentModel,
+              reason: this.sanitizeError(lastError)
+            },
+            status: 'SUCCESS'
+          });
+        }
+
+        const result = await runChatWithModel(currentModel);
+
+        AuditLogger.log({
+          partnerId: partner?.id || 'unknown',
+          eventType: 'AGENT_RESPONSE',
+          outputSummary: (i > 0 ? `[Fallback: ${currentModel}] ` : '') + result.replyText.substring(0, 300),
+          status: 'SUCCESS'
+        });
+
+        return {
+          success: true,
+          model: currentModel,
+          primaryModelAttempted: primaryModel,
+          fallbackEngaged: currentModel !== primaryModel,
+          reply: result.replyText,
+          toolsUsed: result.toolsUsed,
+          liveApiKeyUsed: true
+        };
+
+      } catch (err) {
+        lastError = err;
+        const sanitizedErr = this.sanitizeError(err);
+
+        // فحص أخطاء المصادقة وسحب المفتاح
+        if (this.isAuthError(err)) {
+          AuditLogger.log({
+            partnerId: partner?.id || 'unknown',
+            eventType: 'AGENT_AUTH_ERROR',
+            status: 'ERROR',
+            error: sanitizedErr
+          });
+          return {
+            success: false,
+            error: 'فشل التحقق من مفتاح Gemini API (مفتاح غير صالح أو مسحوب). تم حماية النظام بأمان.',
+            code: 'GEMINI_AUTH_FAILED',
+            model: currentModel,
+            liveApiKeyUsed: true
+          };
+        }
+
+        // إذا كان خطأ عابراً وهناك نماذج بديلة أخرى، ننتقل للموديل التالي
+        if (this.isTransientError(err) && i < candidateModels.length - 1) {
+          continue;
+        }
+
+        break;
       }
-
-      AuditLogger.log({
-        partnerId: partner.id,
-        eventType: 'AGENT_RESPONSE',
-        status: 'ERROR',
-        error: err.message
-      });
-
-      throw err;
     }
+
+    // إذا فشلت جميع النماذج السحابية، تفعيل المحرك المحلي الآمن
+    const sanitizedLastError = this.sanitizeError(lastError);
+    AuditLogger.log({
+      partnerId: partner?.id || 'unknown',
+      eventType: 'AGENT_RESPONSE',
+      status: 'ERROR',
+      error: `All cloud models exhausted. Error: ${sanitizedLastError}`
+    });
+
+    const localFallback = await this.handleLocalIntentFallback(userMessage, partner);
+    return {
+      ...localFallback,
+      note: 'تم تفعيل المحرك المحلي الآمن بعد تعذر الاتصال بسيرفرات الذكاء الاصطناعي السحابية.',
+      cloudError: sanitizedLastError
+    };
   }
 
   /**
