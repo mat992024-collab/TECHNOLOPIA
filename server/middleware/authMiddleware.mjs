@@ -1,26 +1,14 @@
 // server/middleware/authMiddleware.mjs
 import jwt from 'jsonwebtoken';
-import admin from 'firebase-admin';
-import { getAuth } from 'firebase-admin/auth';
 import { AuditLogger } from '../services/auditLogger.mjs';
+import { FirebaseAdminService } from '../services/firebaseAdminService.mjs';
 
 // مفتاح توقيع داخلي آمن للسيرفر (محمي من العميل)
 const SERVER_AUTH_SECRET = process.env.JWT_SECRET || 'TECNOLOBIA_EXECUTIVE_SECURE_KEY_2026_COFOUNDERS';
-const FIREBASE_PROJECT_ID = 'modeer-27c2d';
-
-// تهيئة Firebase Admin SDK الآمن للتحقق التشفيري من التوكنات
-let firebaseAdminAuth = null;
-try {
-  const adminApp = admin.getApps().length > 0 ? 
-    admin.getApp() : 
-    admin.initializeApp({ projectId: FIREBASE_PROJECT_ID });
-  firebaseAdminAuth = getAuth(adminApp);
-} catch (e) {
-  console.warn('Firebase Admin initialization notice:', e.message);
-}
+const FIREBASE_PROJECT_ID = FirebaseAdminService.getProjectId();
 
 export function getFirebaseAdminAuth() {
-  return firebaseAdminAuth;
+  return FirebaseAdminService.getAuth();
 }
 
 /**

@@ -239,7 +239,7 @@ app.get('/api/health/ready', (req, res) => {
   const rateLimiterStatus = checkRateLimiterStatus();
   const isStateless = AuditLogger.isStatelessMode();
 
-  const isReady = secretsStatus.ready && rateLimiterStatus.status === 'active';
+  const isReady = secretsStatus.ready && Boolean(rateLimiterStatus.status?.includes('active'));
 
   const responsePayload = {
     status: isReady ? 'ready' : 'not_ready',
@@ -571,12 +571,12 @@ app.get('/api/crm/leads', requirePartnerAuth, (req, res) => {
 /**
  * 22. تسجيل عميل محتمل جديد (Lead Discovery)
  */
-app.post('/api/crm/leads', mutationLimiter, requirePartnerAuth, (req, res) => {
+app.post('/api/crm/leads', mutationLimiter, requirePartnerAuth, async (req, res) => {
   try {
-    const newLead = CrmLeadStore.createLead(req.body, req.partner);
+    const newLead = await CrmLeadStore.createLead(req.body, req.partner);
     res.status(201).json({ success: true, lead: newLead });
   } catch (err) {
-    res.status(err.code === 'DUPLICATE_LEAD' ? 409 : 400).json({
+    res.status(err.code === 'DUPLICATE_LEAD' ? 409 : (err.status || 400)).json({
       success: false,
       error: err.message,
       code: err.code || 'BAD_REQUEST'
@@ -587,9 +587,9 @@ app.post('/api/crm/leads', mutationLimiter, requirePartnerAuth, (req, res) => {
 /**
  * 23. تفاصيل عميل محدد وسجله الزمني مع عزل الوصول
  */
-app.get('/api/crm/leads/:id', requirePartnerAuth, (req, res) => {
+app.get('/api/crm/leads/:id', requirePartnerAuth, async (req, res) => {
   try {
-    const lead = CrmLeadStore.getLeadById(req.params.id, req.partner);
+    const lead = await CrmLeadStore.getLeadById(req.params.id, req.partner);
     if (!lead) {
       return res.status(404).json({ success: false, error: 'العميل غير موجود', code: 'LEAD_NOT_FOUND' });
     }
@@ -606,13 +606,13 @@ app.get('/api/crm/leads/:id', requirePartnerAuth, (req, res) => {
 /**
  * 24. تحديث مرحلة العميل في دورة المبيعات مع السجل الزمني
  */
-app.put('/api/crm/leads/:id/stage', mutationLimiter, requirePartnerAuth, (req, res) => {
+app.put('/api/crm/leads/:id/stage', mutationLimiter, requirePartnerAuth, async (req, res) => {
   try {
     const { stage, note } = req.body;
-    const updated = CrmLeadStore.updateLeadStage(req.params.id, stage, note, req.partner);
+    const updated = await CrmLeadStore.updateLeadStage(req.params.id, stage, note, req.partner);
     res.json({ success: true, lead: updated });
   } catch (err) {
-    res.status(err.code === 'INVALID_STAGE_TRANSITION' ? 400 : 404).json({
+    res.status(err.code === 'INVALID_STAGE_TRANSITION' ? 400 : (err.status || 404)).json({
       success: false,
       error: err.message,
       code: err.code || 'TRANSITION_ERROR'
@@ -623,10 +623,10 @@ app.put('/api/crm/leads/:id/stage', mutationLimiter, requirePartnerAuth, (req, r
 /**
  * 25. إضافة ملاحظة للشريك في سجل متابعات العميل مع خيار الملاحظة الخاصة
  */
-app.post('/api/crm/leads/:id/notes', mutationLimiter, requirePartnerAuth, (req, res) => {
+app.post('/api/crm/leads/:id/notes', mutationLimiter, requirePartnerAuth, async (req, res) => {
   try {
     const { note, isPrivate } = req.body;
-    const updated = CrmLeadStore.addNote(req.params.id, note, req.partner, isPrivate);
+    const updated = await CrmLeadStore.addNote(req.params.id, note, req.partner, isPrivate);
     res.json({ success: true, lead: updated });
   } catch (err) {
     res.status(err.status || 400).json({

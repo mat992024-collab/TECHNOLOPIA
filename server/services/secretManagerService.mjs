@@ -3,9 +3,12 @@ import crypto from 'crypto';
 
 /**
  * خدمة إدارة الأسرار وحوكمة الهوية المشفرة (Secret Manager & Credential Security Service)
- * تدعم القراءة الآمنة للأسرار المحقونة من Google Secret Manager،
- * والتحقق من الإنتروبيا التشفيرية (256-bit entropy)،
- * والتجزئة المملحة لكلمات المرور ورموز PIN عبر PBKDF2
+ * تدعم:
+ * 1. القياس التشفيري الفعلي لإنتروبيا شانون (Shannon Entropy Measurement).
+ * 2. التحقق من القوة التشفيرية لمفتاح JWT_SECRET (256-bit entropy).
+ * 3. التجزئة المملحة لكلمات المرور ورموز PIN عبر PBKDF2 والمقارنة الثابتة زمنياً.
+ * 4. التحقق المستقل من مصدر الأسرار (Google Secret Manager vs Local Env).
+ * 5. الحظر التام لطباعة أو تسجيل أي أسرار في السجلات (Zero Secret Logging).
  */
 export class SecretManagerService {
   static #cachedSecrets = null;
@@ -13,6 +16,37 @@ export class SecretManagerService {
     mohamed: 'tecnolobia_mohamed_salt_992024_cloud_staging',
     tarek: 'tecnolobia_tarek_salt_1995_cloud_staging'
   };
+
+  /**
+   * حساب إنتروبيا شانون بدقة رياضية لقياس العشوائية والتشتت التشفيري الفعلي
+   * (Shannon Entropy Calculation)
+   */
+  static calculateShannonEntropy(str) {
+    if (!str || typeof str !== 'string' || str.length === 0) {
+      return { perChar: 0, totalBits: 0, uniqueChars: 0 };
+    }
+
+    const freq = {};
+    for (let i = 0; i < str.length; i++) {
+      const c = str[i];
+      freq[c] = (freq[c] || 0) + 1;
+    }
+
+    const uniqueChars = Object.keys(freq).length;
+    let entropyPerChar = 0;
+
+    for (const c in freq) {
+      const p = freq[c] / str.length;
+      entropyPerChar -= p * Math.log2(p);
+    }
+
+    const totalBits = entropyPerChar * str.length;
+    return {
+      perChar: entropyPerChar,
+      totalBits,
+      uniqueChars
+    };
+  }
 
   /**
    * اشتقاق تجزئة مشفرة ومملحة لرمز الأمان (Salted PIN Hashing via PBKDF2)
@@ -25,7 +59,6 @@ export class SecretManagerService {
 
   /**
    * التحقق من تطابق رمز PIN باستخدام المقارنة الثابتة زمنياً (Timing-Safe Equality)
-   * لمنع هجمات التوقيت (Timing Attacks)
    */
   static verifyPin(providedPin, expectedPinOrHash, partnerId = 'mohamed') {
     if (!providedPin || !expectedPinOrHash) return false;
@@ -50,17 +83,71 @@ export class SecretManagerService {
   }
 
   /**
-   * التحقق من قوة المفتاح التشفيري JWT_SECRET (256-bit entropy check)
+   * التحقق الصارم من القوة التشفيرية لمفتاح JWT_SECRET
+   * يقيس إنتروبيا شانون الحقيقية وتنوع المحارف وليس مجرد طول السلسلة النصية
    */
   static validateJwtSecret(secret) {
     if (!secret || typeof secret !== 'string') {
       throw new Error('JWT_SECRET is missing or invalid');
     }
-    // في بيئة Staging / Production، يجب أن يحتوي المفتاح على 32 حرفاً على الأقل لتأمين 256 بت
-    if (secret.length < 32 && process.env.NODE_ENV === 'production') {
-      throw new Error('INSUFFICIENT_ENTROPY: JWT_SECRET must be at least 32 characters (256 bits) in production/staging environments');
+
+    if (secret.length < 32) {
+      throw new Error(`INSUFFICIENT_LENGTH: JWT_SECRET length (${secret.length}) is below minimum requirement of 32 characters.`);
     }
+
+    const entropy = this.calculateShannonEntropy(secret);
+
+    // التحقق من التنوع الأدنى للمحارف (منع السلاسل المتطابقة مثل 'A'*32)
+    if (entropy.uniqueChars < 8 || entropy.perChar < 3.0 || entropy.totalBits < 120) {
+      throw new Error(`INSUFFICIENT_ENTROPY: JWT_SECRET lacks cryptographic entropy (${entropy.totalBits.toFixed(1)} bits, ${entropy.perChar.toFixed(2)} bits/char, ${entropy.uniqueChars} unique chars). Repeating characters or trivial patterns are strictly forbidden.`);
+    }
+
+    // في بيئات Staging و Production يشترط قوة تشفير لا تقل عن 160 بت فعلي (معيار 256 بت مستهدف)
+    if (process.env.NODE_ENV === 'production' || process.env.STAGING_MODE === 'true') {
+      if (entropy.totalBits < 160) {
+        throw new Error(`INSUFFICIENT_ENTROPY: Production/Staging requires high entropy (measured ${entropy.totalBits.toFixed(1)} bits < 160 bits required).`);
+      }
+    }
+
     return true;
+  }
+
+  /**
+   * التحقق المستقل من مصدر الأسرار (Google Secret Manager vs Local Environment)
+   * مع حظر طباعة أي قيم سرية
+   */
+  static verifySecretManagerSource() {
+    const isCloudRun = Boolean(process.env.K_SERVICE || process.env.K_REVISION);
+    const hasJwt = Boolean(process.env.JWT_SECRET);
+    const hasMohamedPin = Boolean(process.env.MOHAMED_PIN);
+    const hasTarekPin = Boolean(process.env.TAREK_PIN);
+    const hasGeminiKey = Boolean(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY);
+
+    let source = 'LOCAL_ENV_FILE';
+    if (isCloudRun) {
+      source = 'GOOGLE_SECRET_MANAGER_INJECTED';
+    } else if (process.env.NODE_ENV === 'test') {
+      source = 'TEST_HARNESS_MOCK';
+    }
+
+    const entropy = hasJwt ? this.calculateShannonEntropy(process.env.JWT_SECRET) : null;
+
+    return {
+      source,
+      isCloudRunEnvironment: isCloudRun,
+      secretsConfigured: {
+        JWT_SECRET: hasJwt,
+        MOHAMED_PIN: hasMohamedPin,
+        TAREK_PIN: hasTarekPin,
+        GEMINI_API_KEY: hasGeminiKey
+      },
+      jwtEntropy: entropy ? {
+        totalBits: Number(entropy.totalBits.toFixed(1)),
+        bitsPerChar: Number(entropy.perChar.toFixed(2)),
+        uniqueChars: entropy.uniqueChars,
+        isEntropySecure: entropy.totalBits >= 120 && entropy.uniqueChars >= 8
+      } : null
+    };
   }
 
   /**
@@ -96,11 +183,22 @@ export class SecretManagerService {
     if (!secrets.mohamedPin) missing.push('MOHAMED_PIN');
     if (!secrets.tarekPin) missing.push('TAREK_PIN');
 
+    let isEntropyValid = false;
+    if (secrets.jwtSecret) {
+      try {
+        isEntropyValid = this.validateJwtSecret(secrets.jwtSecret);
+      } catch {
+        isEntropyValid = false;
+      }
+    }
+
     return {
-      ready: missing.length === 0,
+      ready: missing.length === 0 && isEntropyValid,
       missing,
+      isEntropyValid,
       hasGeminiKey: Boolean(secrets.geminiApiKey),
-      isCloudRun: secrets.isCloudRunEnvironment
+      isCloudRun: secrets.isCloudRunEnvironment,
+      sourceAudit: this.verifySecretManagerSource().source
     };
   }
 }

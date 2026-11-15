@@ -2,15 +2,19 @@
 import rateLimit from 'express-rate-limit';
 
 /**
- * نظام تحديد معدل الطلبات الموزع والمتدرج حسب حساسية المسار
- * (Distributed & Differentiated Rate Limiting Engine)
- * يدعم التدرج الأمني:
- * 1. مسارات المصادقة وتسجيل الدخول: حماية مشددة من هجمات القوة الغاشمة (Brute Force Protection)
- * 2. مسارات استدعاء Gemini: حماية من استنزاف الحصص والتكاليف (Quota & Cost Protection)
- * 3. مسارات تعديل وكتابة CRM: حماية النزاهة والعمليات الحساسة (Mutation Protection)
- * 4. المسارات العامة: حماية الخادم من هجمات الحرمان من الخدمة (DoS Protection)
+ * محرك تحديد معدل الطلبات المتدرج (Multi-Tiered Rate Limiting Engine)
+ * 
+ * تدقيق معماري صريح (Architectural Audit Note):
+ * يعتمد هذا المحدد افتراضياً على الذاكرة الداخلية للعملية (Node.js Process MemoryStore)
+ * في بيئات الحاويات سريعة الزوال (Google Cloud Run متعددة النسخ)، كل نسخة تمتلك عداداً مستقلاً.
+ * للحصول على حظر موزع شامل عبر كافة الحاويات (True Distributed Rate Limiting)،
+ * يجب تفعيل خدمة Google Cloud Memorystore (Redis) وتمرير REDIS_URL أو MEMORSTORE_HOST.
+ * في غياب Redis، يتم تصنيف المحدد كـ (Instance-Level Local Defense) مع تسجيل تحذير بيئي.
  */
 
+const isRedisConfigured = Boolean(process.env.REDIS_URL || process.env.MEMORSTORE_HOST);
+
+// تدرج حدود الاستهلاك
 export const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 دقيقة
   max: process.env.NODE_ENV === 'test' ? 1000 : 300,
@@ -60,14 +64,14 @@ export const mutationLimiter = rateLimit({
 });
 
 /**
- * فحص سلامة نظام تحديد المعدل لـ Readiness Probe
+ * فحص سلامة وتصنيف نظام تحديد المعدل لـ Readiness Probe والتدقيق الأمني
  */
 export function checkRateLimiterStatus() {
-  const isRedisConfigured = Boolean(process.env.REDIS_URL || process.env.MEMORSTORE_HOST);
   return {
-    status: 'active',
-    storeType: isRedisConfigured ? 'distributed_redis' : 'in_memory_cluster_fallback',
-    failSafeActive: true,
-    protectedTiers: ['auth', 'chat', 'mutations', 'global']
+    status: isRedisConfigured ? 'distributed_active' : 'instance_level_active',
+    isDistributed: isRedisConfigured,
+    storeType: isRedisConfigured ? 'distributed_redis_memorystore' : 'in_memory_instance_local',
+    protectedTiers: ['auth', 'chat', 'mutations', 'global'],
+    deploymentWarning: isRedisConfigured ? null : 'SHARED_STORAGE_UNAVAILABLE: Rate limiting operates at the instance-local memory level. In multi-instance Cloud Run deployment, deploy Google Cloud Memorystore (Redis) for cross-instance limit synchronization.'
   };
 }

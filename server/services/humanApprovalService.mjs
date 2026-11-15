@@ -1,22 +1,41 @@
 // server/services/humanApprovalService.mjs
 import crypto from 'crypto';
 import { AuditLogger } from './auditLogger.mjs';
+import { FirebaseAdminService } from './firebaseAdminService.mjs';
 
 const APPROVAL_SECRET = process.env.JWT_SECRET || 'TECNOLOBIA_EXECUTIVE_SECURE_KEY_2026_COFOUNDERS_STAGING_KEY_32BYTES';
 const TICKET_TTL_MS = 10 * 60 * 1000; // صلاحية تذكرة الاعتماد 10 دقائق فقط
 
 /**
- * خدمة إدارة تذاكر الاعتماد البشري الموقعة تشفيرياً (Cryptographic Human Approval Ticket Service)
+ * خدمة إدارة تذاكر الاعتماد البشري الموقعة تشفيرياً والمحمية عبر الحاويات الموزعة
+ * (Distributed Cryptographic Human Approval Ticket Service)
  * تضمن:
- * 1. أن الاعتماد أحادي الاستخدام (Single-Use / Nonce-Protected).
- * 2. محدود الصلاحية زمنياً (Time-Limited / TTL Enforced).
- * 3. مقيد ومربوط تشفيرياً بالأداة والمدخلات والشريك المصرح له (Strict Payload & Partner Binding).
- * 4. محمي تماماً من هجمات التكرار وإعادة الاستخدام (Replay Attack Immunity).
- * 5. محمي من استبدال أو تعديل البيانات المعتمدة (Payload Substitution Immunity).
+ * 1. أن الاعتماد أحادي الاستخدام ومحمي من التكرار عبر كافة الحاويات السحابية (Cross-Instance Replay Protection).
+ * 2. التخزين المركزي الذري لاستهلاك التذاكر لمنع التضارب (Atomic Centralized Consumption).
+ * 3. التقييد الزمني الصارم (10-Minute TTL Enforcement).
+ * 4. الربط التشفيري القطعي بين الأداة والمدخلات وهوية الشريك (Strict HMAC-SHA256 Payload Binding).
+ * 5. الحماية المطلقة من استبدال أو تعديل البيانات المعتمدة (Payload Substitution Immunity).
  */
 export class HumanApprovalService {
-  static #usedTickets = new Set();
+  // مخزن استهلاك التذاكر المركزي (يدعم التشارك بين النسخ)
+  static #centralUsedTicketsStore = new Map();
   static #ticketStore = new Map();
+
+  /**
+   * ربط مخزن تذاكر مركزي مخصص (للاختبارات ومحاكاة النسخ المتعددة)
+   */
+  static setCentralUsedTicketsStore(store) {
+    this.#centralUsedTicketsStore = store;
+  }
+
+  static getCentralUsedTicketsStore() {
+    return this.#centralUsedTicketsStore;
+  }
+
+  static clearStores() {
+    this.#centralUsedTicketsStore.clear();
+    this.#ticketStore.clear();
+  }
 
   /**
    * حساب التجزئة التشفيرية الموحدة للمدخلات
@@ -72,9 +91,63 @@ export class HumanApprovalService {
   }
 
   /**
+   * تسجيل استهلاك التذكرة ذرياً في المخزن المركزي المشترك
+   */
+  static async #atomicConsumeTicket(ticketId, ticketData, partnerId, toolName) {
+    // 1. في البيئة السحابية: نستخدم Cloud Firestore للمعاملات الذرية المركزية
+    if (FirebaseAdminService.isCloudMode()) {
+      const db = FirebaseAdminService.getFirestore();
+      if (!db) {
+        const err = new Error('FIRESTORE_UNAVAILABLE: تعذر التحقق من استهلاك التذكرة مركزياً في البيئة السحابية.');
+        err.code = 'FIRESTORE_UNAVAILABLE';
+        err.status = 503;
+        throw err;
+      }
+
+      const collName = FirebaseAdminService.getCollectionName('system_used_tickets');
+      const docRef = db.collection(collName).doc(ticketId);
+
+      await db.runTransaction(async (transaction) => {
+        const doc = await transaction.get(docRef);
+        if (doc.exists) {
+          const replayErr = new Error('REPLAY_DETECTED: تذكرة الاعتماد هذه تم استخدامها مسبقاً في نسخة سحابية أخرى.');
+          replayErr.code = 'REPLAYED_APPROVAL_TICKET';
+          replayErr.status = 403;
+          throw replayErr;
+        }
+
+        transaction.set(docRef, {
+          ticketId,
+          toolName,
+          partnerId,
+          consumedAt: new Date().toISOString(),
+          consumedByInstance: process.env.K_REVISION || `proc-${process.pid}`
+        });
+      });
+
+      return;
+    }
+
+    // 2. في بيئة الاختبارات أو التطوير المحلي: نستخدم المخزن المشترك
+    if (this.#centralUsedTicketsStore.has(ticketId)) {
+      const replayErr = new Error('REPLAY_DETECTED: تذكرة الاعتماد هذه تم استخدامها بالفعل ولا يمكن إعادة استخدامها.');
+      replayErr.code = 'REPLAYED_APPROVAL_TICKET';
+      replayErr.status = 403;
+      throw replayErr;
+    }
+
+    this.#centralUsedTicketsStore.set(ticketId, {
+      ticketId,
+      toolName,
+      partnerId,
+      consumedAt: new Date().toISOString()
+    });
+  }
+
+  /**
    * تدقيق والتحقق التشفيري الصارم من تذكرة الاعتماد قبل تنفيذ العملية
    */
-  static verifyAndConsumeTicket(toolName, args, partner, providedTicket) {
+  static async verifyAndConsumeTicket(toolName, args, partner, providedTicket) {
     const partnerId = partner?.id || partner?.partnerId;
     if (!partnerId) {
       const err = new Error('UNAUTHORIZED: الشريك غير معروف أو غير موثق لتنفيذ الاعتماد.');
@@ -86,7 +159,6 @@ export class HumanApprovalService {
     // 1. إذا لم يتم توفير تذكرة وكانت العملية موجهة مباشرة من الشريك الموثق عبر endpoint
     if (!providedTicket) {
       if (args.isConfirmedByPartner === true) {
-        // فحص مباشر للشريك المعتمد المصرح له
         return {
           valid: true,
           mode: 'DIRECT_AUTHENTICATED_PARTNER_CONFIRMATION',
@@ -109,23 +181,7 @@ export class HumanApprovalService {
       throw err;
     }
 
-    // 3. منع هجمات إعادة الاستخدام (Replay Attack Prevention)
-    if (this.#usedTickets.has(ticketId)) {
-      AuditLogger.log({
-        partnerId,
-        eventType: 'APPROVAL_REPLAY_ATTEMPT_BLOCKED',
-        toolName,
-        inputPayload: { ticketId },
-        status: 'BLOCKED',
-        error: 'محاولة إعادة استخدام تذكرة اعتماد مستهلكة مسبقاً'
-      });
-      const err = new Error('REPLAY_DETECTED: تذكرة الاعتماد هذه تم استخدامها بالفعل ولا يمكن إعادة استخدامها.');
-      err.code = 'REPLAYED_APPROVAL_TICKET';
-      err.status = 403;
-      throw err;
-    }
-
-    // 4. التحقق من التوقيع الرقمي لمنع التزوير في المتصفح
+    // 3. التحقق من التوقيع الرقمي لمنع التزوير
     const signPayload = `${ticketId}|${toolName}|${providedTicket.partnerId || partnerId}|${payloadHash}|${expiresAt}`;
     const expectedSig = crypto.createHmac('sha256', APPROVAL_SECRET).update(signPayload).digest('hex');
 
@@ -138,7 +194,7 @@ export class HumanApprovalService {
       throw err;
     }
 
-    // 5. التحقق من عدم انتهاء الصلاحية الزمنية
+    // 4. التحقق من عدم انتهاء الصلاحية الزمنية
     if (Date.now() > Number(expiresAt)) {
       const err = new Error('EXPIRED_TICKET: انتهت صلاحية تذكرة الاعتماد (المهلة القصوى 10 دقائق). يرجى طلب الاقتراح مجدداً.');
       err.code = 'EXPIRED_APPROVAL_TICKET';
@@ -146,7 +202,7 @@ export class HumanApprovalService {
       throw err;
     }
 
-    // 6. التحقق من تطابق الشريك المصرح له (Cross-Partner Execution Prevention)
+    // 5. التحقق من تطابق الشريك المصرح له (Cross-Partner Execution Prevention)
     if (providedTicket.partnerId && providedTicket.partnerId !== partnerId) {
       AuditLogger.log({
         partnerId,
@@ -162,7 +218,7 @@ export class HumanApprovalService {
       throw err;
     }
 
-    // 7. التحقق من عدم التلاعب في البيانات (Payload Tampering Prevention)
+    // 6. التحقق من عدم التلاعب في البيانات (Payload Tampering Prevention)
     const currentHash = this.computePayloadHash(toolName, args, partnerId);
     if (currentHash !== payloadHash) {
       AuditLogger.log({
@@ -179,8 +235,8 @@ export class HumanApprovalService {
       throw err;
     }
 
-    // 8. استهلاك التذكرة بنجاح لمنع أي إعادة استخدام لاحقة
-    this.#usedTickets.add(ticketId);
+    // 7. الاستهلاك المركزي الذري (مقاوم لإعادة الاستخدام عبر كافة النسخ السحابية)
+    await this.#atomicConsumeTicket(ticketId, providedTicket, partnerId, toolName);
     this.#ticketStore.delete(ticketId);
 
     AuditLogger.log({

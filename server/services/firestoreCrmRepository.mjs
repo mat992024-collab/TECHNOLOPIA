@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { AuditLogger } from './auditLogger.mjs';
+import { FirebaseAdminService } from './firebaseAdminService.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -100,7 +101,7 @@ class IsolatedInMemoryFirestoreStore {
  */
 export class FirestoreCrmRepository {
   static #isolatedStore = new IsolatedInMemoryFirestoreStore();
-  static #useIsolatedMode = false;
+  static #useIsolatedMode = null;
   static #initialized = false;
 
   /**
@@ -114,7 +115,32 @@ export class FirestoreCrmRepository {
   }
 
   static isIsolatedMode() {
-    return this.#useIsolatedMode || process.env.NODE_ENV === 'test' || Boolean(process.env.CRM_ISOLATED_MODE);
+    if (this.#useIsolatedMode !== null) {
+      return this.#useIsolatedMode;
+    }
+    if (FirebaseAdminService.isCloudMode() || process.env.CRM_LIVE_FIRESTORE === 'true') {
+      return false; // في البيئة السحابية أو نمط الاتصال الحي: الحظر الصريح للنمط المعزول والاعتماد الحصري على Firestore
+    }
+    return true; // في بيئات التطوير والاختبار المحلية: الوضع الافتراضي هو العزل التام في الذاكرة
+  }
+
+  /**
+   * تنظيف وتجهيز الكائنات لكتابتها في Firestore دون أخطاء undefined أو حقول runtime غير قابلة للترميز
+   */
+  static cleanForFirestore(obj) {
+    if (!obj || typeof obj !== 'object') return obj;
+    const cleaned = {};
+    for (const [key, val] of Object.entries(obj)) {
+      if (val === undefined || typeof val === 'function' || (val && typeof val.then === 'function') || key.startsWith('_')) {
+        continue;
+      }
+      if (val !== null && typeof val === 'object' && !Array.isArray(val) && !(val instanceof Date)) {
+        cleaned[key] = this.cleanForFirestore(val);
+      } else {
+        cleaned[key] = val;
+      }
+    }
+    return cleaned;
   }
 
   static getIsolatedStore() {
@@ -334,6 +360,7 @@ export class FirestoreCrmRepository {
 
   /**
    * إنشاء عميل محتمل جديد مع الكشف عن التكرار والمطابقة الصارمة
+   * في البيئة السحابية: الحفظ الدائم في Firestore إلزامي قبل إرجاع أي نجاح (Fail-Closed)
    */
   static createLead(payload, partner) {
     this.initFromLocalBackupIfEmpty();
@@ -352,7 +379,7 @@ export class FirestoreCrmRepository {
     }
 
     // التحقق من تكرار الهاتف
-    const allLeads = this.#isolatedStore.list(FIRESTORE_CRM_COLLECTIONS.CRM_LEADS);
+    const allLeads = this.getLeads({}, partner);
     const existing = allLeads.find(l => l.contactInfo?.phone === String(phone).trim() || l.phone === String(phone).trim());
     if (existing) {
       const err = new Error(`العميل (${payload.businessName}) مسجل مسبقاً بنفس رقم الهاتف (${phone}). المعرف: ${existing.id}`);
@@ -367,6 +394,29 @@ export class FirestoreCrmRepository {
       assignedPartner: payload.assignedPartner || partnerId
     });
 
+    // 1. في البيئة السحابية: الحفظ الدائم في Cloud Firestore إلزامي ولا تراجع عنه (Fail-Closed)
+    if (!this.isIsolatedMode() || FirebaseAdminService.isCloudMode()) {
+      const db = FirebaseAdminService.getFirestore();
+      if (!db) {
+        const err = new Error('FIRESTORE_UNAVAILABLE: Cloud mode requires durable Firestore persistence. Mutation rejected.');
+        err.code = 'FIRESTORE_UNAVAILABLE';
+        err.status = 503;
+        throw err;
+      }
+
+      const collName = FirebaseAdminService.getCollectionName(FIRESTORE_CRM_COLLECTIONS.CRM_LEADS);
+      try {
+        const payloadToPersist = this.cleanForFirestore(normalized);
+        db.collection(collName).doc(normalized.id).set(payloadToPersist);
+      } catch (dbErr) {
+        const err = new Error(`FIRESTORE_WRITE_FAILED: فشل الحفظ الدائم للعميل في Firestore: ${dbErr.message}`);
+        err.code = 'FIRESTORE_WRITE_FAILED';
+        err.status = 503;
+        throw err;
+      }
+    }
+
+    // 2. تحديث المخزن المحلي الداخلي
     this.#isolatedStore.set(FIRESTORE_CRM_COLLECTIONS.CRM_LEADS, normalized.id, normalized);
 
     AuditLogger.log({
@@ -387,6 +437,7 @@ export class FirestoreCrmRepository {
 
   /**
    * تحديث مرحلة العميل في دورة البيع
+   * في البيئة السحابية: الحفظ الدائم في Firestore إلزامي (Fail-Closed)
    */
   static updateLeadStage(id, targetStage, note, partner) {
     this.initFromLocalBackupIfEmpty();
@@ -437,6 +488,28 @@ export class FirestoreCrmRepository {
       changedAt: new Date().toISOString(),
       note: note || `ترقية المرحلة من ${fromStage} إلى ${targetStage}`
     });
+
+    // 1. في البيئة السحابية: تحديث دائم في Cloud Firestore
+    if (!this.isIsolatedMode() || FirebaseAdminService.isCloudMode()) {
+      const db = FirebaseAdminService.getFirestore();
+      if (!db) {
+        const err = new Error('FIRESTORE_UNAVAILABLE: Cloud mode requires durable Firestore persistence. Stage update rejected.');
+        err.code = 'FIRESTORE_UNAVAILABLE';
+        err.status = 503;
+        throw err;
+      }
+
+      const collName = FirebaseAdminService.getCollectionName(FIRESTORE_CRM_COLLECTIONS.CRM_LEADS);
+      try {
+        const payloadToPersist = this.cleanForFirestore(currentLead);
+        db.collection(collName).doc(id).set(payloadToPersist, { merge: true });
+      } catch (dbErr) {
+        const err = new Error(`FIRESTORE_UPDATE_FAILED: فشل التحديث الدائم لمرحلة العميل في Firestore: ${dbErr.message}`);
+        err.code = 'FIRESTORE_UPDATE_FAILED';
+        err.status = 503;
+        throw err;
+      }
+    }
 
     this.#isolatedStore.set(FIRESTORE_CRM_COLLECTIONS.CRM_LEADS, id, currentLead);
 
@@ -490,6 +563,29 @@ export class FirestoreCrmRepository {
     }
 
     currentLead.updatedAt = new Date().toISOString();
+
+    // في البيئة السحابية: حفظ دائم في Firestore
+    if (!this.isIsolatedMode() || FirebaseAdminService.isCloudMode()) {
+      const db = FirebaseAdminService.getFirestore();
+      if (!db) {
+        const err = new Error('FIRESTORE_UNAVAILABLE: Cloud mode requires durable Firestore persistence. Note rejected.');
+        err.code = 'FIRESTORE_UNAVAILABLE';
+        err.status = 503;
+        throw err;
+      }
+
+      const collName = FirebaseAdminService.getCollectionName(FIRESTORE_CRM_COLLECTIONS.CRM_LEADS);
+      try {
+        const payloadToPersist = this.cleanForFirestore(currentLead);
+        db.collection(collName).doc(id).set(payloadToPersist, { merge: true });
+      } catch (dbErr) {
+        const err = new Error(`FIRESTORE_NOTE_WRITE_FAILED: فشل الحفظ الدائم للملاحظة: ${dbErr.message}`);
+        err.code = 'FIRESTORE_NOTE_WRITE_FAILED';
+        err.status = 503;
+        throw err;
+      }
+    }
+
     this.#isolatedStore.set(FIRESTORE_CRM_COLLECTIONS.CRM_LEADS, id, currentLead);
 
     AuditLogger.log({

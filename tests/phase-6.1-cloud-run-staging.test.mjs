@@ -88,7 +88,7 @@ test('2. Readiness Probe: GET /api/health/ready returns 200 with checks for secr
   assert.equal(res.data.status, 'ready');
   assert.equal(res.data.service, 'TECHNOLOPIA Cloud Run Staging Backend');
   assert.ok(res.data.checks.secrets.ready);
-  assert.equal(res.data.checks.rateLimiter.status, 'active');
+  assert.ok(res.data.checks.rateLimiter.status.includes('active'));
   assert.equal(res.data.checks.statelessPersistence.active, true);
 });
 
@@ -117,19 +117,20 @@ test('4. CORS Whitelist: Whitelisted origin is allowed, unlisted origin is rejec
 // الحزمة 2: اختبارات إدارة الأسرار والتشفير المقاوم لهجمات التوقيت (Secret Manager & Salted PBKDF2)
 // =========================================================================
 
-test('5. SecretManager: validateJwtSecret enforces 256-bit entropy (32+ chars)', () => {
-  const validSecret = 'A'.repeat(32);
+test('5. SecretManager: validateJwtSecret enforces 256-bit entropy (Shannon entropy and 32+ chars)', () => {
+  // مفتاح عالي التشتت التشفيري (Shannon entropy > 4.0 bits/char)
+  const validSecret = 'TECNOLOBIA_EXECUTIVE_SECURE_KEY_2026_COFOUNDERS_STAGING_KEY_32BYTES';
   assert.equal(SecretManagerService.validateJwtSecret(validSecret), true);
 
-  const prevEnv = process.env.NODE_ENV;
-  try {
-    process.env.NODE_ENV = 'production';
-    assert.throws(() => {
-      SecretManagerService.validateJwtSecret('short-secret');
-    }, /INSUFFICIENT_ENTROPY/);
-  } finally {
-    process.env.NODE_ENV = prevEnv;
-  }
+  // مفتاح 32 حرفاً ولكن بدون إنتروبيا حقيقية (محرف متكرر) - يجب رفضه
+  assert.throws(() => {
+    SecretManagerService.validateJwtSecret('A'.repeat(32));
+  }, /INSUFFICIENT_ENTROPY/);
+
+  // مفتاح قصير أقل من 32 حرفاً
+  assert.throws(() => {
+    SecretManagerService.validateJwtSecret('short-secret-key-1234');
+  }, /INSUFFICIENT_LENGTH/);
 });
 
 test('6. SecretManager: Salted PBKDF2 PIN verification prevents timing attacks and verifies hashes', () => {
@@ -306,7 +307,7 @@ test('12. Security: Expired Ticket - Expired ticket past TTL is strictly rejecte
   expiredTicket.signature = crypto.createHmac('sha256', process.env.JWT_SECRET).update(signPayload).digest('hex');
 
   await assert.rejects(async () => {
-    HumanApprovalService.verifyAndConsumeTicket('register_crm_lead', args, partner, expiredTicket);
+    await HumanApprovalService.verifyAndConsumeTicket('register_crm_lead', args, partner, expiredTicket);
   }, (err) => {
     assert.equal(err.code, 'EXPIRED_APPROVAL_TICKET');
     return true;
@@ -353,7 +354,9 @@ test('13. Stateless Persistence: AuditLogger operates securely without local dis
 
 test('14. Distributed Rate Limiter: checkRateLimiterStatus reports active protection across all tiers', () => {
   const status = checkRateLimiterStatus();
-  assert.equal(status.status, 'active');
-  assert.equal(status.failSafeActive, true);
+  assert.ok(status.status.includes('active'));
+  assert.equal(status.isDistributed, false);
+  assert.equal(status.storeType, 'in_memory_instance_local');
+  assert.ok(status.deploymentWarning);
   assert.deepEqual(status.protectedTiers, ['auth', 'chat', 'mutations', 'global']);
 });

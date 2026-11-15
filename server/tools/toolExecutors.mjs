@@ -129,8 +129,8 @@ export class ToolExecutors {
               }
             };
           } else {
-            HumanApprovalService.verifyAndConsumeTicket('register_crm_lead', args, partner, args.approvalTicket);
-            const created = CrmLeadStore.createLead(args, partner);
+            await HumanApprovalService.verifyAndConsumeTicket('register_crm_lead', args, partner, args.approvalTicket);
+            const created = await CrmLeadStore.createLead(args, partner);
             result = {
               action: 'EXECUTED_SUCCESSFULLY',
               status: 'created',
@@ -157,8 +157,8 @@ export class ToolExecutors {
               note: args.note
             };
           } else {
-            HumanApprovalService.verifyAndConsumeTicket('update_crm_lead_stage', args, partner, args.approvalTicket);
-            const updated = CrmLeadStore.updateLeadStage(args.leadId, args.targetStage, args.note, partner);
+            await HumanApprovalService.verifyAndConsumeTicket('update_crm_lead_stage', args, partner, args.approvalTicket);
+            const updated = await CrmLeadStore.updateLeadStage(args.leadId, args.targetStage, args.note, partner);
             result = {
               action: 'EXECUTED_SUCCESSFULLY',
               status: 'updated',
