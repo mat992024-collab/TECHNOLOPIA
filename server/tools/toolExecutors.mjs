@@ -6,6 +6,7 @@ import { GitHubService } from '../services/githubService.mjs';
 import { GeminiCodeAdvisor } from '../services/geminiCodeAdvisor.mjs';
 import { CrmLeadStore } from '../data/crmLeadStore.mjs';
 import { AiSalesAgent } from '../services/aiSalesAgent.mjs';
+import { HumanApprovalService } from '../services/humanApprovalService.mjs';
 
 /**
  * القائمة البيضاء الصارمة للأدوات المصرح بها (Strict Tool Whitelist)
@@ -112,11 +113,13 @@ export class ToolExecutors {
           if (!args.businessName || !args.phone) {
             throw new Error('اسم المنشأة ورقم الهاتف مطلوبان لتسجيل العميل');
           }
-          if (!args.isConfirmedByPartner) {
+          if (!args.isConfirmedByPartner && !args.approvalTicket) {
+            const ticket = HumanApprovalService.issueApprovalTicket('register_crm_lead', args, partner);
             result = {
               action: 'SUGGESTION_ONLY',
               status: 'pending_partner_confirmation',
               message: `اقتراح تسجيل عميل محتمل جديد (${args.businessName}). لم يتم إنشاء العميل بعد؛ يتطلب تأكيد صريح من الشريك (isConfirmedByPartner=true) لتسجيله الفعلي في قاعدة البيانات.`,
+              approvalTicket: ticket,
               proposedData: {
                 businessName: args.businessName,
                 phone: args.phone,
@@ -126,6 +129,7 @@ export class ToolExecutors {
               }
             };
           } else {
+            HumanApprovalService.verifyAndConsumeTicket('register_crm_lead', args, partner, args.approvalTicket);
             const created = CrmLeadStore.createLead(args, partner);
             result = {
               action: 'EXECUTED_SUCCESSFULLY',
@@ -141,16 +145,19 @@ export class ToolExecutors {
           if (!args.leadId || !args.targetStage) {
             throw new Error('معرف العميل والمرحلة المستهدفة مطلوبان');
           }
-          if (!args.isConfirmedByPartner) {
+          if (!args.isConfirmedByPartner && !args.approvalTicket) {
+            const ticket = HumanApprovalService.issueApprovalTicket('update_crm_lead_stage', args, partner);
             result = {
               action: 'SUGGESTION_ONLY',
               status: 'pending_partner_confirmation',
               message: `اقتراح ترقية مرحلة العميل (${args.leadId}) إلى (${args.targetStage}). لم يتم تغيير المرحلة بعد؛ يتطلب تأكيد صريح من الشريك (isConfirmedByPartner=true) للتنفيذ.`,
+              approvalTicket: ticket,
               leadId: args.leadId,
               proposedStage: args.targetStage,
               note: args.note
             };
           } else {
+            HumanApprovalService.verifyAndConsumeTicket('update_crm_lead_stage', args, partner, args.approvalTicket);
             const updated = CrmLeadStore.updateLeadStage(args.leadId, args.targetStage, args.note, partner);
             result = {
               action: 'EXECUTED_SUCCESSFULLY',

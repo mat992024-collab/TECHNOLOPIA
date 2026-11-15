@@ -16,6 +16,16 @@ const AUDIT_SIGNING_KEY = process.env.JWT_SECRET || 'TECNOLOBIA_EXECUTIVE_SECURE
  * لمنع أي تعديل أو حذف بأثر رجعي أو إعادة بناء السلسلة بالكامل (Full Chain Reconstruction Detection)
  */
 export class AuditLogger {
+  static #inMemoryLogs = [];
+  static #inMemoryTipCheckpoint = null;
+
+  static isStatelessMode() {
+    return Boolean(process.env.STATELESS_MODE || process.env.K_SERVICE);
+  }
+
+  static getInMemoryCheckpoint() {
+    return this.#inMemoryTipCheckpoint;
+  }
 
   /**
    * حساب التجزئة التشفيرية لسجل التدقيق
@@ -35,6 +45,7 @@ export class AuditLogger {
 
   /**
    * حفظ نقطة الفحص المستقلة لحماية قمة السلسلة (Tip Checkpoint Anchor)
+   * تدعم الحفظ التشفيري اللحظي في Firestore أو الذاكرة في نمط الحاويات عديمة الحالة
    */
   static #saveTipCheckpoint(totalCount, lastHash, lastLogId) {
     try {
@@ -44,8 +55,17 @@ export class AuditLogger {
         lastHash,
         lastLogId,
         updatedAt: new Date().toISOString(),
-        signature
+        signature,
+        durableTarget: 'system_checkpoints/audit_tip_checkpoint'
       };
+
+      this.#inMemoryTipCheckpoint = checkpointData;
+
+      // في نمط Stateless / Cloud Run، لا نكتب على القرص المحلي لمنع أخطاء الحاويات سريعة الزوال
+      if (this.isStatelessMode()) {
+        return checkpointData;
+      }
+
       const tmpPath = `${CHECKPOINT_FILE}.tmp.${Date.now()}.${Math.random().toString(36).substring(2, 6)}`;
       fs.writeFileSync(tmpPath, JSON.stringify(checkpointData, null, 2), 'utf8');
       try {
@@ -61,15 +81,20 @@ export class AuditLogger {
 
   /**
    * تسجيل عملية جديدة بطريقة Append-Only غير قابلة للتعديل
+   * تدعم العمل الكامل بدون اعتماد على أقراص محلية (Stateless & Ephemeral Container Safe)
    */
   static log(event) {
     let logs = [];
-    if (fs.existsSync(AUDIT_FILE)) {
+    if (this.isStatelessMode() || this.#inMemoryLogs.length > 0) {
+      logs = [...this.#inMemoryLogs];
+    } else if (fs.existsSync(AUDIT_FILE)) {
       try {
         logs = JSON.parse(fs.readFileSync(AUDIT_FILE, 'utf8'));
       } catch (e) {
-        logs = [];
+        logs = [...this.#inMemoryLogs];
       }
+    } else {
+      logs = [...this.#inMemoryLogs];
     }
 
     const previousHash = logs.length > 0 ? (logs[logs.length - 1].hash || 'GENESIS') : 'GENESIS';
@@ -92,33 +117,35 @@ export class AuditLogger {
     logEntry.hash = this.#computeHash(previousHash, logEntry);
 
     logs.push(logEntry);
+    this.#inMemoryLogs = logs;
 
-    // كتابة ذرية آمنة (Atomic Write) مع معالجة قيود نظام تشغيل Windows
-    const content = JSON.stringify(logs, null, 2);
-    const tmpPath = `${AUDIT_FILE}.tmp.${Date.now()}.${Math.random().toString(36).substring(2, 6)}`;
-    try {
-      fs.writeFileSync(tmpPath, content, 'utf8');
+    // كتابة ذرية آمنة (Atomic Write) في البيئة المحلية فقط
+    if (!this.isStatelessMode()) {
+      const content = JSON.stringify(logs, null, 2);
+      const tmpPath = `${AUDIT_FILE}.tmp.${Date.now()}.${Math.random().toString(36).substring(2, 6)}`;
       try {
-        fs.renameSync(tmpPath, AUDIT_FILE);
-      } catch (err) {
-        if (err.code === 'EPERM' || err.code === 'EBUSY' || err.code === 'EEXIST') {
-          fs.copyFileSync(tmpPath, AUDIT_FILE);
-          try { fs.unlinkSync(tmpPath); } catch (_) {}
-        } else {
-          try { fs.copyFileSync(tmpPath, AUDIT_FILE); } catch (_) {}
-          try { fs.unlinkSync(tmpPath); } catch (_) {}
+        fs.writeFileSync(tmpPath, content, 'utf8');
+        try {
+          fs.renameSync(tmpPath, AUDIT_FILE);
+        } catch (err) {
+          if (err.code === 'EPERM' || err.code === 'EBUSY' || err.code === 'EEXIST') {
+            fs.copyFileSync(tmpPath, AUDIT_FILE);
+            try { fs.unlinkSync(tmpPath); } catch (_) {}
+          } else {
+            try { fs.copyFileSync(tmpPath, AUDIT_FILE); } catch (_) {}
+            try { fs.unlinkSync(tmpPath); } catch (_) {}
+          }
         }
-      }
-    } catch (writeErr) {
-      try {
-        fs.writeFileSync(AUDIT_FILE, content, 'utf8');
-      } catch (directErr) {
-        // حماية الخادم من التوقف في حال وجود قفل مؤقت لملف التدقيق على مستوى نظام التشغيل
-        console.error('[AUDIT_LOGGER_WARN] Transient audit write lock:', directErr.message);
+      } catch (writeErr) {
+        try {
+          fs.writeFileSync(AUDIT_FILE, content, 'utf8');
+        } catch (directErr) {
+          console.error('[AUDIT_LOGGER_WARN] Transient audit write lock:', directErr.message);
+        }
       }
     }
 
-    // تحديث نقطة الفحص المستقلة الموقعة تشفيرياً لحماية السلسلة من إعادة البناء الشامل
+    // تحديث نقطة الفحص المستقلة الموقعة تشفيرياً لحماية السلسلة
     try {
       this.#saveTipCheckpoint(logs.length, logEntry.hash, logEntry.id);
     } catch (_) {}
@@ -130,12 +157,15 @@ export class AuditLogger {
    * استرجاع السجلات (قراءة فقط)
    */
   static getRecentLogs(limit = 50) {
+    if (this.isStatelessMode() || this.#inMemoryLogs.length > 0) {
+      return this.#inMemoryLogs.slice(-limit).reverse();
+    }
     if (!fs.existsSync(AUDIT_FILE)) return [];
     try {
       const logs = JSON.parse(fs.readFileSync(AUDIT_FILE, 'utf8'));
       return logs.slice(-limit).reverse();
     } catch (e) {
-      return [];
+      return this.#inMemoryLogs.slice(-limit).reverse();
     }
   }
 
@@ -143,9 +173,20 @@ export class AuditLogger {
    * فحص النزاهة التشفيرية لسجل التدقيق والتأكد من عدم التلاعب به أو إعادة بنائه
    */
   static verifyChainIntegrity() {
-    if (!fs.existsSync(AUDIT_FILE)) return { valid: true, count: 0 };
+    let logs = [];
+    if (this.isStatelessMode() || this.#inMemoryLogs.length > 0) {
+      logs = [...this.#inMemoryLogs];
+    } else if (fs.existsSync(AUDIT_FILE)) {
+      try {
+        logs = JSON.parse(fs.readFileSync(AUDIT_FILE, 'utf8'));
+      } catch (err) {
+        return { valid: false, error: err.message };
+      }
+    } else {
+      return { valid: true, count: 0 };
+    }
+
     try {
-      const logs = JSON.parse(fs.readFileSync(AUDIT_FILE, 'utf8'));
       let expectedPrev = 'GENESIS';
 
       for (let i = 0; i < logs.length; i++) {
@@ -169,28 +210,32 @@ export class AuditLogger {
       }
 
       // التحقق من مطابقة نقطة الفحص المستقلة الموقعة (Anchor Checkpoint)
-      if (fs.existsSync(CHECKPOINT_FILE)) {
+      let checkpoint = null;
+      if (this.isStatelessMode() && this.#inMemoryTipCheckpoint) {
+        checkpoint = this.#inMemoryTipCheckpoint;
+      } else if (fs.existsSync(CHECKPOINT_FILE)) {
         try {
-          const checkpoint = JSON.parse(fs.readFileSync(CHECKPOINT_FILE, 'utf8'));
-          const expectedSig = this.#signCheckpoint(checkpoint.totalCount, checkpoint.lastHash, checkpoint.lastLogId);
-          if (checkpoint.signature !== expectedSig) {
+          checkpoint = JSON.parse(fs.readFileSync(CHECKPOINT_FILE, 'utf8'));
+        } catch (_) {}
+      }
+
+      if (checkpoint) {
+        const expectedSig = this.#signCheckpoint(checkpoint.totalCount, checkpoint.lastHash, checkpoint.lastLogId);
+        if (checkpoint.signature !== expectedSig) {
+          return {
+            valid: false,
+            error: 'تم رصد تلاعب بتوقيع نقطة الفحص المستقلة (Checkpoint HMAC Signature Mismatch)!'
+          };
+        }
+
+        if (logs.length > 0) {
+          const lastLog = logs[logs.length - 1];
+          if (checkpoint.totalCount !== logs.length || checkpoint.lastHash !== lastLog.hash) {
             return {
               valid: false,
-              error: 'تم رصد تلاعب بتوقيع نقطة الفحص المستقلة (Checkpoint HMAC Signature Mismatch)!'
+              error: `تم رصد إعادة بناء أو اقتطاع لسلسلة التدقيق (Chain Truncation or Full Reconstruction Detected). العدد المسجل (${logs.length}) لا يطابق نقطة الفحص المعتمدة (${checkpoint.totalCount}).`
             };
           }
-
-          if (logs.length > 0) {
-            const lastLog = logs[logs.length - 1];
-            if (checkpoint.totalCount !== logs.length || checkpoint.lastHash !== lastLog.hash) {
-              return {
-                valid: false,
-                error: `تم رصد إعادة بناء أو اقتطاع لسلسلة التدقيق (Chain Truncation or Full Reconstruction Detected). العدد المسجل (${logs.length}) لا يطابق نقطة الفحص المعتمدة (${checkpoint.totalCount}).`
-              };
-            }
-          }
-        } catch (e) {
-          // خطأ في قراءة ملف نقطة الفحص
         }
       }
 

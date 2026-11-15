@@ -1,7 +1,6 @@
 // server/index.mjs
 import express from 'express';
 import cors from 'cors';
-import rateLimit from 'express-rate-limit';
 import { requirePartnerAuth, issuePartnerToken, TRUSTED_PARTNERS, getFirebaseAdminAuth } from './middleware/authMiddleware.mjs';
 import { GeminiAgent } from './geminiAgent.mjs';
 import { ToolExecutors } from './tools/toolExecutors.mjs';
@@ -12,18 +11,29 @@ import { fileURLToPath } from 'url';
 import { GitHubService } from './services/githubService.mjs';
 import { GeminiCodeAdvisor } from './services/geminiCodeAdvisor.mjs';
 import { CrmLeadStore, CRM_LEAD_STAGES } from './data/crmLeadStore.mjs';
+import { FirestoreCrmRepository } from './services/firestoreCrmRepository.mjs';
 import { AiSalesAgent } from './services/aiSalesAgent.mjs';
 import { ExternalSimulationService } from './services/externalSimulationService.mjs';
+import { SecretManagerService } from './services/secretManagerService.mjs';
+import { 
+  globalLimiter, 
+  authLimiter, 
+  chatLimiter, 
+  mutationLimiter, 
+  checkRateLimiterStatus 
+} from './middleware/distributedRateLimiter.mjs';
 
 const app = express();
-const PORT = process.env.PORT || 5001;
+const PORT = parseInt(process.env.PORT, 10) || 8080;
+const HOST = process.env.HOST || '0.0.0.0';
 
 // 1. القائمة البيضاء الصارمة للأصول المسموح بها (Strict CORS Whitelist)
 const ALLOWED_ORIGINS = [
   'http://localhost:5173',
   'http://localhost:3000',
   'https://tecnolobia-ceo.web.app',
-  'https://modeer-27c2d.web.app'
+  'https://modeer-27c2d.web.app',
+  ...(process.env.STAGING_FRONTEND_URL ? [process.env.STAGING_FRONTEND_URL] : [])
 ];
 
 app.use(cors({
@@ -38,31 +48,16 @@ app.use(cors({
   credentials: true
 }));
 
-// 2. حدود استهلاك الطلبات وحماية السيرفر من هجمات الإغراق (Rate Limiting)
-const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 دقيقة
-  max: process.env.NODE_ENV === 'test' ? 500 : 200,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: {
-    success: false,
-    error: 'تم تجاوز الحد المسموح به من الطلبات العامة. يرجى الانتظار قليلاً.',
-    code: 'RATE_LIMIT_EXCEEDED'
-  }
+// 2. ترويسات الأمان الصارمة لحماية السيرفر من الهجمات الشائعة (Security Headers)
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  res.setHeader('X-XSS-Protection', '0');
+  next();
 });
 
-const chatLimiter = rateLimit({
-  windowMs: 60 * 1000, // دقيقة واحدة
-  max: process.env.RATE_LIMIT_TEST ? 3 : (process.env.NODE_ENV === 'test' ? 100 : 30),
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: {
-    success: false,
-    error: 'تم تجاوز الحد المسموح به من استشارات الذكاء الاصطناعي (حد أقصى 30 طلب/دقيقة). يرجى الانتظار.',
-    code: 'CHAT_RATE_LIMIT_EXCEEDED'
-  }
-});
-
+// 3. حدود استهلاك الطلبات المتدرجة
 app.use(globalLimiter);
 app.use(express.json({ limit: '1mb' }));
 
@@ -92,7 +87,7 @@ app.use(sanitizeInput);
  * نقطة تسجيل الدخول الرسمية وإصدار رمز الدخول الموثق (Auth Token Issue)
  * تدعم التحقق الصارم من PIN/Password أو التحقق التشفيري من Firebase ID Token عبر Firebase Admin SDK
  */
-app.post('/api/auth/token', async (req, res) => {
+app.post('/api/auth/token', authLimiter, async (req, res) => {
   const { partnerId, credentialSecret, firebaseIdToken } = req.body;
   if (!partnerId || !['mohamed', 'tarek'].includes(partnerId)) {
     return res.status(400).json({
@@ -102,9 +97,10 @@ app.post('/api/auth/token', async (req, res) => {
     });
   }
 
+  const secrets = SecretManagerService.getSecrets();
   const expectedSecret = partnerId === 'mohamed' ? 
-    (process.env.MOHAMED_PIN || '1995') : 
-    (process.env.TAREK_PIN || '2024');
+    (secrets.mohamedPin || process.env.MOHAMED_PIN || '1995') : 
+    (secrets.tarekPin || process.env.TAREK_PIN || '2024');
 
   let verified = false;
 
@@ -155,7 +151,7 @@ app.post('/api/auth/token', async (req, res) => {
       });
     }
   } 
-  // 2. التحقق الصارم من رمز PIN / كلمة السر (إلغاء أي مسارات تجاوز أو كلمات مرور افتراضية موثوقة)
+  // 2. التحقق الصارم من رمز PIN / كلمة السر عبر المقارنة الثابتة زمنياً ودعم التجزئة المملحة
   else {
     if (!credentialSecret || typeof credentialSecret !== 'string' || !credentialSecret.trim()) {
       AuditLogger.log({
@@ -172,7 +168,8 @@ app.post('/api/auth/token', async (req, res) => {
       });
     }
 
-    if (credentialSecret.trim() !== expectedSecret) {
+    const isMatch = SecretManagerService.verifyPin(credentialSecret, expectedSecret, partnerId);
+    if (!isMatch) {
       AuditLogger.log({
         partnerId,
         eventType: 'AUTH_FAILED',
@@ -222,15 +219,48 @@ app.post('/api/auth/token', async (req, res) => {
 });
 
 /**
- * 1. فحص صحة الخادم
+ * 1. فحص صحة الخادم وحيويته (Liveness Probe)
  */
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'healthy',
     service: 'TECHNOLOPIA Gemini Backend Agent',
     securityHardening: 'Phase 3.1 Active',
+    cloudStaging: 'Phase 6.1 Active',
     timestamp: new Date().toISOString()
   });
+});
+
+/**
+ * 1b. فحص جاهزية الخادم للبيئة السحابية (Readiness Probe)
+ */
+app.get('/api/health/ready', (req, res) => {
+  const secretsStatus = SecretManagerService.checkSecretsReadiness();
+  const rateLimiterStatus = checkRateLimiterStatus();
+  const isStateless = AuditLogger.isStatelessMode();
+
+  const isReady = secretsStatus.ready && rateLimiterStatus.status === 'active';
+
+  const responsePayload = {
+    status: isReady ? 'ready' : 'not_ready',
+    service: 'TECHNOLOPIA Cloud Run Staging Backend',
+    timestamp: new Date().toISOString(),
+    checks: {
+      secrets: secretsStatus,
+      rateLimiter: rateLimiterStatus,
+      statelessPersistence: {
+        active: isReady,
+        statelessMode: isStateless,
+        storeTarget: isStateless ? 'firestore_and_in_memory' : 'local_and_firestore'
+      }
+    }
+  };
+
+  if (!isReady) {
+    return res.status(503).json(responsePayload);
+  }
+
+  res.json(responsePayload);
 });
 
 /**
@@ -295,7 +325,7 @@ app.post('/api/gemini/chat', chatLimiter, requirePartnerAuth, async (req, res, n
 /**
  * 5. تنفيذ أداة محددة بشكل مباشر وموثق
  */
-app.post('/api/gemini/execute-tool', requirePartnerAuth, async (req, res, next) => {
+app.post('/api/gemini/execute-tool', mutationLimiter, requirePartnerAuth, async (req, res, next) => {
   try {
     const { toolName, args } = req.body;
     if (!toolName) {
@@ -351,7 +381,7 @@ app.get('/api/gemini/proposals', requirePartnerAuth, (req, res) => {
 /**
  * 9. اعتماد مقترح تحسين من قبل أحد الشريكين (Human Approval)
  */
-app.post('/api/gemini/approve-proposal', requirePartnerAuth, (req, res, next) => {
+app.post('/api/gemini/approve-proposal', mutationLimiter, requirePartnerAuth, (req, res, next) => {
   try {
     const { proposalId } = req.body;
     if (!proposalId) {
@@ -541,7 +571,7 @@ app.get('/api/crm/leads', requirePartnerAuth, (req, res) => {
 /**
  * 22. تسجيل عميل محتمل جديد (Lead Discovery)
  */
-app.post('/api/crm/leads', requirePartnerAuth, (req, res) => {
+app.post('/api/crm/leads', mutationLimiter, requirePartnerAuth, (req, res) => {
   try {
     const newLead = CrmLeadStore.createLead(req.body, req.partner);
     res.status(201).json({ success: true, lead: newLead });
@@ -576,7 +606,7 @@ app.get('/api/crm/leads/:id', requirePartnerAuth, (req, res) => {
 /**
  * 24. تحديث مرحلة العميل في دورة المبيعات مع السجل الزمني
  */
-app.put('/api/crm/leads/:id/stage', requirePartnerAuth, (req, res) => {
+app.put('/api/crm/leads/:id/stage', mutationLimiter, requirePartnerAuth, (req, res) => {
   try {
     const { stage, note } = req.body;
     const updated = CrmLeadStore.updateLeadStage(req.params.id, stage, note, req.partner);
@@ -593,7 +623,7 @@ app.put('/api/crm/leads/:id/stage', requirePartnerAuth, (req, res) => {
 /**
  * 25. إضافة ملاحظة للشريك في سجل متابعات العميل مع خيار الملاحظة الخاصة
  */
-app.post('/api/crm/leads/:id/notes', requirePartnerAuth, (req, res) => {
+app.post('/api/crm/leads/:id/notes', mutationLimiter, requirePartnerAuth, (req, res) => {
   try {
     const { note, isPrivate } = req.body;
     const updated = CrmLeadStore.addNote(req.params.id, note, req.partner, isPrivate);
@@ -721,9 +751,30 @@ const isMain = process.argv[1] && (
 );
 
 if (isMain && process.env.NODE_ENV !== 'test') {
-  app.listen(PORT, () => {
-    console.log(`[TECHNOLOPIA] Gemini Backend Agent (Security Hardened) running on http://localhost:${PORT}`);
+  const server = app.listen(PORT, HOST, () => {
+    console.log(`[TECHNOLOPIA] Gemini Backend Agent (Cloud Run Staging Ready) running on http://${HOST}:${PORT}`);
   });
+
+  const gracefulShutdown = (signal) => {
+    console.log(`[TECHNOLOPIA] Received ${signal}. Starting graceful shutdown...`);
+    server.close((err) => {
+      if (err) {
+        console.error('[TECHNOLOPIA] Error during graceful shutdown:', err);
+        process.exit(1);
+      }
+      console.log('[TECHNOLOPIA] Graceful shutdown completed.');
+      process.exit(0);
+    });
+
+    // حماية الخادم من التعليق: إغلاق قسري بعد 10 ثوانٍ كحد أقصى (Cloud Run SIGTERM handling)
+    setTimeout(() => {
+      console.error('[TECHNOLOPIA] Forcefully terminating after shutdown timeout');
+      process.exit(1);
+    }, 10000).unref();
+  };
+
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 }
 
 export default app;

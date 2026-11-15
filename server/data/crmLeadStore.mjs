@@ -29,6 +29,9 @@ export class CrmLeadStore {
     if (process.env.NODE_ENV === 'test' && !process.env.FORCE_CRM_DISK_SYNC) {
       return;
     }
+    if (process.env.STATELESS_MODE || process.env.K_SERVICE) {
+      return;
+    }
     try {
       const leads = FirestoreCrmRepository.getLeads();
       fs.writeFileSync(LEADS_FILE, JSON.stringify(leads, null, 2), 'utf8');
@@ -39,6 +42,9 @@ export class CrmLeadStore {
 
   static #syncDraftsJson() {
     if (process.env.NODE_ENV === 'test' && !process.env.FORCE_CRM_DISK_SYNC) {
+      return;
+    }
+    if (process.env.STATELESS_MODE || process.env.K_SERVICE) {
       return;
     }
     try {

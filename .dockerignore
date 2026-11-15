@@ -1,0 +1,38 @@
+# Dependencies & Build artifacts
+node_modules/
+dist/
+coverage/
+
+# Environment Variables & Secrets (CRITICAL FOR LEAST PRIVILEGE)
+.env
+.env.*
+*.local
+*.pem
+*.key
+*.cert
+*.crt
+*.pfx
+service-account*.json
+firebase-adminsdk*.json
+tecnolobia-*.json
+
+# Local persistence & test artifacts
+backups/
+tests/
+.system_generated/
+*.tmp
+*.tmp.*
+
+# Version control & IDE
+.git/
+.gitignore
+.github/
+.gemini/
+.vscode/
+.idea/
+
+# Logs & Debugging
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
