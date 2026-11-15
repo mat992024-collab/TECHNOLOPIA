@@ -86,6 +86,32 @@ service cloud.firestore {
       allow read, write: if isPartner();
     }
 
+    // CRM Leads & Opportunities with partner privacy isolation
+    match /tecnolobia_crm_leads/{leadId} {
+      // General leads are readable by all partners
+      // Private leads are only accessible by the assigned partner
+      allow read, write: if isPartner() && (
+        resource == null ||
+        resource.data.isPrivate != true ||
+        (isMohamed() && resource.data.assignedPartner == 'mohamed') ||
+        (isTarek() && resource.data.assignedPartner == 'tarek')
+      );
+      allow delete: if false; // حظر حذف العملاء لحماية سجلات الشركة
+    }
+
+    // AI Sales Drafts
+    match /tecnolobia_ai_sales_drafts/{draftId} {
+      allow read: if isPartner();
+      allow create: if isPartner();
+      // Modification only by the draft owner partner
+      allow update: if isPartner() && (
+        resource == null ||
+        (isMohamed() && resource.data.partnerId == 'mohamed') ||
+        (isTarek() && resource.data.partnerId == 'tarek')
+      );
+      allow delete: if false;
+    }
+
     // 7. Governance Decisions, Company Memories, and Meta
     match /tecnolobia_decisions/{id} {
       allow read, write: if isPartner();

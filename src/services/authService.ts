@@ -18,6 +18,7 @@ export interface AuthenticatedPartner {
   isAuthenticated: boolean;
   authMethod: 'firebase_auth' | 'session_token';
   lastLogin: string;
+  token?: string;
 }
 
 export const PARTNER_ACCOUNTS: Record<PartnerId, {
@@ -92,10 +93,17 @@ export class AuthService {
       return { success: false, error: 'شريك غير معرف بالنظام' };
     }
 
-    // التحقق المزدوج: تجربة Firebase Authentication أولاً
+    if (!credentialSecret || !credentialSecret.trim()) {
+      return { success: false, error: 'كلمة المرور أو رمز PIN مطلوب لتسجيل الدخول' };
+    }
+
+    const trimmedSecret = credentialSecret.trim();
+
+    // 1. التحقق عبر Firebase Authentication أولاً إذا كان مفعلاً
     if (auth) {
       try {
-        const userCredential = await signInWithEmailAndPassword(auth, partnerInfo.email, credentialSecret);
+        const userCredential = await signInWithEmailAndPassword(auth, partnerInfo.email, trimmedSecret);
+        const idToken = await userCredential.user.getIdToken();
         const authenticated: AuthenticatedPartner = {
           uid: userCredential.user.uid,
           email: userCredential.user.email || partnerInfo.email,
@@ -104,47 +112,54 @@ export class AuthService {
           roleTitle: partnerInfo.roleTitle,
           isAuthenticated: true,
           authMethod: 'firebase_auth',
-          lastLogin: new Date().toISOString()
+          lastLogin: new Date().toISOString(),
+          token: idToken
         };
         this.setSession(authenticated);
         return { success: true };
       } catch (fbErr: any) {
-        // إذا كان خطأ شبكة أو لم يتم تفعيل الحساب بعد في Console، ندعم التحقق عبر PIN المؤسسين المعتمد
-        if (credentialSecret === '2026' || credentialSecret.length >= 4) {
-          const authenticated: AuthenticatedPartner = {
-            uid: partnerInfo.defaultUid,
-            email: partnerInfo.email,
-            partnerId,
-            displayName: partnerInfo.displayName,
-            roleTitle: partnerInfo.roleTitle,
-            isAuthenticated: true,
-            authMethod: 'session_token',
-            lastLogin: new Date().toISOString()
-          };
-          this.setSession(authenticated);
-          return { success: true };
+        // إذا كان خطأ كلمة سر خاطئة صريح من Firebase، نمنع الدخول فوراً
+        if (fbErr.code === 'auth/wrong-password' || fbErr.code === 'auth/invalid-credential') {
+          return { success: false, error: 'كلمة المرور غير صحيحة لحساب الشريك في Firebase.' };
         }
-        return { success: false, error: 'بيانات الدخول أو كلمة السر غير صحيحة' };
       }
     }
 
-    // التحقق الاحتياطي المشفر
-    if (credentialSecret === '2026' || credentialSecret.length >= 4) {
-      const authenticated: AuthenticatedPartner = {
-        uid: partnerInfo.defaultUid,
-        email: partnerInfo.email,
-        partnerId,
-        displayName: partnerInfo.displayName,
-        roleTitle: partnerInfo.roleTitle,
-        isAuthenticated: true,
-        authMethod: 'session_token',
-        lastLogin: new Date().toISOString()
-      };
-      this.setSession(authenticated);
-      return { success: true };
-    }
+    // 2. التحقق من الخادم الآمن (Backend Verification) دون أي مسارات تخطي محلية
+    try {
+      const res = await fetch('/api/auth/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          partnerId,
+          credentialSecret: trimmedSecret
+        })
+      });
 
-    return { success: false, error: 'فشل التحقق من هوية الشريك' };
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success && data.token) {
+        const authenticated: AuthenticatedPartner = {
+          uid: partnerInfo.defaultUid,
+          email: partnerInfo.email,
+          partnerId,
+          displayName: partnerInfo.displayName,
+          roleTitle: partnerInfo.roleTitle,
+          isAuthenticated: true,
+          authMethod: 'session_token',
+          lastLogin: new Date().toISOString(),
+          token: data.token
+        };
+        this.setSession(authenticated);
+        return { success: true };
+      }
+
+      return { 
+        success: false, 
+        error: data.error || 'رمز أمان PIN أو كلمة المرور غير صحيحة' 
+      };
+    } catch (netErr) {
+      return { success: false, error: 'تعذر الاتصال بخادم المصادقة الآمن للتأكد من الهوية' };
+    }
   }
 
   /**
@@ -181,27 +196,14 @@ export class AuthService {
         const idToken = await auth.currentUser.getIdToken();
         if (idToken) return idToken;
       } catch (e) {
-        // fallback to server token
+        // fallback to session token
       }
     }
 
-    // 2. جلب رمز الجلسة الموثق رسمياً من الخادم الآمن
-    try {
-      const res = await fetch('/api/auth/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          partnerId,
-          credentialSecret: 'verified_partner_session'
-        })
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        if (data.token) return data.token;
-      }
-    } catch (e) {
-      // offline or server not ready
+    // 2. استخدام التوكن الموثق المحفوظ في الجلسة النشطة
+    const session = this.getCurrentPartner();
+    if (session && session.partnerId === partnerId && session.token) {
+      return session.token;
     }
 
     return '';

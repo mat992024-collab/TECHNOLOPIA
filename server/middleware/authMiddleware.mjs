@@ -1,10 +1,27 @@
 // server/middleware/authMiddleware.mjs
 import jwt from 'jsonwebtoken';
+import admin from 'firebase-admin';
+import { getAuth } from 'firebase-admin/auth';
 import { AuditLogger } from '../services/auditLogger.mjs';
 
 // مفتاح توقيع داخلي آمن للسيرفر (محمي من العميل)
 const SERVER_AUTH_SECRET = process.env.JWT_SECRET || 'TECNOLOBIA_EXECUTIVE_SECURE_KEY_2026_COFOUNDERS';
 const FIREBASE_PROJECT_ID = 'modeer-27c2d';
+
+// تهيئة Firebase Admin SDK الآمن للتحقق التشفيري من التوكنات
+let firebaseAdminAuth = null;
+try {
+  const adminApp = admin.getApps().length > 0 ? 
+    admin.getApp() : 
+    admin.initializeApp({ projectId: FIREBASE_PROJECT_ID });
+  firebaseAdminAuth = getAuth(adminApp);
+} catch (e) {
+  console.warn('Firebase Admin initialization notice:', e.message);
+}
+
+export function getFirebaseAdminAuth() {
+  return firebaseAdminAuth;
+}
 
 /**
  * الربط الموثوق والصارم في الخادم بين الحسابات الحقيقية وهوية الشريكين
@@ -53,11 +70,18 @@ export function issuePartnerToken(partnerId, options = {}) {
 }
 
 /**
- * فك تشفير والتحقق من التوكن (JWT / Firebase ID Token)
+ * التحقق التشفيري الصارم من التوكن (JWT / Firebase ID Token)
+ * يمنع تماماً استخدام jwt.decode ويشترط التوقيع الرقمي الموثوق
  */
-function verifyToken(token) {
+export async function verifyToken(token) {
+  if (!token || typeof token !== 'string') {
+    const invErr = new Error('INVALID_TOKEN: رمز الدخول غير موجود أو غير صالح.');
+    invErr.code = 'INVALID_TOKEN';
+    throw invErr;
+  }
+
+  // 1. تجربة فحص التوكن الموقع داخلياً بواسطة مفتاح الخادم (HMAC-SHA256)
   try {
-    // 1. تجربة فحص التوكن الموقع داخلياً بواسطة مفتاح الخادم
     return jwt.verify(token, SERVER_AUTH_SECRET);
   } catch (err) {
     if (err.name === 'TokenExpiredError') {
@@ -65,33 +89,34 @@ function verifyToken(token) {
       expErr.code = 'TOKEN_EXPIRED';
       throw expErr;
     }
-
-    // 2. إذا كان التوكن صادراً مباشرة من Firebase Auth (Google Public Issuer)
-    try {
-      const decoded = jwt.decode(token);
-      if (decoded && (decoded.aud === FIREBASE_PROJECT_ID || decoded.iss?.includes('securetoken.google.com'))) {
-        // التحقق من الصلاحية الزمنية
-        const now = Math.floor(Date.now() / 1000);
-        if (decoded.exp && decoded.exp < now) {
-          const expErr = new Error('TOKEN_EXPIRED: انتهت صلاحية رمز الدخول.');
-          expErr.code = 'TOKEN_EXPIRED';
-          throw expErr;
-        }
-        return decoded;
-      }
-    } catch (_) {}
-
-    const invErr = new Error('INVALID_TOKEN: رمز الدخول غير صالح أو تم التلاعب به.');
-    invErr.code = 'INVALID_TOKEN';
-    throw invErr;
   }
+
+  // 2. إذا كان التوكن صادراً من Firebase Auth (Google Public Issuer)
+  // التحقق التشفيري الصارم من التوقيع الرقمي عبر Firebase Admin SDK
+  if (firebaseAdminAuth) {
+    try {
+      const decoded = await firebaseAdminAuth.verifyIdToken(token);
+      return decoded;
+    } catch (fbErr) {
+      if (fbErr.code === 'auth/id-token-expired') {
+        const expErr = new Error('TOKEN_EXPIRED: انتهت صلاحية رمز الدخول.');
+        expErr.code = 'TOKEN_EXPIRED';
+        throw expErr;
+      }
+    }
+  }
+
+  // رفض قاطع لأي توكن غير موقع تشفيرياً أو تم تزويره (Zero Unverified Decode)
+  const invErr = new Error('INVALID_TOKEN: رمز الدخول غير صالح أو تم التلاعب به أو فشل التحقق من توقيعه التشفيري.');
+  invErr.code = 'INVALID_TOKEN';
+  throw invErr;
 }
 
 /**
  * وسيط التحقق الأمني الصارم من هوية الشريك (Strict ID Token Verification)
  * لا يعتمد على ترويسة x-partner-id وحدها إطلاقاً ويمنع أي محاولة انتحال
  */
-export function requirePartnerAuth(req, res, next) {
+export async function requirePartnerAuth(req, res, next) {
   const authHeader = req.headers['authorization'];
   const claimedPartnerId = req.headers['x-partner-id'];
 
@@ -115,17 +140,28 @@ export function requirePartnerAuth(req, res, next) {
   const token = authHeader.split('Bearer ')[1]?.trim();
 
   try {
-    // 2. فحص والتحقق التشفيري من التوكن
-    const decoded = verifyToken(token);
-    const userEmail = decoded.email?.toLowerCase();
+    // 2. فحص والتحقق التشفيري الصارم من التوكن
+    const decoded = await verifyToken(token);
+    const userEmail = (decoded.email || '').toLowerCase();
 
     // 3. مطابقة البريد الإلكتروني بالشريك المصرح به من إعدادات الخادم الموثوقة
-    const verifiedPartner = TRUSTED_PARTNERS[userEmail];
+    let verifiedPartner = TRUSTED_PARTNERS[userEmail];
+    if (!verifiedPartner && decoded.sub) {
+      verifiedPartner = Object.values(TRUSTED_PARTNERS).find(p => p.allowedUids.includes(decoded.sub));
+    }
+    if (!verifiedPartner && decoded.uid) {
+      verifiedPartner = Object.values(TRUSTED_PARTNERS).find(p => p.allowedUids.includes(decoded.uid));
+    }
+    if (!verifiedPartner && decoded.partnerId) {
+      const email = decoded.partnerId === 'mohamed' ? 'mohamed@tecnolobia.com' : 'tarek@tecnolobia.com';
+      verifiedPartner = TRUSTED_PARTNERS[email];
+    }
+
     if (!verifiedPartner) {
       AuditLogger.log({
         partnerId: 'unauthorized_user',
         eventType: 'AUTH_REJECTED',
-        inputPayload: { email: userEmail, sub: decoded.sub },
+        inputPayload: { email: userEmail, sub: decoded.sub || decoded.uid },
         status: 'BLOCKED',
         error: 'المستخدم موثق لكنه ليس من الشريكين المؤسسين لـ TECHNOLOPIA'
       });
@@ -162,14 +198,15 @@ export function requirePartnerAuth(req, res, next) {
     }
 
     // 5. التحقق من تطابق UID للشريك مع السجل الموثوق
-    if (decoded.sub && !verifiedPartner.allowedUids.includes(decoded.sub)) {
+    const userUid = decoded.sub || decoded.uid;
+    if (userUid && !verifiedPartner.allowedUids.includes(userUid)) {
       // فحص ما إذا كان الـ UID يعود للشريك الآخر (محاولة تزوير UID)
       const otherPartner = Object.values(TRUSTED_PARTNERS).find(p => p.partnerId !== verifiedPartner.partnerId);
-      if (otherPartner && otherPartner.allowedUids.includes(decoded.sub)) {
+      if (otherPartner && otherPartner.allowedUids.includes(userUid)) {
         AuditLogger.log({
           partnerId: verifiedPartner.partnerId,
           eventType: 'SECURITY_ALERT',
-          inputPayload: { forgedUid: decoded.sub, email: userEmail, path: req.path },
+          inputPayload: { forgedUid: userUid, email: userEmail, path: req.path },
           status: 'BLOCKED',
           error: `محاولة انتحال UID: البريد الإلكتروني للشريك (${verifiedPartner.partnerId}) مع UID للشريك الآخر (${otherPartner.partnerId})`
         });

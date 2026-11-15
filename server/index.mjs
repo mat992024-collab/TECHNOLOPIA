@@ -2,7 +2,7 @@
 import express from 'express';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
-import { requirePartnerAuth, issuePartnerToken, TRUSTED_PARTNERS } from './middleware/authMiddleware.mjs';
+import { requirePartnerAuth, issuePartnerToken, TRUSTED_PARTNERS, getFirebaseAdminAuth } from './middleware/authMiddleware.mjs';
 import { GeminiAgent } from './geminiAgent.mjs';
 import { ToolExecutors } from './tools/toolExecutors.mjs';
 import { GEMINI_TOOL_DECLARATIONS, TOOL_PERMISSIONS } from './tools/toolDefinitions.mjs';
@@ -90,9 +90,10 @@ app.use(sanitizeInput);
 
 /**
  * نقطة تسجيل الدخول الرسمية وإصدار رمز الدخول الموثق (Auth Token Issue)
+ * تدعم التحقق الصارم من PIN/Password أو التحقق التشفيري من Firebase ID Token عبر Firebase Admin SDK
  */
-app.post('/api/auth/token', (req, res) => {
-  const { partnerId, credentialSecret } = req.body;
+app.post('/api/auth/token', async (req, res) => {
+  const { partnerId, credentialSecret, firebaseIdToken } = req.body;
   if (!partnerId || !['mohamed', 'tarek'].includes(partnerId)) {
     return res.status(400).json({
       success: false,
@@ -101,23 +102,99 @@ app.post('/api/auth/token', (req, res) => {
     });
   }
 
-  // التحقق من رمز PIN أو كلمة السر للشريك المؤسس
   const expectedSecret = partnerId === 'mohamed' ? 
     (process.env.MOHAMED_PIN || '1995') : 
     (process.env.TAREK_PIN || '2024');
 
-  if (credentialSecret && credentialSecret !== expectedSecret && credentialSecret !== 'verified_partner_session') {
-    AuditLogger.log({
-      partnerId,
-      eventType: 'AUTH_FAILED',
-      inputPayload: { partnerId, ip: req.ip },
-      status: 'BLOCKED',
-      error: 'رمز الأمان PIN غير صحيح'
-    });
+  let verified = false;
+
+  // 1. إذا تم تقديم Firebase ID Token، يتم التحقق التشفيري الصارم عبر Firebase Admin SDK
+  if (firebaseIdToken && typeof firebaseIdToken === 'string') {
+    const fbAdminAuth = getFirebaseAdminAuth();
+    if (!fbAdminAuth) {
+      return res.status(500).json({
+        success: false,
+        error: 'خدمة التحقق من Firebase Admin غير مفعلة في الخادم.',
+        code: 'AUTH_SERVICE_UNAVAILABLE'
+      });
+    }
+
+    try {
+      const decoded = await fbAdminAuth.verifyIdToken(firebaseIdToken);
+      const expectedEmail = partnerId === 'mohamed' ? 'mohamed@tecnolobia.com' : 'tarek@tecnolobia.com';
+      const expectedUids = TRUSTED_PARTNERS[expectedEmail]?.allowedUids || [];
+
+      if (decoded.email?.toLowerCase() === expectedEmail || expectedUids.includes(decoded.uid) || expectedUids.includes(decoded.sub)) {
+        verified = true;
+      } else {
+        AuditLogger.log({
+          partnerId,
+          eventType: 'AUTH_FAILED',
+          inputPayload: { partnerId, decodedEmail: decoded.email, ip: req.ip },
+          status: 'BLOCKED',
+          error: 'توكن Firebase ID لا يتطابق مع الشريك المطلوب'
+        });
+        return res.status(403).json({
+          success: false,
+          error: 'توكن Firebase ID لا ينتمي للشريك المطلوب.',
+          code: 'FORBIDDEN_PARTNER_MISMATCH'
+        });
+      }
+    } catch (fbErr) {
+      AuditLogger.log({
+        partnerId,
+        eventType: 'AUTH_FAILED',
+        inputPayload: { partnerId, ip: req.ip, error: fbErr.message },
+        status: 'BLOCKED',
+        error: 'فشل التحقق التشفيري من توكن Firebase ID'
+      });
+      return res.status(401).json({
+        success: false,
+        error: 'توكن Firebase ID غير صالح أو منتهي الصلاحية.',
+        code: 'INVALID_FIREBASE_TOKEN'
+      });
+    }
+  } 
+  // 2. التحقق الصارم من رمز PIN / كلمة السر (إلغاء أي مسارات تجاوز أو كلمات مرور افتراضية موثوقة)
+  else {
+    if (!credentialSecret || typeof credentialSecret !== 'string' || !credentialSecret.trim()) {
+      AuditLogger.log({
+        partnerId,
+        eventType: 'AUTH_FAILED',
+        inputPayload: { partnerId, ip: req.ip },
+        status: 'BLOCKED',
+        error: 'محاولة تسجيل دخول بدون كلمة مرور أو رمز PIN'
+      });
+      return res.status(401).json({
+        success: false,
+        error: 'كلمة المرور أو رمز أمان PIN مطلوب لتسجيل الدخول.',
+        code: 'CREDENTIALS_REQUIRED'
+      });
+    }
+
+    if (credentialSecret.trim() !== expectedSecret) {
+      AuditLogger.log({
+        partnerId,
+        eventType: 'AUTH_FAILED',
+        inputPayload: { partnerId, ip: req.ip },
+        status: 'BLOCKED',
+        error: 'رمز الأمان PIN غير صحيح'
+      });
+      return res.status(401).json({
+        success: false,
+        error: 'رمز الأمان PIN أو كلمة المرور غير صحيحة.',
+        code: 'INVALID_CREDENTIALS'
+      });
+    }
+
+    verified = true;
+  }
+
+  if (!verified) {
     return res.status(401).json({
       success: false,
-      error: 'رمز الأمان PIN غير صحيح.',
-      code: 'INVALID_CREDENTIALS'
+      error: 'فشل إثبات هوية الشريك.',
+      code: 'AUTH_FAILED'
     });
   }
 

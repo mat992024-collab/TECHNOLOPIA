@@ -60,7 +60,7 @@ test.after(async () => {
 // ============================================================================
 // 1. [LIVE API TEST] توليد محتوى حقيقي باللهجة المصرية التنفيذية
 // ============================================================================
-test('1. [LIVE API TEST] Live Gemini Generation: Generates authentic executive Egyptian Arabic reply', { timeout: 30000 }, async () => {
+test('1. [LIVE API TEST] Live Gemini Generation: Generates authentic executive Egyptian Arabic reply', { timeout: 60000 }, async () => {
   const apiKey = GeminiAgent.getApiKey();
   assert.ok(apiKey, 'Live API Key must be configured in environment');
 
