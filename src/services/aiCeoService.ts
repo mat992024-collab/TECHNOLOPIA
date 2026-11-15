@@ -101,6 +101,16 @@ export class AiCeoService {
           mode,
           toolsUsed: data.toolsUsed
         };
+      } else {
+        const errorData = await res.json().catch(() => ({}));
+        return {
+          id: `ai-msg-${Date.now()}`,
+          sender: 'ai_ceo',
+          text: errorData.reply || errorData.error || `تعذر الحصول على رد من الخادم (رمز الحالة: ${res.status}).`,
+          timestamp: new Date().toISOString(),
+          mode,
+          toolsUsed: errorData.toolsUsed
+        };
       }
     } catch (err) {
       console.warn('Backend agent unavailable, falling back to local executive brain:', err);
@@ -108,6 +118,44 @@ export class AiCeoService {
 
     // 2. المخ التنفيذي المحلي الفوري كبديل سريع في حال عدم تشغيل الخادم
     return this.generateExecutiveResponse(userMessage, partnerName, otherPartnerName, mode, currentPartner);
+  }
+
+  /**
+   * اعتماد وتنفيذ إجراء إداري حساس (Human-in-the-Loop Confirmation)
+   * يرسل توثيق الشريك الصريح لخادم Backend لتنفيذ الكتابة في مستودع CRM
+   */
+  static async confirmAction(
+    toolName: string,
+    args: any,
+    currentPartner: PartnerId
+  ): Promise<{ success: boolean; data?: any; error?: string }> {
+    try {
+      const bearerToken = await AuthService.getAuthBearerToken(currentPartner);
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'x-partner-id': currentPartner
+      };
+      if (bearerToken) {
+        headers['Authorization'] = `Bearer ${bearerToken}`;
+      }
+
+      const res = await fetch('/api/gemini/execute-tool', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          toolName,
+          args: {
+            ...args,
+            isConfirmedByPartner: true
+          }
+        })
+      });
+
+      const json = await res.json();
+      return json;
+    } catch (err: any) {
+      return { success: false, error: err.message || 'فشل الاتصال بالخادم لتأكيد الإجراء' };
+    }
   }
 
   /**

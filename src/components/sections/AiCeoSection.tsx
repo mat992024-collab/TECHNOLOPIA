@@ -100,6 +100,45 @@ export const AiCeoSection: React.FC<AiCeoSectionProps> = ({
     scrollToBottom();
   }, [messages, isLoading]);
 
+  const [confirmingTool, setConfirmingTool] = useState<string | null>(null);
+
+  const handleConfirmCrmTool = async (msgId: string, toolName: string, args: any) => {
+    setConfirmingTool(`${msgId}-${toolName}`);
+    try {
+      const res = await AiCeoService.confirmAction(toolName, args, currentPartner);
+      if (res.success || (res as any).action === 'EXECUTED_SUCCESSFULLY' || (res as any).status === 'created' || (res as any).status === 'updated') {
+        setMessages(prev => prev.map(m => {
+          if (m.id === msgId && m.toolsUsed) {
+            return {
+              ...m,
+              toolsUsed: m.toolsUsed.map(t => {
+                if (t.tool === toolName) {
+                  return {
+                    ...t,
+                    result: {
+                      ...t.result,
+                      action: 'EXECUTED_SUCCESSFULLY',
+                      status: 'confirmed_and_executed',
+                      message: (res as any).message || (res as any).data?.message || 'تم الاعتماد والتنفيذ بنجاح في قاعدة البيانات ✓'
+                    }
+                  };
+                }
+                return t;
+              })
+            };
+          }
+          return m;
+        }));
+      } else {
+        alert(res.error || 'تعذر تأكيد العملية');
+      }
+    } catch (err: any) {
+      alert(err.message || 'فشل تأكيد العملية');
+    } finally {
+      setConfirmingTool(null);
+    }
+  };
+
   const handleSendMessage = async (queryText?: string) => {
     const textToSend = queryText || inputQuery;
     if (!textToSend.trim() || isLoading) return;
@@ -113,12 +152,13 @@ export const AiCeoSection: React.FC<AiCeoSectionProps> = ({
       mode
     };
 
-    setMessages(prev => [...prev, userMsg]);
+    const nextHistory = [...messages, userMsg];
+    setMessages(nextHistory);
     setInputQuery('');
     setIsLoading(true);
 
     try {
-      const reply = await AiCeoService.consultCeo(textToSend, currentPartner, mode);
+      const reply = await AiCeoService.consultCeo(textToSend, currentPartner, mode, nextHistory);
       setMessages(prev => [...prev, reply]);
     } catch (err) {
       console.error(err);
@@ -143,10 +183,11 @@ export const AiCeoSection: React.FC<AiCeoSectionProps> = ({
   };
 
   const quickPrompts = [
-    'مراجعة مشروعاتنا السابقة وتطويرها كـ SaaS عالمي',
-    'خطة لاصطياد 10 مطاعم في سموحة وميامي هذا الأسبوع',
-    'استراتيجية المنافسة العالمية والتوسع في السوق الخليجي',
-    'رسالة بيع قوية لنظام إدارة المطابع ووكالات الدعاية',
+    'اعرضلي تقرير المبيعات الحالي.',
+    'مين العملاء اللي محتاجين متابعة؟',
+    'احكيلي تفاصيل مطعم البرنس.',
+    'كام الفلوس اللي حصلناها فعلياً من المبيعات؟',
+    'سجل عميل جديد اسمه كافتيريا الأندلس ورقم 01234567890 وقيمة 6000 جنيه',
     'احسبلي صافي ربح وتقسيم الأرباع لصفقة بقيمة 28,000 ج.م'
   ];
 
@@ -249,20 +290,88 @@ export const AiCeoSection: React.FC<AiCeoSectionProps> = ({
 
                 <div className="whitespace-pre-wrap">{msg.text}</div>
 
-                {/* استعراض الأدوات المستدعاة حقيقياً */}
+                {/* استعراض الأدوات المستدعاة حقيقياً وبطاقات التأكيد التنفيذية */}
                 {msg.toolsUsed && msg.toolsUsed.length > 0 && (
-                  <div className="mt-2.5 p-2.5 bg-slate-950/90 rounded-xl border border-indigo-500/30 text-[11px] text-slate-300 space-y-1.5">
-                    <div className="flex items-center gap-1.5 font-bold text-indigo-400">
-                      <Cpu className="w-3.5 h-3.5" />
-                      <span>الأدوات التنفيذية المستدعاة (Function Calling):</span>
+                  <div className="mt-2.5 space-y-2">
+                    <div className="p-2.5 bg-slate-950/90 rounded-xl border border-indigo-500/30 text-[11px] text-slate-300 space-y-1.5">
+                      <div className="flex items-center gap-1.5 font-bold text-indigo-400">
+                        <Cpu className="w-3.5 h-3.5" />
+                        <span>الأدوات التنفيذية المستدعاة (Live Function Calling):</span>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {msg.toolsUsed.map((t, idx) => (
+                          <span key={idx} className="inline-flex items-center gap-1 px-2 py-0.5 bg-indigo-950/80 text-indigo-300 rounded font-mono text-[10px] border border-indigo-800/40">
+                            ⚙️ {t.tool}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      {msg.toolsUsed.map((t, idx) => (
-                        <span key={idx} className="inline-flex items-center gap-1 px-2 py-0.5 bg-indigo-950/80 text-indigo-300 rounded font-mono text-[10px] border border-indigo-800/40">
-                          ⚙️ {t.tool}
-                        </span>
-                      ))}
-                    </div>
+
+                    {/* بطاقات الاعتماد الصريح للعمليات المغيرة للبيانات (Human-in-the-Loop) */}
+                    {msg.toolsUsed.map((t, idx) => {
+                      const isPending = t.result?.action === 'SUGGESTION_ONLY' || t.result?.status === 'pending_partner_confirmation';
+                      const isExecuted = t.result?.action === 'EXECUTED_SUCCESSFULLY' || t.result?.status === 'confirmed_and_executed';
+
+                      if (!isPending && !isExecuted) return null;
+
+                      return (
+                        <div key={`tool-card-${idx}`} className={`p-3.5 bg-slate-950 rounded-xl border ${isExecuted ? 'border-emerald-500/40' : 'border-amber-500/50'} space-y-2`}>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <ShieldCheck className={`w-4 h-4 ${isExecuted ? 'text-emerald-400' : 'text-amber-400'}`} />
+                              <span className="font-bold text-xs text-white">
+                                {isExecuted ? 'تم اعتماد وتنفيذ العملية بنجاح' : 'صمام أمان بشري (Human-in-the-Loop Approval)'}
+                              </span>
+                            </div>
+                            <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold ${isExecuted ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}`}>
+                              {t.tool}
+                            </span>
+                          </div>
+
+                          <p className="text-xs text-slate-300 leading-relaxed">
+                            {t.result?.message}
+                          </p>
+
+                          {/* تفاصيل البيانات المقترحة */}
+                          {t.result?.proposedData && (
+                            <div className="grid grid-cols-2 gap-2 p-2 bg-slate-900/80 rounded-lg text-[11px] text-slate-300 border border-slate-800">
+                              <div><span className="text-slate-400">المنشأة:</span> <strong className="text-white">{t.result.proposedData.businessName}</strong></div>
+                              <div><span className="text-slate-400">الهاتف:</span> <strong className="text-white">{t.result.proposedData.phone}</strong></div>
+                              <div><span className="text-slate-400">الاحتياج:</span> <strong className="text-white">{t.result.proposedData.softwareNeed || 'برمجيات'}</strong></div>
+                              <div><span className="text-slate-400">القيمة التقديرية:</span> <strong className="text-amber-400">{t.result.proposedData.dealValueEstimate ? `${t.result.proposedData.dealValueEstimate} ج.م` : 'غير محدد'}</strong></div>
+                            </div>
+                          )}
+
+                          {t.result?.proposedStage && (
+                            <div className="p-2 bg-slate-900/80 rounded-lg text-[11px] text-slate-300 border border-slate-800">
+                              <span>ترقية العميل إلى مرحلة: </span>
+                              <strong className="text-indigo-400 font-mono text-xs">{t.result.proposedStage}</strong>
+                            </div>
+                          )}
+
+                          {isExecuted ? (
+                            <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-bold pt-1">
+                              <CheckCircle2 className="w-4 h-4" />
+                              <span>تم توثيق العملية وحفظها في مستودع Firestore الموحد ✓</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-between pt-2">
+                              <button
+                                disabled={confirmingTool === `${msg.id}-${t.tool}`}
+                                onClick={() => handleConfirmCrmTool(msg.id, t.tool, t.args)}
+                                className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold shadow-md transition-all active:scale-95 disabled:opacity-50 flex items-center gap-1.5"
+                              >
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                <span>{confirmingTool === `${msg.id}-${t.tool}` ? 'جاري الاعتماد...' : 'اعتماد وتنفيذ العملية كشريك رسمي'}</span>
+                              </button>
+                              <span className="text-[10px] text-slate-400 font-mono">
+                                يتطلب توثيق الشريك (isConfirmedByPartner)
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
 

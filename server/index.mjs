@@ -283,6 +283,9 @@ app.post('/api/gemini/chat', chatLimiter, requirePartnerAuth, async (req, res, n
     }
 
     const result = await GeminiAgent.chat(message.trim(), req.partner, conversationHistory || []);
+    if (result && result.statusCode) {
+      return res.status(result.statusCode).json(result);
+    }
     res.json(result);
   } catch (err) {
     next(err);
