@@ -81,7 +81,7 @@ export class GeminiAgent {
    * سياسة إعادة المحاولة باستخدام التراجع الأسي (Exponential Backoff with Jitter)
    */
   static async callWithRetry(fn, options = {}) {
-    const maxRetries = options.maxRetries ?? 2;
+    const maxRetries = options.maxRetries ?? (process.env.NODE_ENV === 'test' ? 1 : 2);
     const baseDelay = options.baseDelay ?? 1000;
     const backoffFactor = options.backoffFactor ?? 2;
     const partnerId = options.partnerId || 'system';
@@ -137,7 +137,7 @@ export class GeminiAgent {
     if (!apiKey) return null;
     return new GoogleGenAI({
       apiKey,
-      httpOptions: { apiVersion: 'v1beta' }
+      httpOptions: { apiVersion: 'v1beta', timeout: 25000 }
     });
   }
 

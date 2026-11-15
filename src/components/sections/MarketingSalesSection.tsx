@@ -313,6 +313,16 @@ _م. محمد البحر & م. طارق حافظ_`;
           </div>
         </div>
 
+        {/* تنبيه التمييز المؤسسي بين نماذج المحاكاة والعملاء الحقيقيين */}
+        <div className="bg-amber-500/10 border border-amber-500/20 text-amber-300 p-3 rounded-2xl flex items-center justify-between text-xs">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+            <span>
+              <strong>نماذج تدريبية ومحاكاة استرشادية:</strong> النماذج المعروضة في هذا القسم مخصصة لتجهيز الحملات وصياغة الرسائل. لإدارة ومتابعة العملاء الفعليين المعتمدين، يرجى الانتقال إلى <strong>قسم إدارة علاقات العملاء (CRM Engine)</strong>.
+            </span>
+          </div>
+        </div>
+
         {/* التبويبات التفاعلية الثلاثة */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-slate-800">
           <button

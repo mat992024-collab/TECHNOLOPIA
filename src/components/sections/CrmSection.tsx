@@ -281,7 +281,7 @@ export const CrmSection: React.FC<CrmSectionProps> = ({
               <div className="flex items-center gap-2">
                 <h1 className="text-xl sm:text-2xl font-black text-white">إدارة علاقات العملاء وفرص النمو (CRM Engine)</h1>
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                  Phase 5.0 Simulation-First
+                  Phase 6.2 Unified Firestore CRM
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-1">

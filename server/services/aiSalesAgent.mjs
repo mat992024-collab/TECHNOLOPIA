@@ -14,6 +14,10 @@ export class AiSalesAgent {
   /**
    * توليد استراتيجية المبيعات والرسالة التسويقية وعرض السعر الاسترشادي
    */
+  static async generateStrategy(lead, partner, customPitchAngle) {
+    return this.generateLeadStrategy(lead, partner);
+  }
+
   static async generateLeadStrategy(lead, partner) {
     const { id, businessName, industry, softwareNeed, dealValueEstimate, contactInfo, notes } = lead;
 

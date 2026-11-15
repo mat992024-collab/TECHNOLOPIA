@@ -1,7 +1,7 @@
 // server/tools/toolDefinitions.mjs
 
 /**
- * مصفوفة الصلاحيات ومستويات الأمان لكل أداة
+ * مصفوفة الصلاحيات ومستويات الأمان لكل أداة في TECHNOLOPIA
  */
 export const TOOL_PERMISSIONS = {
   get_company_overview: {
@@ -29,10 +29,35 @@ export const TOOL_PERMISSIONS = {
     description: 'قراءة الإيرادات والمصروفات والتقسيم الرباعي 25%',
     requiresApproval: false
   },
+  get_crm_pipeline_summary: {
+    level: 'READ_ONLY',
+    description: 'قراءة ملخص ومؤشرات مسار المبيعات والعملاء (قيمة المسار، المبالغ المحصلة، والتحويل)',
+    requiresApproval: false
+  },
   get_crm_leads: {
     level: 'READ_ONLY',
-    description: 'قراءة قائمة العملاء الحقيقيين ومسار المبيعات',
+    description: 'قراءة قائمة العملاء الحقيقيين من مستودع Firestore الموحد مع الفلترة وعزل البيانات',
     requiresApproval: false
+  },
+  get_crm_lead_details: {
+    level: 'READ_ONLY',
+    description: 'قراءة التفاصيل الكاملة لعميل محدد وسجل انتقالاته وملاحظاته من CRM',
+    requiresApproval: false
+  },
+  register_crm_lead: {
+    level: 'WRITE_AUTHORIZED',
+    description: 'تسجيل عميل محتمل جديد في CRM (يتطلب اعتماد صريح من الشريك للتنفيذ)',
+    requiresApproval: true
+  },
+  update_crm_lead_stage: {
+    level: 'WRITE_AUTHORIZED',
+    description: 'تحديث مرحلة عميل في مسار المبيعات (يتطلب اعتماد صريح من الشريك للتنفيذ)',
+    requiresApproval: true
+  },
+  draft_sales_proposal: {
+    level: 'DRAFT_PROPOSAL',
+    description: 'صياغة مسودة عرض سعر واستراتيجية تفاوض غير ملزمة لعميل محدد تتطلب موافقة الشريكين',
+    requiresApproval: true
   },
   get_audit_logs: {
     level: 'READ_ONLY',
@@ -99,13 +124,13 @@ export const GEMINI_TOOL_DECLARATIONS = [
   },
   {
     name: 'get_project_details',
-    description: 'قراءة التفاصيل العميقة لمشروع محدد تشمل متطلباته، مراحله، والمهام المرتبطة به.',
+    description: 'قراءة التفاصيل الدقيقة لمشروع برمجي محدد مع المهام المرتبطة به وسابقة الأعمال.',
     parameters: {
       type: 'OBJECT',
       properties: {
         projectId: {
           type: 'STRING',
-          description: 'معرف المشروع المطلوب قراءته (مثال: proj-1 أو proj-7)'
+          description: 'معرف المشروع المراد قراءته (مثال: proj-1 أو proj-8)'
         }
       },
       required: ['projectId']
@@ -113,19 +138,19 @@ export const GEMINI_TOOL_DECLARATIONS = [
   },
   {
     name: 'get_tasks',
-    description: 'قراءة المهام الفعلية للشركة ومواعيد تسليمها والأولويات ومن المكلف بها.',
+    description: 'استعراض المهام الفعلية لشركة TECHNOLOPIA وفلترتها حسب الحالة أو الشريك المكلف أو الأولوية.',
     parameters: {
       type: 'OBJECT',
       properties: {
+        status: {
+          type: 'STRING',
+          description: 'حالة المهمة (pending, in_progress, completed)',
+          enum: ['pending', 'in_progress', 'completed']
+        },
         assignedTo: {
           type: 'STRING',
           description: 'الشريك المكلف بالمهمة (mohamed, tarek, both)',
           enum: ['mohamed', 'tarek', 'both']
-        },
-        status: {
-          type: 'STRING',
-          description: 'حالة المهمة (todo, in_progress, completed)',
-          enum: ['todo', 'in_progress', 'completed']
         },
         priority: {
           type: 'STRING',
@@ -144,16 +169,132 @@ export const GEMINI_TOOL_DECLARATIONS = [
     }
   },
   {
+    name: 'get_crm_pipeline_summary',
+    description: 'قراءة ملخص مسار المبيعات والعملاء (CRM Pipeline Analytics): إجمالي العملاء، قيمة الصفقات المتوقعة، المبالغ المحصلة فعلياً، المتأخرات، ومعدل التحويل.',
+    parameters: {
+      type: 'OBJECT',
+      properties: {}
+    }
+  },
+  {
     name: 'get_crm_leads',
-    description: 'قراءة قائمة العملاء الحقيقيين المسجلين في CRM ومراحل التواصل والعروض المقدمة.',
+    description: 'قراءة قائمة العملاء الحقيقيين من مستودع Firestore الموحد مع إمكانية الفلترة حسب مرحلة البيع أو الشريك المكلف أو البحث النصي.',
     parameters: {
       type: 'OBJECT',
       properties: {
-        status: {
+        stage: {
           type: 'STRING',
-          description: 'حالة العميل في مسار المبيعات'
+          description: 'مرحلة العميل في دورة البيع (NEW_LEAD, CONTACTED, INTERESTED, PROPOSAL_SENT, NEGOTIATION, WON, LOST)',
+          enum: ['NEW_LEAD', 'CONTACTED', 'INTERESTED', 'PROPOSAL_SENT', 'NEGOTIATION', 'WON', 'LOST']
+        },
+        assignedPartner: {
+          type: 'STRING',
+          description: 'الشريك المكلف بالمتابعة (mohamed, tarek, both)',
+          enum: ['mohamed', 'tarek', 'both']
+        },
+        search: {
+          type: 'STRING',
+          description: 'بحث نصي باسم العميل أو رقم الهاتف أو النشاط التجاري'
         }
       }
+    }
+  },
+  {
+    name: 'get_crm_lead_details',
+    description: 'قراءة التفاصيل الشاملة لعميل محدد من CRM وسجل متابعته واحتياجه وملاحظاته.',
+    parameters: {
+      type: 'OBJECT',
+      properties: {
+        leadId: {
+          type: 'STRING',
+          description: 'معرف العميل (مثال: lead-prince-1794599488944)'
+        }
+      },
+      required: ['leadId']
+    }
+  },
+  {
+    name: 'register_crm_lead',
+    description: 'تسجيل عميل محتمل جديد في مستودع CRM الموحد. يتطلب اعتماد الشريك (isConfirmedByPartner=true) للتنفيذ الفعلي، وإلا يتم إرجاع مسودة للمراجعة.',
+    parameters: {
+      type: 'OBJECT',
+      properties: {
+        businessName: {
+          type: 'STRING',
+          description: 'اسم المنشأة أو العميل (مطلوب)'
+        },
+        phone: {
+          type: 'STRING',
+          description: 'رقم هاتف العميل للتواصل المشروع (مطلوب)'
+        },
+        industry: {
+          type: 'STRING',
+          description: 'مجال النشاط التجاري (مثال: مطاعم وكافيهات، مطابع، تجارة تجزئة)'
+        },
+        softwareNeed: {
+          type: 'STRING',
+          description: 'الاحتياج البرمجي المطلوب'
+        },
+        dealValueEstimate: {
+          type: 'NUMBER',
+          description: 'القيمة التقديرية للصفقة بالجنيه المصري'
+        },
+        assignedPartner: {
+          type: 'STRING',
+          description: 'الشريك المكلف بالمتابعة (mohamed أو tarek)',
+          enum: ['mohamed', 'tarek', 'both']
+        },
+        isConfirmedByPartner: {
+          type: 'BOOLEAN',
+          description: 'تأكيد صريح من الشريك لتنفيذ التسجيل الفعلي في قاعدة البيانات'
+        }
+      },
+      required: ['businessName', 'phone']
+    }
+  },
+  {
+    name: 'update_crm_lead_stage',
+    description: 'تحديث مرحلة عميل في مسار المبيعات وفق المراحل السبع المعتمدة. يتطلب اعتماد الشريك (isConfirmedByPartner=true) للتنفيذ الفعلي.',
+    parameters: {
+      type: 'OBJECT',
+      properties: {
+        leadId: {
+          type: 'STRING',
+          description: 'معرف العميل'
+        },
+        targetStage: {
+          type: 'STRING',
+          description: 'المرحلة المستهدفة',
+          enum: ['CONTACTED', 'INTERESTED', 'PROPOSAL_SENT', 'NEGOTIATION', 'WON', 'LOST']
+        },
+        note: {
+          type: 'STRING',
+          description: 'ملاحظة توثيقية لسبب الانتقال'
+        },
+        isConfirmedByPartner: {
+          type: 'BOOLEAN',
+          description: 'تأكيد صريح من الشريك لتنفيذ التحديث الفعلي'
+        }
+      },
+      required: ['leadId', 'targetStage']
+    }
+  },
+  {
+    name: 'draft_sales_proposal',
+    description: 'صياغة استراتيجية مبيعات ومسودة عرض سعر مخصص لعميل وحفظه كمسودة غير ملزمة تتطلب موافقة الشريكين.',
+    parameters: {
+      type: 'OBJECT',
+      properties: {
+        leadId: {
+          type: 'STRING',
+          description: 'معرف العميل المستهدف'
+        },
+        customPitchAngle: {
+          type: 'STRING',
+          description: 'زاوية العرض المقترحة أو التركيز المطلوب'
+        }
+      },
+      required: ['leadId']
     }
   },
   {
